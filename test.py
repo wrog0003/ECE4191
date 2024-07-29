@@ -1,0 +1,1 @@
+from Pleasework import wish as rip 
