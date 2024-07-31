@@ -1,38 +1,41 @@
-# ECE4191 29/07/2024 Emma Vladicic 
-# Basic progam to test functionality of motors with Raspberry Pi 
+# ECE4191 31/07/2024 Emma Vladicic 
+# Using Raspberry Pi Robotics Library to Drive motors forwards, backwards and reverse 
 
-# LOOK INTO USING Robot functionality 
-# https://projects.raspberrypi.org/en/projects/physical-computing/14
+from gpiozero import Robot 
+from time import sleep 
 
+# assign Rpi GPIO pins for M1 (left motor)
+left_forward = 27
+left_back = 17
 
-import RPi.GPIO as GPIO 
-import time 
+# assign Rpi GPIO pins for M2 (right motor)
+right_forward = 23
+right_back = 24
 
-# configure the GPIO pins MIGHT NEED TO CHANGE 
+# Initialise the robot 
+robot = Robot(left =(left_forward,left_back), right = (right_forward, right_back)) 
 
-# inputs for motor 1 
-IN1 = 17 # input 1
-IN2 = 18 # input 2 
-EN = 19 # enable 
+# decide on robot speed 
+speed = 1
 
-# enable GPIO 
+while True:
+# Move the robot forwards 
+    robot.forward(speed)
 
-GPIO.setmode(GPIO.BCM)  
-GPIO.setup(IN1, GPIO.OUT) 
-GPIO.setup(IN2, GPIO.OUT) 
-GPIO.setup(EN, GPIO.OUT) 
+    sleep(0.5)
 
-# PWM ?? 
+    # Move the robot backwards 
+    robot.backward(speed)
 
+    sleep(0.5)
 
-# set enable pin high 
+    # Move the robot left 
+    robot.left(speed)
 
-def motor_forward():
-    GPIO.output(IN1, GPIO.HIGH)
-    GPIO.output(IN2, GPIO.LOW)
+    sleep(0.5)
 
+    # Move the robot right 
+    robot.right(speed)
 
-
-
-
-
+    # Reverse the robot 
+    robot.reverse(speed)
