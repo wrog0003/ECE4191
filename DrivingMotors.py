@@ -24,8 +24,8 @@ right_back = 24
 
 
 # Sets up GPIO Pins as outputs
-# A: Froward
-# B: Backward
+# A: Backwards
+# B: Forwards
 motor1a = 17
 motor1b = 27
 motor2a = 23
@@ -37,21 +37,25 @@ GPIO.setup(motor1b, GPIO.OUT)
 GPIO.setup(motor2a, GPIO.OUT)
 GPIO.setup(motor2b, GPIO.OUT) 
 
+def backwards(duty_cycle, stop_cmd):
+    #Duty cycle between 0-100
+    pwm1a = GPIO.PWM(motor1a,1000)
+    pwm1b = GPIO.PWM(motor1b,1000)
+    pwm2a = GPIO.PWM(motor2a,1000)
+    pwm2b = GPIO.PWM(motor2b,1000)
 
-pwm1a = GPIO.PWM(motor1a,1000)
-pwm1b = GPIO.PWM(motor1b,1000)
-pwm2a = GPIO.PWM(motor2a,1000)
-pwm2b = GPIO.PWM(motor2b,1000)
 
-# Motor driving forward
-pwm1a.start(50)
-pwm1b.start(0)
-pwm2a.start(50)
-pwm2b.start(0)
+    while stop_cmd != 1:
+        # Motor driving Backwards
+        pwm1a.start(duty_cycle)
+        pwm1b.start(0)
+        pwm2a.start(duty_cycle)
+        pwm2b.start(0)
 
-sleep(10)
-
-pwm1a.stop()
-pwm1b.stop()
-GPIO.cleanup()
+    pwm1a.stop()
+    pwm1b.stop()
+    pwm2a.stop()
+    pwm2b.stop()
     
+    
+backwards(0.5,0)
