@@ -50,6 +50,7 @@ pwm2b = GPIO.PWM(motor2b,1000)
 
     #while stop_cmd != 1:
         # Motor driving Backwards
+duty_cycle = 50
 pwm1a.start(duty_cycle)
 pwm1b.start(0)
 pwm2a.start(duty_cycle)
@@ -61,7 +62,7 @@ pwm2a.stop()
 pwm2b.stop()
     
     
-backwards(0.5,0)
+#backwards(0.5,0)
 
 
 def fowards(duty_cycle, stop_cmd):
