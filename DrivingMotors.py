@@ -40,6 +40,8 @@ GPIO.setup(motor2b, GPIO.OUT)
 
 pwm1a = GPIO.PWM(motor1a,1000)
 pwm1b = GPIO.PWM(motor1b,1000)
+pwm2a = GPIO.PWM(motor2a,1000)
+pwm2b = GPIO.PWM(motor2b,1000)
 
 # Motor driving forward
 pwm1a.start(50)
