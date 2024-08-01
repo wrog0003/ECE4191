@@ -22,7 +22,8 @@ right_back = 24
     
 #    return duty_cycle, e_sum
 
-
+GPIO.cleanup()
+stop_cmd = 0
 # Sets up GPIO Pins as outputs
 # A: Backwards
 # B: Forwards
@@ -45,30 +46,25 @@ pwm1b = GPIO.PWM(motor1b,1000)
 pwm2a = GPIO.PWM(motor2a,1000)
 pwm2b = GPIO.PWM(motor2b,1000)
 
-#def backwards(duty_cycle, stop_cmd):
+def backwards(duty_cycle):
     #Duty cycle between 0-100
 
-    #while stop_cmd != 1:
+    while stop_cmd != 1:
         # Motor driving Backwards
-duty_cycle = 50
-pwm1a.start(duty_cycle)
-pwm1b.start(0)
-pwm2a.start(duty_cycle)
-pwm2b.start(0)
+        pwm1a.start(duty_cycle)
+        pwm1b.start(0)
+        pwm2a.start(duty_cycle)
+        pwm2b.start(0)
 
-pwm1a.stop()
-pwm1b.stop()
-pwm2a.stop()
-pwm2b.stop()
+    pwm1a.stop()
+    pwm1b.stop()
+    pwm2a.stop()
+    pwm2b.stop()
 
-sleep(10)
-GPIO.cleanup()
-    
-    
-#backwards(0.5,0)
+        
 
 
-def fowards(duty_cycle, stop_cmd):
+def fowards(duty_cycle):
  
     # duty cycle between 0 - 100
 
@@ -86,7 +82,7 @@ def fowards(duty_cycle, stop_cmd):
     pwm2b.stop()
 
 
-def left(duty_cycle, stop_cmd):
+def left(duty_cycle):
     # duty cycle between 0 - 100
 
     while stop_cmd !=1:
@@ -102,7 +98,7 @@ def left(duty_cycle, stop_cmd):
     pwm2a.stop()
     pwm2b.stop()
 
-def right(duty_cycle, stop_cmd):
+def right(duty_cycle):
     # duty cycle between 0 - 100
 
     while stop_cmd != 1:
@@ -118,3 +114,6 @@ def right(duty_cycle, stop_cmd):
     pwm2a.stop()
     pwm2b.stop()
 
+
+
+right(50)
