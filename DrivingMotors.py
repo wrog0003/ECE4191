@@ -60,6 +60,9 @@ pwm1a.stop()
 pwm1b.stop()
 pwm2a.stop()
 pwm2b.stop()
+
+sleep(10)
+GPIO.cleanup()
     
     
 #backwards(0.5,0)
@@ -114,3 +117,4 @@ def right(duty_cycle, stop_cmd):
     pwm1b.stop()
     pwm2a.stop()
     pwm2b.stop()
+
