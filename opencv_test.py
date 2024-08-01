@@ -1,6 +1,8 @@
 '''
 Based of of https://pyimagesearch.com/2015/09/14/ball-tracking-with-opencv2/
+Depeding on what platform you are using check TODO comments as they define setup
 '''
+
 import cv2
 from time import sleep as sl
 
@@ -10,7 +12,8 @@ print("hello world")
 greenLower = (29, 86, 30) # ball colour
 greenUpper = (64, 255, 255)
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW) # get access to camera, still need testing with rpi 
+#cap = cv2.VideoCapture(0, cv2.CAP_DSHOW) # use for webcam TODO 
+cap = cv2.VideoCapture(0) # use for rpi  TODO 
 sl(1)
 result, image = cap.read()
 midpoint = image.shape[1]/2  
@@ -77,7 +80,7 @@ while True:
                 print("right")
            
             
-        cv2.imshow("fred",frame)
+        #cv2.imshow("fred",frame) # comment out if using rpi TODO 
         sl(0.2)
 
         
