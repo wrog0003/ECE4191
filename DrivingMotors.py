@@ -1,4 +1,4 @@
-# ECE4191 31/07/2024 Emma Vladicic 
+# ECE4191 31/07/2024 
 # Using Raspberry Pi Robotics Library to Drive motors forwards, backwards and reverse 
 
 from gpiozero import Robot 
@@ -25,17 +25,17 @@ while True:
     sleep(0.5)
 
     # Move the robot backwards 
-    robot.backward(speed)
+    robot.backward()
 
     sleep(0.5)
 
     # Move the robot left 
-    robot.left(speed)
+    robot.left()
 
     sleep(0.5)
 
     # Move the robot right 
-    robot.right(speed)
+    robot.right()
 
     # Reverse the robot 
-    robot.reverse(speed)
+    robot.reverse()
