@@ -1,8 +1,7 @@
 # ECE4191 31/07/2024 
-# Using Raspberry Pi Robotics Library to Drive motors forwards, backwards and reverse 
-# was sucessful 
+# Using Raspberry Pi to Drive motors forwards, backwards and reverse 
 
-from gpiozero import Robot 
+import RPi.GPIO as GPIO 
 from time import sleep 
 
 # assign Rpi GPIO pins for M1 (left motor)
@@ -13,30 +12,44 @@ left_back = 17
 right_forward = 23
 right_back = 24
 
-# Initialise the robot 
-robot = Robot(left =(left_forward,left_back), right = (right_forward, right_back)) 
+# PI controller to achieve desired duty cycele
+# Source: Unit GIT Page
 
-# decide on robot speed 
-speed = 1
+#def pwm_control(w_desired,w_measured,Kp,Ki,e_sum):
+    
+#    duty_cycle = min(max(0,Kp*(w_desired-w_measured) + Ki*e_sum),1)
+#    e_sum = e_sum + w_desired-w_measured
+    
+#    return duty_cycle, e_sum
 
-while True:
-# Move the robot forwards 
-    robot.forward(speed)
 
-    sleep(0.5)
+# Sets up GPIO Pins as outputs
+# A: Froward
+# B: Backward
+motor1a = 17
+motor1b = 27
+motor2a = 23
+motor2b = 24
 
-    # Move the robot backwards 
-    robot.backward()
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(motor1a, GPIO.OUT) 
+GPIO.setup(motor1b, GPIO.OUT)
+GPIO.setup(motor2a, GPIO.OUT)
+GPIO.setup(motor2b, GPIO.OUT) 
 
-    sleep(0.5)
 
-    # Move the robot left 
-    robot.left()
+pwm1a = GPIO.PWM(motor1a,1000)
+pwm1b = GPIO.PWM(motor1b,1000)
 
-    sleep(0.5)
+# Motor driving forward
+pwm1a.start(50)
+pwm1b.start(0)
+pwm2a.start(50)
+pwm2b.start(0)
 
-    # Move the robot right 
-    robot.right()
+sleep(10)
 
-    # Reverse the robot 
-    robot.reverse()
+pwm1a.stop()
+pwm1b.stop()
+GPIO.cleanup()
+    
