@@ -46,7 +46,7 @@ pwm1b = GPIO.PWM(motor1b,1000)
 pwm2a = GPIO.PWM(motor2a,1000)
 pwm2b = GPIO.PWM(motor2b,1000)
 
-def backwards(duty_cycle):
+def backwards(duty_cycle:float):
     #Duty cycle between 0-100
 
     while stop_cmd != 1:
@@ -64,7 +64,7 @@ def backwards(duty_cycle):
         
 
 
-def fowards(duty_cycle):
+def fowards(duty_cycle:float):
  
     # duty cycle between 0 - 100
 
@@ -82,7 +82,7 @@ def fowards(duty_cycle):
     pwm2b.stop()
 
 
-def left(duty_cycle):
+def left(duty_cycle:float):
     # duty cycle between 0 - 100
 
     while stop_cmd !=1:
@@ -98,7 +98,7 @@ def left(duty_cycle):
     pwm2a.stop()
     pwm2b.stop()
 
-def right(duty_cycle):
+def right(duty_cycle:float):
     # duty cycle between 0 - 100
 
     while stop_cmd != 1:
