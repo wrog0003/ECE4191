@@ -99,9 +99,10 @@ class LineDetection:
         lines = cv2.HoughLines(edges, rho_set, theta_set, threshold)
 
         if lines is None:
-            print("There are no boundary lines detected")
+            flag = 0 # set flag to 0 -> no boundary line detected 
+            
         else:
-            print("At least one boundary line has been detected")
+            flag = 1 # set flag to 1 to indicate that you are close to a boundary line 
 
             k = 1000; 
 
@@ -126,6 +127,7 @@ class LineDetection:
 
         # save the image as a new file 
         cv2.imwrite('LineDetection.jpg', cropped_image)
+        return flag
 
 
 # Simple Script for Testing, do not use of Rpi
@@ -144,7 +146,12 @@ if __name__ == "__main__":
         CroppedImage = Test.ImportImage()
         White = Test.WhiteFilter(CroppedImage)
         Edge = Test.EdgeDetection(White)
-        Test.HoughLineTransform(CroppedImage,Edge)
+        flag = Test.HoughLineTransform(CroppedImage,Edge)
+
+        if flag == True:
+            print("At least one boundary line has been detected")
+        else:
+            print("No boundary line has been detected")
 
 
 
