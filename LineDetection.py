@@ -1,77 +1,150 @@
-# Line Detection Script, 2/8/24 
-# Script to find a line on a tennis ball court, using a test image from the Internet 
-# Still need to work out how to interface this with the Pi Camera 
+# Line Detection Script, Emma Vladicic
+# Last edit: 5/8/24 : Made this into a class for better readability and functionality 
+# Script to find a boundary line on a tennis ball court, using a test images from the Internet 
 
-# source: https://www.geeksforgeeks.org/line-detection-python-opencv-houghline-method/
+# Uses live feed from desktop camera and tries to find lines
+# TO DO 
+# connect the Rpi camera, take it to the tennis courts and actually test it   
+
+# Testing Notes
+# Parameters that might need to be changed depending on how testing on the tennis court goes 
+# crop amount, 
+# Source: https://www.geeksforgeeks.org/line-detection-python-opencv-houghline-method/
 # with help from https://chatgpt.com/c/3e4f3e64-92c7-4627-8ba4-9b14a0de68a8
 
 import cv2 
 import numpy as np
 
-# Step 1: import the image, convert to grayscale and filter 
-colour_image = cv2.imread('test2.jpg')
-image = cv2.cvtColor(colour_image, cv2.COLOR_BGR2GRAY)
+# define a class called LineDetection
+class LineDetection:
 
-# apply a mask that filters out non-white pixels 
+    def __init__(self, Rpi: bool = True) -> None: # initiate the constructor
+        self.Rpi = Rpi
 
-# define RGB upper and lower bounds for the colour white 
-white_lower = np.array([150, 150, 150])
-white_upper = np.array([255, 255, 255])
+        # start video capture
 
-mask_white = cv2.inRange(colour_image, white_lower, white_upper) # create a mask 
-white = cv2.bitwise_and(colour_image,colour_image,mask=mask_white)
-cv2.imwrite('whiteimage.jpg', white)
+        if Rpi: 
+            self.cap = cv2.VideoCapture(0)
+        else:
+            self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-# Step 2: Apply Canny edge detection
+        # capture first frame 
+        result, colour_image = self.cap.read()
 
-# determine the threshold values for the Canny edge detection.
-# set the thresholds by computing the median of the pixel intensities 
 
-median_intensity = np.median(white)
+    def ImportImage(self): # import the image & crop it for more efficient processing 
+        
+        # read the image
+        result, colour_image = self.cap.read()
+        cv2.imwrite('OGimage.jpg', colour_image)
 
-# set thresholds based on the median intensitiy 
 
-percentage = 0.33 # value to adjust the median intensity
+        # retrieve the height and width of the image 
+        height, width = colour_image.shape[: 2]
 
-low_threshold = int(max(0, (1-percentage)*median_intensity)) # decreases median intensity by 33%
-high_threshold = int(min(255, (1+percentage)*median_intensity)) # increases median intensity by 33%
+        # crop image so that only bottom third is being analysed4
+        crop_amount = 0.66 # percentage of image height to crop out
+        height_min = int(height*crop_amount) # minimum pixel height 
 
-# note that in greyscale, 0 is black and 255 is white
+        # crop the image
+        cropped_image = colour_image[height_min:height, 0:width] 
+        cv2.imwrite('cropped_image.jpg', cropped_image)
 
-# apply Guassian blur for noise reduction
+        return cropped_image # return the cropped image 
 
-blurred = cv2.GaussianBlur(white, (5,5), 0)
 
-# apply edge detection 
-edges = cv2.Canny(blurred, low_threshold, high_threshold)
+    def WhiteFilter(self, cropped_image): # apply a mask that filters out non-white pixels 
+        # define RGB upper and lower bounds for white 
+        white_lower = np.array([150, 150, 150])
+        white_upper = np.array([255, 255, 255])
 
-# apply the Hough Line Transform 
+        mask_white = cv2.inRange(cropped_image, white_lower, white_upper) # create a mask 
+        white = cv2.bitwise_and(cropped_image,cropped_image,mask=mask_white) # filter out non white pixels
+        cv2.imwrite('whiteimage.jpg', white)
 
-# set parameters 
-rho_set = 1
-theta_set = np.pi/180
-threshold = 200 # subject to adjustment
+        return white # return the balck & white image
+    
+    def EdgeDetection(self, white): # apply edge detection and Guassian Blur
+        # apply Guassian blur for noise reduction
 
-lines = cv2.HoughLines(edges, rho_set, theta_set, threshold)
+        blurred = cv2.GaussianBlur(white, (5,5), 0)
 
-for line in lines:
+        # determine the threshold values for the Canny edge detection.
+        # set the thresholds by computing the median of the pixel intensities 
 
-    rho, theta = line[0]
+        median_intensity = np.median(white)
 
-    a = np.cos(theta) 
-    b = np.sin(theta)
+        # set thresholds based on the median intensitiy 
 
-    x0 = a*rho
-    y0 = b*rho
+        percentage = 0.33 # value to adjust the median intensity
 
-    x1 = int(x0 + 1000*(-b))
-    y1 = int(y0 + 1000*(a))
-    x2 = int(x0 - 1000*(-b))
-    y2 = int(y0 - 1000*(a))
+        low_threshold = int(max(0, (1-percentage)*median_intensity)) # decreases median intensity by 33%
+        high_threshold = int(min(255, (1+percentage)*median_intensity)) # increases median intensity by 33%
 
-    # draw the boundary lines in red 
-    cv2.line(colour_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+        # note that in greyscale, 0 is black and 255 is white
 
-# save the image as a new file 
-cv2.imwrite('LineDetection.jpg', colour_image)
+        # apply edge detection 
+        edges = cv2.Canny(blurred, low_threshold, high_threshold)
+
+        return edges # retrun the image with all the edges
+
+    def HoughLineTransform(self, cropped_image, edges):
+        # apply the Hough Line Transform 
+
+        # set parameters 
+        rho_set = 1
+        theta_set = np.pi/180
+        threshold = 200 # subject to adjustment
+
+        lines = cv2.HoughLines(edges, rho_set, theta_set, threshold)
+
+        if lines is None:
+            print("There are no boundary lines detected")
+        else:
+            print("At least one boundary line has been detected")
+
+            k = 1000; 
+
+            for line in lines:
+
+                # Find two points on the line so that a straight line can be drawn through it 
+                rho, theta = line[0]
+                
+                a = np.cos(theta) 
+                b = np.sin(theta)
+
+                x0 = a*rho 
+                y0 = b*rho
+
+                x1 = int(x0 + k*(-b))
+                y1 = int(y0 + k*(a))
+                x2 = int(x0 - k*(-b))
+                y2 = int(y0 - k*(a))
+
+                # draw the boundary lines in red 
+                cv2.line(cropped_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+
+        # save the image as a new file 
+        cv2.imwrite('LineDetection.jpg', cropped_image)
+
+
+# Simple Script for Testing, do not use of Rpi
+
+if __name__ == "__main__":
+    from time import sleep
+    Test = LineDetection(False)
+    sleep(0.5) # wait for camera 
+
+    while(True):
+        # use esc to exit loop 
+        key = cv2.waitKey(27)
+        if key == 27: # ESC key pressed 
+            break
+
+        CroppedImage = Test.ImportImage()
+        White = Test.WhiteFilter(CroppedImage)
+        Edge = Test.EdgeDetection(White)
+        Test.HoughLineTransform(CroppedImage,Edge)
+
+
 
