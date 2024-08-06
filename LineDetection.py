@@ -24,20 +24,23 @@ class LineDetection:
         # start video capture
 
         if Rpi: 
-            self.cap = cv2.VideoCapture(0)
+            self.cap = cv2.VideoCapture(1)
         else:
             self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
         # capture first frame 
         result, colour_image = self.cap.read()
+        
 
 
     def ImportImage(self): # import the image & crop it for more efficient processing 
-        
+
         # read the image
         result, colour_image = self.cap.read()
         cv2.imwrite('OGimage.jpg', colour_image)
 
+        # display the image on laptop FOR TESTING ONLY
+        cv2.imshow("input", colour_image)
 
         # retrieve the height and width of the image 
         height, width = colour_image.shape[: 2]
@@ -67,7 +70,9 @@ class LineDetection:
     def EdgeDetection(self, white): # apply edge detection and Guassian Blur
         # apply Guassian blur for noise reduction
 
-        blurred = cv2.GaussianBlur(white, (5,5), 0)
+        blurred = cv2.GaussianBlur(white, (15,15), 0)
+
+        cv2.imwrite('blurredimage.jpg', blurred)
 
         # determine the threshold values for the Canny edge detection.
         # set the thresholds by computing the median of the pixel intensities 
@@ -134,7 +139,7 @@ class LineDetection:
 
 if __name__ == "__main__":
     from time import sleep
-    Test = LineDetection(False)
+    Test = LineDetection(True)
     sleep(0.5) # wait for camera 
 
     while(True):

@@ -1,7 +1,7 @@
 import cv2
 
 #input your device number here.  For me it was 2.
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cap = cv2.VideoCapture(1)
 
 while True:
     ret, img = cap.read()
