@@ -6,6 +6,7 @@ class STATE (Enum):
     turnAround =3 
     turn2Ball = 4 # use for milestone 1
     move2Ball = 5 # use for milestone 1 
+    null = 6
 
 class DIRECTION (Enum):
     Left =1

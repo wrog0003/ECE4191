@@ -2,7 +2,7 @@ import cv2
 from ECE4191enums import DIRECTION
 
 
-class Vision:
+class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (64, 255, 255)
@@ -18,7 +18,7 @@ class Vision:
         result, image = self.cap.read()
         self.midpoint = image.shape[1]/2 
     #detect
-    def detect(self)->DIRECTION:
+    def detect(self)->tuple[DIRECTION,bool]:
         result, image = self.cap.read()
         if result:
             # blur to reduce artifacts
