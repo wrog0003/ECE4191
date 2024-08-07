@@ -12,6 +12,11 @@ left_back = 17
 right_forward = 23
 right_back = 24
 
+# In1 - 27
+# In2 - 17
+# In3 - 23
+# In4 - 24
+
 # PI controller to achieve desired duty cycele
 # Source: Unit GIT Page
 
