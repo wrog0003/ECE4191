@@ -1,3 +1,5 @@
+# Enums for readibility by Warren Rogan
+
 from enum import Enum
 
 class STATE (Enum):

@@ -24,7 +24,7 @@ class LineDetection:
         # start video capture
 
         if Rpi: 
-            self.cap = cv2.VideoCapture(1)
+            self.cap = cv2.VideoCapture(1) # to use rpi camera not rpi computer 
         else:
             self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
@@ -56,7 +56,7 @@ class LineDetection:
         return cropped_image # return the cropped image 
 
 
-    def WhiteFilter(self, cropped_image): # apply a mask that filters out non-white pixels 
+    def WhiteFilter(self, cropped_image:cv2.Mat)->cv2.Mat: # apply a mask that filters out non-white pixels 
         # define RGB upper and lower bounds for white 
         white_lower = np.array([150, 150, 150])
         white_upper = np.array([255, 255, 255])
@@ -67,7 +67,7 @@ class LineDetection:
 
         return white # return the balck & white image
     
-    def EdgeDetection(self, white): # apply edge detection and Guassian Blur
+    def EdgeDetection(self, white:cv2.Mat)->cv2.Mat: # apply edge detection and Guassian Blur
         # apply Guassian blur for noise reduction
 
         blurred = cv2.GaussianBlur(white, (15,15), 0)
@@ -93,7 +93,7 @@ class LineDetection:
 
         return edges # retrun the image with all the edges
 
-    def HoughLineTransform(self, cropped_image, edges):
+    def HoughLineTransform(self, cropped_image:cv2.Mat, edges)->bool:
         # apply the Hough Line Transform 
 
         # set parameters 
@@ -104,10 +104,10 @@ class LineDetection:
         lines = cv2.HoughLines(edges, rho_set, theta_set, threshold)
 
         if lines is None:
-            flag = 0 # set flag to 0 -> no boundary line detected 
+            flag = False # set flag to 0 -> no boundary line detected 
             
         else:
-            flag = 1 # set flag to 1 to indicate that you are close to a boundary line 
+            flag = True # set flag to 1 to indicate that you are close to a boundary line 
 
             k = 1000; 
 
@@ -157,6 +157,7 @@ if __name__ == "__main__":
             print("At least one boundary line has been detected")
         else:
             print("No boundary line has been detected")
+        sleep(0.1) #reduce load
 
 
 

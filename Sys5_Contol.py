@@ -1,3 +1,5 @@
+# overall brains script for robot, written by Warren Rogan 
+
 from ECE4191enums import STATE, DIRECTION
 from Sys1_Balls import Sys1_Balls
 from Sys3_SLAM import Sys3_SLAM
@@ -28,12 +30,51 @@ class Sys5_Control:
         GPIO.setup(self.motorLPins[1],GPIO.OUT)
         GPIO.setup(self.motorRPins[0],GPIO.OUT)
         GPIO.setup(self.motorRPins[1],GPIO.OUT)
+
+    def _unloadBall(self)->None:
+        pass 
+        # TODO
     
+    def _return2Home(self)->None:
+        pass 
+        #TODO
+    
+    def _turnAround(self,amount: float )->None:
+        pass 
+        #TODO
+
+    
+    def _move2Ball(self)->None:
+        #TODO
+        pass 
+    
+    #brains of the robot 
     def run(self)->None:
         while True:
             #get sensor data
             [desiredDirection, boundry] = self.vision.detect()
-            ballCount = self.ballCounter.getCount()
+            full = self.ballCounter.isFull() 
+            [X, Y, rot, home] = self.localisation.getLocationRot() 
+
+            #decide what to do 
+            if home:
+                self._unloadBall()
+                #TODO
+            elif full:
+                self._return2Home()
+                #TODO
+            elif boundry:
+                self._turnAround(180)
+            elif desiredDirection== DIRECTION.CannotFind:
+                self._turnAround(45)
+            elif desiredDirection == DIRECTION.Ahead:
+                self._move2Ball()
+            elif desiredDirection == DIRECTION.Left:
+                self._turnAround(5)
+            elif desiredDirection == DIRECTION.Right:
+                self._turnAround(-5)
+
+
 
 
 

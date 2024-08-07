@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 
+# this class should be connected to a normally closed switch so that if the connection is bad it is easy to detect 
 
 class Sys1_Balls:
     #setup 
@@ -13,11 +14,12 @@ class Sys1_Balls:
         self.count = 0
 
     # check if full
-    def isFull(self)->int:
+    def isFull(self)->bool:
         return self.count >= 4
     
-    #
+    #start detecting balls
     def run(self)->None: 
+        GPIO.add_event_detect(self.sensor,GPIO.FALLING,callback=_addBall,bouncetime=100)
 
-    def _addBall(self)->None:
+    def _addBall(self,channel)->None:
         self.count =self.count+1
