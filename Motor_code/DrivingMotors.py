@@ -29,13 +29,17 @@ right_back = 24
 
 GPIO.cleanup()
 stop_cmd = 0
+
+# Motor one: In1 and In2 which drives the right motor 
+# Motor two: In3 and In4 which drives the left motor
+
 # Sets up GPIO Pins as outputs
 # A: Backwards
 # B: Forwards
 motor1a = 17
 motor1b = 27
-motor2a = 23
-motor2b = 24
+motor2a = 5
+motor2b = 6
 
 # Set up GPIO pins
 GPIO.setmode(GPIO.BCM)
@@ -67,19 +71,17 @@ def backwards(duty_cycle:float):
     pwm2b.stop()
 
         
-
-
 def fowards(duty_cycle:float):
  
     # duty cycle between 0 - 100
 
-    while stop_cmd !=1:
+    #while stop_cmd !=1:
         
         # drive the motor forwards 
-        pwm1a.start(0)
-        pwm1b.start(duty_cycle)
-        pwm2a.start(0)
-        pwm2b.start(duty_cycle)
+    pwm1a.start(0)
+    pwm1b.start(duty_cycle)
+    pwm2a.start(0)
+    pwm2b.start(duty_cycle)
 
     pwm1a.stop()
     pwm1b.stop()
@@ -103,6 +105,7 @@ def left(duty_cycle:float):
     pwm2a.stop()
     pwm2b.stop()
 
+
 def right(duty_cycle:float):
     # duty cycle between 0 - 100
 
@@ -119,6 +122,4 @@ def right(duty_cycle:float):
     pwm2a.stop()
     pwm2b.stop()
 
-
-
-right(50)
+fowards(50)
