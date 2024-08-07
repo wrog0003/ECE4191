@@ -1,3 +1,5 @@
+# Vision system code by Warren Rogan and Emma Vladicic
+
 import cv2
 from ECE4191enums import DIRECTION
 
@@ -6,6 +8,7 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (64, 255, 255)
+
     #init
     def __init__(self, rpi: bool = True, tolerence: int =30 )-> None:
         self.tolerence = tolerence
@@ -17,6 +20,7 @@ class Sys4_Vision:
 
         result, image = self.cap.read()
         self.midpoint = image.shape[1]/2 
+        
     #detect
     def detect(self)->tuple[DIRECTION,bool]:
         result, image = self.cap.read()

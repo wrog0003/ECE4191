@@ -1,3 +1,5 @@
+# overall brains script for robot, written by Warren Rogan 
+
 from ECE4191enums import STATE, DIRECTION
 from Sys1_Balls import Sys1_Balls
 from Sys3_SLAM import Sys3_SLAM
