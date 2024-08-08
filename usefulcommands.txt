@@ -1,2 +1,11 @@
 configure wifi details 
 sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+
+apply wifi details 
+sudo wpa_supplicant -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf 
+
+change network 
+sudo nmtui
+
+list aviaalbe networks 
+nmcli dev wifi list
