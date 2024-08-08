@@ -4,14 +4,6 @@
 import RPi.GPIO as GPIO 
 from time import sleep 
 
-# assign Rpi GPIO pins for M1 (left motor)
-left_forward = 27
-left_back = 17
-
-# assign Rpi GPIO pins for M2 (right motor)
-right_forward = 23
-right_back = 24
-
 # In1 - 27
 # In2 - 17
 # In3 - 23
@@ -27,8 +19,12 @@ right_back = 24
     
 #    return duty_cycle, e_sum
 
-GPIO.cleanup()
-stop_cmd = 0
+#GPIO.cleanup()
+#stop_cmd = 0
+
+# Motor one: In1 and In2 which drives the right motor 
+# Motor two: In3 and In4 which drives the left motor
+
 # Sets up GPIO Pins as outputs
 # A: Backwards
 # B: Forwards
@@ -51,6 +47,8 @@ pwm1b = GPIO.PWM(motor1b,1000)
 pwm2a = GPIO.PWM(motor2a,1000)
 pwm2b = GPIO.PWM(motor2b,1000)
 
+
+
 def backwards(duty_cycle:float):
     #Duty cycle between 0-100
 
@@ -67,24 +65,21 @@ def backwards(duty_cycle:float):
     pwm2b.stop()
 
         
-
-
 def fowards(duty_cycle:float):
- 
     # duty cycle between 0 - 100
 
-    while stop_cmd !=1:
+    #while stop_cmd !=1:
         
         # drive the motor forwards 
-        pwm1a.start(0)
-        pwm1b.start(duty_cycle)
-        pwm2a.start(0)
-        pwm2b.start(duty_cycle)
+    pwm1a.start(0)
+    pwm1b.start(duty_cycle)
+    pwm2a.start(0)
+    pwm2b.start(duty_cycle)
 
-    pwm1a.stop()
-    pwm1b.stop()
-    pwm2a.stop()
-    pwm2b.stop()
+    #pwm1a.stop()
+    #pwm1b.stop()
+    #pwm2a.stop()
+    #pwm2b.stop()
 
 
 def left(duty_cycle:float):
@@ -103,6 +98,7 @@ def left(duty_cycle:float):
     pwm2a.stop()
     pwm2b.stop()
 
+
 def right(duty_cycle:float):
     # duty cycle between 0 - 100
 
@@ -120,5 +116,12 @@ def right(duty_cycle:float):
     pwm2b.stop()
 
 
+try:
+    while True:
+        fowards(25) 
 
-right(50)
+except KeyboardInterrupt:
+    # Cleanup GPIO settings before exiting
+    GPIO.cleanup()
+    print("GPIO cleanup done. Exiting gracefully.")
+
