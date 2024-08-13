@@ -7,23 +7,23 @@ from ECE4191enums import DIRECTION
 class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
-    greenUpper = (64, 255, 255)
+    greenUpper = (64, 255, 255) # upper limit for the ball color
 
     #init
     def __init__(self, rpi: bool = True, tolerence: int =30 )-> None:
-        self.tolerence = tolerence
-        self.rpi = rpi 
+        self.tolerence = tolerence #tollerence of straight ahead in pixels
+        self.rpi = rpi # define which OS is running
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
             self.cap =cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-        result, image = self.cap.read()
-        self.midpoint = image.shape[1]/2 
+        result, image = self.cap.read() # get the first image 
+        self.midpoint = image.shape[1]/2 # define where the middle of the image is 
         
     #detect
     def detect(self)->tuple[DIRECTION,bool]:
-        result, image = self.cap.read()
+        result, image = self.cap.read() # get image 
         if result:
             # blur to reduce artifacts
             blurred = cv2.GaussianBlur(image, (11, 11), 0)
@@ -38,17 +38,17 @@ class Sys4_Vision:
 
             # init center 
             center = None
-            run = cnts != None and len(cnts)>0 
+            run = cnts != None and len(cnts)>0 # check if contour exists and is not empty
             if run:
                 #get biggest shape
-                c = max(cnts, key=cv2.contourArea)
+                c = max(cnts, key=cv2.contourArea) 
                 M = cv2.moments(c) # get the moments
-                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])) # save the momets in terms of center of area
                 if not self.rpi: #is debugging on laptop
-                    ((x, y), radius) = cv2.minEnclosingCircle(c)
+                    ((x, y), radius) = cv2.minEnclosingCircle(c) 
                     cv2.circle(image, (int(x), int(y)), int(radius),(0, 255, 255), 2) # track perimeter of ball 
                     cv2.circle(image, center, 5, (0, 0, 255), -1) # marks centre 
-                    cv2.imshow("frame",image)
+                    cv2.imshow("frame",image) # show the resulting image 
 
                 if abs(center[0]-self.midpoint)<self.tolerence:
                     return DIRECTION.Ahead
@@ -57,7 +57,7 @@ class Sys4_Vision:
                 else:
                     return DIRECTION.Right
             else:
-                return DIRECTION.CannotFind
+                return DIRECTION.CannotFind # allow for the case that there is no tennis ball in the frame 
 
 
         else:
