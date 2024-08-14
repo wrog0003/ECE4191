@@ -18,49 +18,69 @@ left_count = 0
 right_count = 0
 wheel_diameter = 0.1  # meters
 wheel_base = 0.3  # distance between wheels in meters
-counts_per_revolution = 48
+counts_per_revolution = 24
+
+# Distance per count is the distance the robot travels per encoder count
+# Calculated based on wheel's circumference and encoder resolution
 distance_per_count = (math.pi * wheel_diameter) / counts_per_revolution
 
 def setup():
     GPIO.setmode(GPIO.BCM)
+
+    # Setting up GPIO
     GPIO.setup(ENCODER_LEFT_A, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(ENCODER_LEFT_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(ENCODER_RIGHT_A, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(ENCODER_RIGHT_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    # If event is detected, call the respective functions
     GPIO.add_event_detect(ENCODER_LEFT_A, GPIO.BOTH, callback=update_left_encoder)
     GPIO.add_event_detect(ENCODER_LEFT_B, GPIO.BOTH, callback=update_left_encoder)
     GPIO.add_event_detect(ENCODER_RIGHT_A, GPIO.BOTH, callback=update_right_encoder)
     GPIO.add_event_detect(ENCODER_RIGHT_B, GPIO.BOTH, callback=update_right_encoder)
 
 def update_left_encoder(channel):
+    #Declaring global variable
     global left_count
-    A = GPIO.input(ENCODER_LEFT_A)
-    B = GPIO.input(ENCODER_LEFT_B)
-    if A == B:
-        left_count += 1
+    # Check direction (backward or forward) based on the state of the B channel
+    if GPIO.input(ENCODER_LEFT_A) == GPIO.input(ENCODER_LEFT_B):
+        left_count += 1 #Moving forward
     else:
-        left_count -= 1
+        left_count -= 1 #Moving backward
     update_position()
 
 def update_right_encoder(channel):
+    #Declaring global variable
     global right_count
-    A = GPIO.input(ENCODER_RIGHT_A)
-    B = GPIO.input(ENCODER_RIGHT_B)
-    if A == B:
-        right_count += 1
+    # Check direction (backward or forward) based on the state of the B channel
+    if GPIO.input(ENCODER_RIGHT_A) == GPIO.input(ENCODER_RIGHT_B):
+        right_count += 1 #Moving forward
     else:
-        right_count -= 1
+        right_count -= 1 #Moving backward
     update_position()
 
 def update_position():
-    global x, y, theta, left_count, right_count
-    left_distance = left_count * distance_per_count
-    right_distance = right_count * distance_per_count
-    distance = (left_distance + right_distance) / 2
-    delta_theta = (right_distance - left_distance) / wheel_base
-    theta += delta_theta
-    x += distance * math.cos(theta)
-    y += distance * math.sin(theta)
+    global x, y, theta, last_left_count, last_right_count
+    #last_left_count and last_right_count stores the previous encoder counts
+    #used to determine the number of new counts since the last update
+
+    # Calculating the distance moved by each wheel since last update
+    delta_left = (left_count - last_left_count) * distance_per_count
+    delta_right = (right_count - last_right_count) * distance_per_count
+
+    # Updating last_left_count and last_right_count
+    last_left_count = left_count
+    last_right_count = right_count
+
+    delta_distance = (delta_left + delta_right) / 2 #average distance traveled in a straight line
+    delta_theta = (delta_right - delta_left) / wheel_base #change of orientation of the robot
+
+    # Update position
+    theta += delta_theta #current robot orientation
+    #(x,y) potion of the robot
+    x += delta_distance * math.cos(theta)
+    y += delta_distance * math.sin(theta)
+
 
 def return_to_start():
     global x, y, theta
