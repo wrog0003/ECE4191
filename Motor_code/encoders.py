@@ -28,10 +28,10 @@ def setup():
     GPIO.setmode(GPIO.BCM)
 
     # Setting up GPIO
-    GPIO.setup(ENCODER_LEFT_A, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(ENCODER_LEFT_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(ENCODER_RIGHT_A, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(ENCODER_RIGHT_B, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(ENCODER_LEFT_A, GPIO.IN)
+    GPIO.setup(ENCODER_LEFT_B, GPIO.IN)
+    GPIO.setup(ENCODER_RIGHT_A, GPIO.IN)
+    GPIO.setup(ENCODER_RIGHT_B, GPIO.IN)
 
     # If event is detected, call the respective functions
     GPIO.add_event_detect(ENCODER_LEFT_A, GPIO.BOTH, callback=update_left_encoder)
