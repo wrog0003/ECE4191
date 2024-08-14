@@ -28,6 +28,8 @@ from time import sleep
 # Sets up GPIO Pins as outputs
 # A: Backwards
 # B: Forwards
+# Motor 1: Left Motor 
+# Motor 2: Right Motor 
 motor1a = 17
 motor1b = 27
 motor2a = 23
@@ -52,68 +54,42 @@ pwm2b = GPIO.PWM(motor2b,1000)
 def backwards(duty_cycle:float):
     #Duty cycle between 0-100
 
-    while stop_cmd != 1:
-        # Motor driving Backwards
-        pwm1a.start(duty_cycle)
-        pwm1b.start(0)
-        pwm2a.start(duty_cycle)
-        pwm2b.start(0)
-
-    pwm1a.stop()
-    pwm1b.stop()
-    pwm2a.stop()
-    pwm2b.stop()
+    # Motor driving Backwards
+    pwm1a.start(duty_cycle)
+    pwm1b.start(0)
+    pwm2a.start(duty_cycle)
+    pwm2b.start(0)
 
         
 def fowards(duty_cycle:float):
     # duty cycle between 0 - 100
-
-    #while stop_cmd !=1:
         
-        # drive the motor forwards 
+    # drive the motor forwards 
     pwm1a.start(0)
     pwm1b.start(duty_cycle)
     pwm2a.start(0)
     pwm2b.start(duty_cycle)
 
-    #pwm1a.stop()
-    #pwm1b.stop()
-    #pwm2a.stop()
-    #pwm2b.stop()
-
 
 def left(duty_cycle:float):
     # duty cycle between 0 - 100
 
-    while stop_cmd !=1:
-        
-        # drive the motor forwards 
-        pwm1a.start(0)
-        pwm1b.start(duty_cycle)
-        pwm2a.start(duty_cycle)
-        pwm2b.start(0)
-
-    pwm1a.stop()
-    pwm1b.stop()
-    pwm2a.stop()
-    pwm2b.stop()
+    # drive the motor forwards 
+    pwm1a.start(0)
+    pwm1b.start(duty_cycle)
+    pwm2a.start(duty_cycle)
+    pwm2b.start(0)
 
 
 def right(duty_cycle:float):
     # duty cycle between 0 - 100
 
-    while stop_cmd != 1:
+    # drive the left motor forward 
+    pwm1a.start(duty_cycle)
+    pwm1b.start(0)
+    pwm2a.start(0)
+    pwm2b.start(duty_cycle)
 
-        # drive the left motor forward 
-        pwm1a.start(duty_cycle)
-        pwm1b.start(0)
-        pwm2a.start(0)
-        pwm2b.start(duty_cycle)
-
-    pwm1a.stop()
-    pwm1b.stop()
-    pwm2a.stop()
-    pwm2b.stop()
 
 
 try:
@@ -121,6 +97,10 @@ try:
         fowards(25) 
 
 except KeyboardInterrupt:
+    pwm1a.stop()
+    pwm1b.stop()
+    pwm2a.stop()
+    pwm2b.stop()
     # Cleanup GPIO settings before exiting
     GPIO.cleanup()
     print("GPIO cleanup done. Exiting gracefully.")

@@ -1,5 +1,5 @@
 # ECE4191 6/08/2024 
-# Using Raspberry Pi to recieve encoder data and calculate the distance travelle by the robot.
+# Using Raspberry Pi to recieve encoder data and calculate the distance travelle by a motor.
 
 import RPi.GPIO as GPIO 
 import time
@@ -8,6 +8,7 @@ import time
 cpr = 48
 wheel_diameter = 0.1
 circumference = 3.14159 * wheel_diameter
+gear_ratio = 75
 
 # Setup the GPIO Pins to recieve the encoder pulses. 
 motor1cha = 5
