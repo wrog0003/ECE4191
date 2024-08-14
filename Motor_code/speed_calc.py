@@ -36,11 +36,16 @@ def encoder_callback(channel):
 # - GPIO.Both indicates that this callback function is called whenever there is a 
 #   rising or falling edge on either or the motor GPIO Pins. 
 # - Calls the encoder_callback function when the event occurs. 
+# - If Channel A is leading then this is taken as clockwise. If Channel B is leading then this is anti-clockwise 
+#   Motor1 (Left Motor): Channel A leads B & Motor2 (Right Motor): Channel B leads A -> Back
+#   Motor1 (Left Motor): Channel B leads A & Motor2 (Right Motor): Channel B leads A -> Right 
+#   Motor1 (Left Motor): Channel A leads B & Motor2 (Right Motor): Channel A leads B -> Left 
+#   Motor1 (Left Motor): Channel B leads A & Motor2 (Right Motor): Channel A leads B -> Forward
 GPIO.add_event_detect(motor1cha, GPIO.BOTH, callback=encoder_callback)
 GPIO.add_event_detect(motor1chb, GPIO.BOTH, callback=encoder_callback)
 
 
-time_interval = 1.0  # Time interval in seconds
+time_interval = 0.5  # Time interval in seconds
 
 try:
     while True:
@@ -49,7 +54,7 @@ try:
         if current_time - last_time >= time_interval:
             # Speed calculation
             delta_time = current_time - last_time
-            speed = (encoder_count / delta_time)  # counts per second
+            speed = (encoder_count / delta_time)  # counts per time_interval
             
             # Convert speed to RPM (assuming 1 count per revolution, adjust as necessary)
             rpm = speed * 60
