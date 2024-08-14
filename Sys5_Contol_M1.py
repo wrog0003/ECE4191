@@ -76,7 +76,12 @@ class Sys5_Control:
         angle = 0 #TODO work out angle that the robot should turn 2 reltive to start
         if (abs(self.rot-angle)>Sys5_Control.tollerence):
             #check which direction to turn
-            pass
+            # if diff > 180 degrees turn against conventinal direction
+            #else turn in convential direction 
+            if (abs(self.rot-angle)>180): #against convention
+                self._turn(self.rot >angle)
+            else: 
+                self._turn(not (self.rot>angle)) 
         else:
             self._stop()
             #check location 
@@ -105,7 +110,7 @@ class Sys5_Control:
                 #get sensor data
                 [desiredDirection, boundry] = self.vision.detect()
                 
-                [X, Y, self.rot, home] = self.localization.getLocationRot() 
+                [X, Y, self.rot, home] = self.localization.getLocationRot()  #make sure self.rot is limited to -180->180
 
                 #decide what to do 
                 if desiredDirection== DIRECTION.CannotFind:
