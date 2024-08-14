@@ -6,6 +6,7 @@ from Sys3_SLAM import Sys3_SLAM
 from Sys4_Vision import Sys4_Vision
 
 from time import sleep
+from math import sqrt, atan2, pi
 
 import RPi.GPIO as GPIO
 
@@ -20,21 +21,26 @@ untimed functions get called then return to main loop
 class Sys5_Control:
     # init function to set up everything
     angleRotationSpeed = 5 #time in seconds per degree of rotation 
-    rotTollerence = 2 # degrees tollerence for rotation
-    locTollerence = 0.05 # tollerence for location in meters 
+    rotTolerance = 2 # degrees tollerence for rotation
+    locTolerance = 0.05 # tollerence for location in meters 
 
     def __init__(self,motorPins:list[int],encoderPins:list[int],switchPins:list[int], sensorPin:int) -> None:
         # init variables
         self.State = STATE.null
         self.M1Complete = False #if it has completed hitting the ball 
+        self.X =0
+        self.Y =0
+        self.rot=0
+        self.hitBall = False # check if it hit the ball
 
         #clear pins
         GPIO.cleanup()
         GPIO.setmode(GPIO.BCM)
 
         #instantiate classes
-        self.vision = Sys4_Vision()
+        self.ball = Sys1_Balls(switchPins[0])
         self.localization = Sys3_SLAM(encoderPins,switchPins[0])
+        self.vision = Sys4_Vision()
 
         # connect pins
         self.motorLPins = motorPins[0:1]
@@ -72,55 +78,63 @@ class Sys5_Control:
         GPIO.output(self.motorRPins[0],GPIO.LOW)
     
     # tries to return to home, untimed
-    def _return2Home(self)->None:
-        angle = 0 #TODO work out angle that the robot should turn 2 reltive to start
-        if (abs(self.rot-angle)>Sys5_Control.tollerence):
-            #check which direction to turn
-            # if diff > 180 degrees turn against conventinal direction
-            #else turn in convential direction 
-            if (abs(self.rot-angle)>180): #against convention
-                self._turn(self.rot >angle)
-            else: 
-                self._turn(not (self.rot>angle)) 
-        else:
-            self._stop()
-            #check location 
-            #if location tollerence is bad then move forward
-        
-        
-
-
-    #turn around by an amount, + angle is anticlockwise
-    # timed 
-    def _turnAround(self,amount: float )->None:
-        pauseTime = abs(amount*Sys5_Control.angleRotationSpeed)
-        #rotate in correct direction
-        if (amount >0):
-            self._turn(False)
-        else:
-            self._turn(True)
-        sleep(pauseTime) # wait until it should have turned to the correct angle 
-
-
+    def _return2Home(self)->bool:
+        angle = atan2(self.Y,self.X)*180/pi # get the angle towards home absolute
     
+        if (abs(self.rot-angle)>Sys5_Control.rotTolerance): # if the angle is greater than the tolerance 
+            if (abs(self.rot-angle)>180): #against convention as the arc in conventional method would mean going around a further way
+                self._turn(self.rot >angle) #against the direction that convention expects
+            else: # is conventinal way as it is less than 180 degrees
+                self._turn(not (self.rot>angle)) # based on the angle that needs to be achieved 
+            return False 
+        else:
+            self._stop() # prevent over rotation 
+            if (sqrt(self.X^2+self.Y^2)>Sys5_Control.locTolerance):
+                self._forward() # move toward home 
+                return False
+            else:
+                return True # is at home
+        
+    # #turn around by an amount, + angle is anticlockwise
+    # # timed 
+    # def _turnAround(self,amount: float )->None:
+    #     pauseTime = abs(amount*Sys5_Control.angleRotationSpeed)
+    #     #rotate in correct direction
+    #     if (amount >0):
+    #         self._turn(False)
+    #     else:
+    #         self._turn(True)
+    #     sleep(pauseTime) # wait until it should have turned to the correct angle 
+
+
     #brains of the robot 
     def run(self)->None:
         try:
             while True:
+                if (self.State == STATE.atHome):
+                    GPIO.cleanup()
+                    break; # finish up M1 
                 #get sensor data
                 [desiredDirection, boundry] = self.vision.detect()
                 
-                [X, Y, self.rot, home] = self.localization.getLocationRot()  #make sure self.rot is limited to -180->180
+                [self.X, self.Y, self.rot, home] = self.localization.getLocationRot()  #make sure self.rot is limited to -180->180
+                if(not self.hitBall): #before it has hit the ball
+                    #decide what to do 
+                    if desiredDirection == DIRECTION.CannotFind:
+                        self._turn(False)
+                    elif desiredDirection == DIRECTION.Ahead:
+                        self._forward()
+                    elif desiredDirection == DIRECTION.Left:
+                        self._turn(False)
+                    elif desiredDirection == DIRECTION.Right:
+                        self._turn(True)
+                    else: #once it has hit the ball
+                        home =self._return2Home(); #return to home
+                        if (home): #if it has reached home 
+                            self.State = STATE.atHome
 
-                #decide what to do 
-                if desiredDirection== DIRECTION.CannotFind:
-                    self._turnAround(45)
-                elif desiredDirection == DIRECTION.Ahead:
-                    self._forward()
-                elif desiredDirection == DIRECTION.Left:
-                    self._turnAround(5)
-                elif desiredDirection == DIRECTION.Right:
-                    self._turnAround(-5)
+                sleep(0.1) # wait before next check
+
         except KeyboardInterrupt:
             # Cleanup GPIO settings before exiting
             GPIO.cleanup()
