@@ -5,15 +5,25 @@ from gpiozero import Button
 import RPi.GPIO as GPIO
 import time
 ##########################################
-# Driving Motors Section
+# Driving Motors Section - define the pins on the Rpi that correspond to the motors 
+
+# OUTPUT PINS 
+# Motor Left 
 motor1a = 17
 motor1b = 27
+
+# Motor Right
 motor2a = 23
 motor2b = 24
 
 # Setup the GPIO Pins to recieve the encoder pulses. 
+# INPUT PINS
+
+# Motor Left 
 motor1cha = 13
 motor1chb = 19
+
+# Mototr Right 
 motor2cha = 5
 motor2chb = 6
 
