@@ -14,8 +14,8 @@ motor2b = 24
 # Setup the GPIO Pins to recieve the encoder pulses. 
 motor1cha = 13
 motor1chb = 19
-motor2cha = 16
-motor2chb = 26
+motor2cha = 5
+motor2chb = 6
 
 # Set up GPIO pins
 GPIO.setmode(GPIO.BCM)
@@ -121,7 +121,7 @@ motor1_chb.when_released = encoder_callback
 
 
 try:
-    fowards(100)
+    fowards(50)
     while True:
         distance_traveled = calculate_distance(encoder_count)
 

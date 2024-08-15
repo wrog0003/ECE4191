@@ -5,6 +5,11 @@ from gpiozero import Button
 import RPi.GPIO as GPIO
 import time
 from math import pi
+
+##### Useful variables
+wheelDiamter = 0.055 #meters
+
+
 ##########################################
 # Driving Motors Section
 motor1a = 17
@@ -60,35 +65,11 @@ last_B_state = 0
 
 # Callback function updates the encoder count based on the changes detected on the encoder pins
 def encoder_callback(channel):
-    global encoder_count, last_A_state, last_B_state
-
-    # Read the current states of channel A and channel B
-    current_A_state = motor1_cha.value
-    current_B_state = motor1_chb.value
-    #GPIO.input(motor1chb)
-    # Determine the state transitions to calculate direction 
-    # - If Channel A is leading then this is taken as clockwise. If Channel B is leading then this is anti-clockwise 
-    #   Motor1 (Left Motor): Channel A leads B & Motor2 (Right Motor): Channel B leads A -> Back
-    #   Motor1 (Left Motor): Channel B leads A & Motor2 (Right Motor): Channel B leads A -> Right 
-    #   Motor1 (Left Motor): Channel A leads B & Motor2 (Right Motor): Channel A leads B -> Left 
-    #   Motor1 (Left Motor): Channel B leads A & Motor2 (Right Motor): Channel A leads B -> Forward
-
-    if current_A_state != last_A_state: # Channel A has changed
-        if  current_A_state == current_B_state:
-            encoder_count -= 1 # Reverse 
-        else:
-            encoder_count += 1 # Forward
-
-    if current_B_state != last_B_state: # Channel B has changed
-        if  current_A_state != current_B_state:    
-            encoder_count -= 1 # Reverse 
-        else:
-            encoder_count += 1 # Forward
+    global encoder_count
+    encoder_count +=1
 
 
-    # Update the last state
-    last_A_state = current_A_state
-    last_B_state = current_B_state
+
 
 
 # Event detection for encoder pins 
@@ -103,11 +84,12 @@ motor1_chb.when_released = encoder_callback
 #GPIO.add_event_detect(motor1chb, GPIO.RISING, callback=encoder_callback)
 
 def singleRevTest()->None:
-    singleRev = 75*48 
+    singleRev = 74*48 
     try:
-        fowards(50)
+        fowards(25)
         while (encoder_count<singleRev):
-            time.sleep(0.01)
+            time.sleep(0.001)
+        print(encoder_count)
         pwm1a.stop()
         pwm1b.stop()
         pwm2a.stop()
@@ -127,26 +109,29 @@ def singleRevTest()->None:
         motor1_chb.close()
         print("GPIO cleanup done. Exiting gracefully.")
 
-# try:
-#     # fowards(100)
-#     # while True:
-#     #     distance_traveled = calculate_distance(encoder_count)
+def distanceTest(length:float)->None:
+    disPerPulse = pi*wheelDiamter/(75*48)
+    try:
+        fowards(25)
+        while(disPerPulse*encoder_count<length):
+            time.sleep(0.001)
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        # Cleanup GPIO pins on exit
+        GPIO.cleanup()
+        motor1_cha.close()
+        motor1_chb.close()
+    except KeyboardInterrupt:
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        # Cleanup GPIO pins on exit
+        GPIO.cleanup()
+        motor1_cha.close()
+        motor1_chb.close()
+        print("GPIO cleanup done. Exiting gracefully.")
 
-#     #     # Print the Distance
-#     #     print(f"Distance: {distance_traveled:.2f}")
-
-#     #     time.sleep(0.1)  # Sleep to simulate a polling frequency that is twice the sampling frequency of the encoder signals to avoid aliasing. 
-
-# except KeyboardInterrupt:
-
-#     pwm1a.stop()
-#     pwm1b.stop()
-#     pwm2a.stop()
-#     pwm2b.stop()
-#     # Cleanup GPIO pins on exit
-#     GPIO.cleanup()
-#     motor1_cha.close()
-#     motor1_chb.close()
-#     print("GPIO cleanup done. Exiting gracefully.")
-
-singleRevTest()
+distanceTest(0.5)
