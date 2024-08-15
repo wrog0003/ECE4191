@@ -38,5 +38,56 @@ class SimpleEncoder:
         self.Apin.close()
         self.Bpin.close() 
 
+motor1a = 17
+motor1b = 27
+motor2a = 23
+motor2b = 24
 
-def directionTest
+# Setup the GPIO Pins to recieve the encoder pulses. 
+motor1cha = 13
+motor1chb = 19
+motor2cha = 5
+motor2chb = 6
+
+# Set up GPIO pins
+GPIO.setmode(GPIO.BCM)
+
+GPIO.setup(motor1a, GPIO.OUT) 
+GPIO.setup(motor1b, GPIO.OUT)
+GPIO.setup(motor2a, GPIO.OUT)
+GPIO.setup(motor2b, GPIO.OUT)
+
+pwm1a = GPIO.PWM(motor1a,1000)
+pwm1b = GPIO.PWM(motor1b,1000)
+pwm2a = GPIO.PWM(motor2a,1000)
+pwm2b = GPIO.PWM(motor2b,1000)
+
+def fowards(duty_cycle:float):
+    # duty cycle between 0 - 100
+        
+    # drive the motor forwards 
+    pwm1a.start(0)
+    pwm1b.start(duty_cycle)
+    pwm2a.start(0)
+    pwm2b.start(duty_cycle)
+
+
+def directionTest()->None:
+    EncoderL = SimpleEncoder(motor1cha,motor1chb)
+    EncoderR = SimpleEncoder(motor2cha,motor2chb)
+    fowards(50)
+    time.sleep(2)
+    print("True is clockwise, false is anticlockwise")
+    [count, direction] =EncoderL.getValues()
+    print(f"Left: {direction}\n")
+    [count, direction] =EncoderR.getValues()
+    print(f"Right: {direction}\n")
+    pwm1a.stop()
+    pwm1b.stop()
+    pwm2a.stop()
+    pwm2b.stop()
+    GPIO.cleanup()
+    EncoderL.end()
+    EncoderR.end()
+
+directionTest()
