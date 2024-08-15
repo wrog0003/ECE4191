@@ -229,4 +229,4 @@ def gotTo(X:float,Y:float):
         EncoderL.end()
         EncoderR.end()
 
-pwmCalibration(100)
+gotTo(1,0.5)
