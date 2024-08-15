@@ -1,6 +1,7 @@
 from gpiozero import Button 
 import RPi.GPIO as GPIO
 import time
+from math import pi, atan2
 
 #simple encoder class to track miltiple encoders on single system
 class SimpleEncoder:
@@ -49,6 +50,12 @@ motor1chb = 19
 motor2cha = 5
 motor2chb = 6
 
+#useful data units: meters
+wheelDiameter = 0.054
+wheelBase = 0.22
+wheelBaseCircunferenace = pi*wheelBase
+distancePerPulse = wheelDiameter*pi/(75*48)
+
 # Set up GPIO pins
 GPIO.setmode(GPIO.BCM)
 
@@ -70,6 +77,18 @@ def fowards(duty_cycle:float):
     pwm1b.start(duty_cycle)
     pwm2a.start(0)
     pwm2b.start(duty_cycle)
+
+def turn(duty_cycle:float,clockWise:bool):
+    if clockWise:
+        pwm1a.start(0)
+        pwm1b.start(duty_cycle)
+        pwm2a.start(duty_cycle)
+        pwm2b.start(0)
+    else:
+        pwm1a.start(duty_cycle)
+        pwm1b.start(0)
+        pwm2a.start(0)
+        pwm2b.start(duty_cycle)
 
 
 #use this test to verify the direction for the encoder pins
@@ -98,8 +117,32 @@ def directionTest()->None:
         EncoderL.end()
         EncoderR.end()
 
-    # EncoderL.end()
-    # EncoderR.end()
 
-def 
-directionTest()
+#
+def doughnuts(angle:float)->None:
+    EncoderL = SimpleEncoder(motor1cha,motor1chb)
+    EncoderR = SimpleEncoder(motor2cha,motor2chb)
+    distance = angle*wheelBaseCircunferenace/360 #get the distance 
+    pulses = distance/distancePerPulse
+    turn(50,True)
+    try:
+        while (EncoderL.encoderCount<pulses):
+            time.sleep(0.001)
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+    except KeyboardInterrupt:
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        EncoderL.end()
+        EncoderR.end()
+
+    def gotTo(X:float,Y:float):
+        angle = atan2(Y,X)*180/pi
+
+doughnuts(720)
