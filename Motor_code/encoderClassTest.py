@@ -238,6 +238,7 @@ def gotTo(X:float,Y:float):
     oldEncoderCountL = 0
     oldEncoderCountR = 0 
     errorRight = 0 
+    errorLeft =0
     leftPin = None
     rightPin = None 
     try: 
@@ -252,6 +253,9 @@ def gotTo(X:float,Y:float):
             newCount = EncoderR.encoderCount-oldEncoderCountR
             oldEncoderCountR = EncoderR.encoderCount
             errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
+            newCount = EncoderL.encoderCount-oldEncoderCountL
+            oldEncoderCountL = EncoderL.encoderCount
+            errorLeft= pwmControl(speed,newCount,Kp,Ki,errorLeft,leftPin)
             time.sleep(0.02)
         # stop rotating 
         pwm1a.stop()
@@ -268,6 +272,9 @@ def gotTo(X:float,Y:float):
             newCount = EncoderR.encoderCount-oldEncoderCountR
             oldEncoderCountR = EncoderR.encoderCount
             errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
+            newCount = EncoderL.encoderCount-oldEncoderCountL
+            oldEncoderCountL = EncoderL.encoderCount
+            errorLeft= pwmControl(speed,newCount,Kp,Ki,errorLeft,leftPin)
             time.sleep(0.02)
         pwm1a.stop()
         pwm1b.stop()
@@ -285,4 +292,4 @@ def gotTo(X:float,Y:float):
         EncoderL.end()
         EncoderR.end()
 
-gotTo(1,0.5)
+gotTo(-1.1,-0.1)
