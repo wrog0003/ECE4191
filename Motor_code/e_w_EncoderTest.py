@@ -1,13 +1,53 @@
-# ECE4191 6/08/2024 
-# Using Raspberry Pi to recieve encoder data and calculate the distance travelle by a motor.
+#Oringal written by Josh 
+#Modifed by Warren Rogan and Emma Vladicic 
 
 from gpiozero import Button 
 import RPi.GPIO as GPIO
 import time
 from math import pi
 
+#simple encoder class to track miltiple encoders on single system
+class SimpleEncoder:
+    #init to set up all sections 
+    def __init__(self,Apin:int,Bpin:int) -> None:
+        self.Apin = Button(Apin, pull_up=True) 
+        self.Bpin = Button(Bpin, pull_up=True) 
+        self.encoderCount = 0
+        self.clockWise = False
+        self.Apin.when_pressed = self.encoderCallA
+        self.Bpin.when_pressed = self.encoderCallB
+        self.Apin.when_released = self.encoderCall
+        self.Bpin.when_released = self.encoderCall
+
+    # interrupt callback functions
+    def encoderCallA(self,channel):
+        encoder_count+=1 # increment encoder count
+        if (self.Apin.value and self.Bpin.value):
+            self.clockWise = False
+
+    def encoderCallB(self,channel):
+        encoder_count+=1 # increment encoder count
+        if (self.Apin.value and self.Bpin.value):
+            self.clockWise = True
+
+    def encoderCall(self,channel):
+        encoder_count+=1
+
+    #get the state of the encoder 
+    def getValues(self)->tuple[int,bool]:
+        return [self.encoderCount,self.clockWise]
+    
+    #function call to relase pins
+    def end(self)->None:
+        self.Apin.close()
+        self.Bpin.close() 
+
+
+
+
+
 ##### Useful variables
-wheelDiamter = 0.055 #meters
+wheelDiamter = 0.054 #meters
 
 
 ##########################################
@@ -112,7 +152,7 @@ def singleRevTest()->None:
 def distanceTest(length:float)->None:
     disPerPulse = pi*wheelDiamter/(75*48)
     try:
-        fowards(25)
+        fowards(100)
         while(disPerPulse*encoder_count<length):
             time.sleep(0.001)
         pwm1a.stop()
