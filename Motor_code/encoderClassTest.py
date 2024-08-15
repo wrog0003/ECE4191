@@ -53,7 +53,7 @@ motor2chb = 6
 #useful data units: meters
 wheelDiameter = 0.054
 wheelBase = 0.22
-wheelBaseCircunferenace = pi*wheelBase
+wheelBaseCircumference = pi*wheelBase
 distancePerPulse = wheelDiameter*pi/(75*48)
 
 # Set up GPIO pins
@@ -122,7 +122,7 @@ def directionTest()->None:
 def doughnuts(angle:float)->None:
     EncoderL = SimpleEncoder(motor1cha,motor1chb)
     EncoderR = SimpleEncoder(motor2cha,motor2chb)
-    distance = angle*wheelBaseCircunferenace/360 #get the distance 
+    distance = angle*wheelBaseCircumference/360 #get the distance 
     pulses = distance/distancePerPulse
     turn(50,True)
     try:
@@ -142,7 +142,36 @@ def doughnuts(angle:float)->None:
         EncoderL.end()
         EncoderR.end()
 
-    def gotTo(X:float,Y:float):
-        angle = atan2(Y,X)*180/pi
+def gotTo(X:float,Y:float):
+    angle = atan2(Y,X)*180/pi
+    distance = wheelBaseCircumference*pi*abs(angle)/360 # get the distance of the circle 
+    #by getting the circumference and then multiplying by the angle/360
+    numPulses = distance/distancePerPulse
+    EncoderL = SimpleEncoder(motor1cha,motor1chb)
+    EncoderR = SimpleEncoder(motor2cha,motor2chb)
+    speed =30 
+    try: 
+        if (angle >-1 and angle <1):
+            time.sleep(0.01)
+        elif (angle>0):
+            turn(speed,False)
+        else: 
+            turn(speed,True)
+        while (EncoderL.encoderCount <numPulses):
+            time.sleep(0.001)
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        
+    except KeyboardInterrupt:
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        EncoderL.end()
+        EncoderR.end()
 
 doughnuts(720)
