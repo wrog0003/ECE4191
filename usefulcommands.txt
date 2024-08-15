@@ -9,3 +9,18 @@ sudo nmtui
 
 list aviaalbe networks 
 nmcli dev wifi list
+
+
+Calibration values for 2 seconds of run 
+10% 679 pulses
+20% 2070 pulses
+30% 3175 pulses
+40% 4192 pulses
+50% 5165 pulses
+60% 6165
+70% 7081
+80% 8017 
+90% 8824
+100% 10410
+1% equivlent to 100 pulses in 2 seconds 
+therefore 1 pulse every 20ms per percent 

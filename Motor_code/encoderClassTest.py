@@ -1,7 +1,7 @@
 from gpiozero import Button 
 import RPi.GPIO as GPIO
 import time
-from math import pi, atan2
+from math import pi, atan2, sqrt
 
 #simple encoder class to track miltiple encoders on single system
 class SimpleEncoder:
@@ -69,7 +69,7 @@ pwm1b = GPIO.PWM(motor1b,1000)
 pwm2a = GPIO.PWM(motor2a,1000)
 pwm2b = GPIO.PWM(motor2b,1000)
 
-def fowards(duty_cycle:float):
+def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     # duty cycle between 0 - 100
         
     # drive the motor forwards 
@@ -77,18 +77,21 @@ def fowards(duty_cycle:float):
     pwm1b.start(duty_cycle)
     pwm2a.start(0)
     pwm2b.start(duty_cycle)
+    return [pwm1b,pwm2b]
 
-def turn(duty_cycle:float,clockWise:bool):
+def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
     if clockWise:
         pwm1a.start(0)
         pwm1b.start(duty_cycle)
         pwm2a.start(duty_cycle)
         pwm2b.start(0)
+        return [pwm1b,pwm2a]
     else:
         pwm1a.start(duty_cycle)
         pwm1b.start(0)
         pwm2a.start(0)
         pwm2b.start(duty_cycle)
+        return [pwm1a,pwm2b]
 
 
 #use this test to verify the direction for the encoder pins
@@ -117,7 +120,24 @@ def directionTest()->None:
         EncoderL.end()
         EncoderR.end()
 
-
+def pwmCalibration(speed:float):
+    EncoderL = SimpleEncoder(motor1cha,motor1chb)
+    try:
+        fowards(speed)
+        time.sleep(2)
+        print(EncoderL.encoderCount)
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+    except KeyboardInterrupt:
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        EncoderL.end()
 #
 def doughnuts(angle:float)->None:
     EncoderL = SimpleEncoder(motor1cha,motor1chb)
@@ -142,15 +162,27 @@ def doughnuts(angle:float)->None:
         EncoderL.end()
         EncoderR.end()
 
+##################################controller code 
+def pwmControl(pwmDesired:float, pwmMessured:float, Kp:float,Ki:float,e_sum:float,pin:GPIO.PWM)->float:
+    dutyCycle = min(max(0,Kp*(pwmDesired-pwmMessured)+Ki*e_sum),100) # get the duty cycle 
+    e_sum += (pwmDesired-pwmMessured)
+    pin.start(dutyCycle)
+    return e_sum
+
 def gotTo(X:float,Y:float):
     angle = atan2(Y,X)*180/pi
-    distance = wheelBaseCircumference*pi*abs(angle)/360 # get the distance of the circle 
+    print(wheelBaseCircumference*pi)
+    distance = wheelBaseCircumference*abs(angle)/360 # get the distance of the circle 
+    print(distance)
     #by getting the circumference and then multiplying by the angle/360
     numPulses = distance/distancePerPulse
     EncoderL = SimpleEncoder(motor1cha,motor1chb)
     EncoderR = SimpleEncoder(motor2cha,motor2chb)
     speed =30 
+    oldEncoderCountL = 0
+    oldEncoderCountR = 0 
     try: 
+        # rotate
         if (angle >-1 and angle <1):
             time.sleep(0.01)
         elif (angle>0):
@@ -158,7 +190,19 @@ def gotTo(X:float,Y:float):
         else: 
             turn(speed,True)
         while (EncoderL.encoderCount <numPulses):
-            time.sleep(0.001)
+            time.sleep(0.02)
+        # stop rotating 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        # move 2 
+        distance = sqrt(X**2+Y**2)
+        encoderOldCount = EncoderL.encoderCount
+        numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
+        fowards(speed)
+        while (EncoderL.encoderCount <numPulses):
+            time.sleep(0.02)
         pwm1a.stop()
         pwm1b.stop()
         pwm2a.stop()
@@ -174,4 +218,4 @@ def gotTo(X:float,Y:float):
         EncoderL.end()
         EncoderR.end()
 
-doughnuts(720)
+pwmCalibration(100)
