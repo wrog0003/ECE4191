@@ -209,6 +209,7 @@ def pwmControl(pwmDesired:float, pwmMessured:float, Kp:float,Ki:float,e_sum:floa
     pin.start(dutyCycle) # drive one motor at the new calculated speed 
     return e_sum
 
+
 def gotTo(X:float,Y:float):
     # Function: takes in coordinates (X,Y) and moves to those co-ordinates 
 
@@ -218,8 +219,9 @@ def gotTo(X:float,Y:float):
     # this is the coordinate system we have defined 
 
     # calculate important information
-
-    angle = atan2(Y,X)*180/pi # angle that we need to turn to 
+    Kp =1
+    Ki =0
+    angle = atan2(Y,X)*180/pi
     print(wheelBaseCircumference*pi)
 
     distance = wheelBaseCircumference*abs(angle)/360 # get the distance that needs to be travelled to 
@@ -235,15 +237,21 @@ def gotTo(X:float,Y:float):
     # set the encoder count to 0
     oldEncoderCountL = 0
     oldEncoderCountR = 0 
+    errorRight = 0 
+    leftPin = None
+    rightPin = None 
     try: 
         # rotate
         if (angle >-1 and angle <1): # no rotation required 
             time.sleep(0.01)
-        elif (angle>0): # rotate CCW
-            turn(speed,False)
+        elif (angle>0):
+            [leftPin,rightPin]= turn(speed,False)# rotate CCW
         else: 
-            turn(speed,True) # rotatte CW 
+            [leftPin,rightPin]=turn(speed,True)# rotatte CW 
         while (EncoderL.encoderCount <numPulses):
+            newCount = EncoderR.encoderCount-oldEncoderCountR
+            oldEncoderCountR = EncoderR.encoderCount
+            errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
             time.sleep(0.02)
         # stop rotating 
         pwm1a.stop()
@@ -256,7 +264,10 @@ def gotTo(X:float,Y:float):
         encoderOldCount = EncoderL.encoderCount # update encoder count 
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
         fowards(speed) # drive forwards 
-        while (EncoderL.encoderCount <numPulses): # keep going fowards until you reach the desired number of pulses 
+        while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
+            newCount = EncoderR.encoderCount-oldEncoderCountR
+            oldEncoderCountR = EncoderR.encoderCount
+            errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
             time.sleep(0.02)
         pwm1a.stop()
         pwm1b.stop()
@@ -274,4 +285,4 @@ def gotTo(X:float,Y:float):
         EncoderL.end()
         EncoderR.end()
 
-pwmCalibration(100)
+gotTo(1,0.5)
