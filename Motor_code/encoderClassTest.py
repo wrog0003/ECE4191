@@ -17,17 +17,17 @@ class SimpleEncoder:
 
     # interrupt callback functions
     def encoderCallA(self,channel):
-        encoder_count+=1 # increment encoder count
-        if (self.Apin.value and self.Bpin.value):
-            self.clockWise = False
-
-    def encoderCallB(self,channel):
-        encoder_count+=1 # increment encoder count
+        self.encoderCount+=1 # increment encoder count
         if (self.Apin.value and self.Bpin.value):
             self.clockWise = True
 
+    def encoderCallB(self,channel):
+        self.encoderCount+=1 # increment encoder count
+        if (self.Apin.value and self.Bpin.value):
+            self.clockWise = False
+
     def encoderCall(self,channel):
-        encoder_count+=1
+        self.encoderCount+=1
 
     #get the state of the encoder 
     def getValues(self)->tuple[int,bool]:
@@ -72,22 +72,34 @@ def fowards(duty_cycle:float):
     pwm2b.start(duty_cycle)
 
 
+#use this test to verify the direction for the encoder pins
 def directionTest()->None:
     EncoderL = SimpleEncoder(motor1cha,motor1chb)
     EncoderR = SimpleEncoder(motor2cha,motor2chb)
     fowards(50)
-    time.sleep(2)
-    print("True is clockwise, false is anticlockwise")
-    [count, direction] =EncoderL.getValues()
-    print(f"Left: {direction}\n")
-    [count, direction] =EncoderR.getValues()
-    print(f"Right: {direction}\n")
-    pwm1a.stop()
-    pwm1b.stop()
-    pwm2a.stop()
-    pwm2b.stop()
-    GPIO.cleanup()
-    EncoderL.end()
-    EncoderR.end()
+    try:
+        time.sleep(2)
+        print("True is clockwise, false is anticlockwise")
+        [count, direction] =EncoderL.getValues()
+        print(f"Left: {direction}\n")
+        [count, direction] =EncoderR.getValues()
+        print(f"Right: {direction}\n")
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+    except KeyboardInterrupt:
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        EncoderL.end()
+        EncoderR.end()
 
+    # EncoderL.end()
+    # EncoderR.end()
+
+def 
 directionTest()
