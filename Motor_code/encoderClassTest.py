@@ -164,12 +164,14 @@ def doughnuts(angle:float)->None:
 
 ##################################controller code 
 def pwmControl(pwmDesired:float, pwmMessured:float, Kp:float,Ki:float,e_sum:float,pin:GPIO.PWM)->float:
-    dutyCycle = min(max(0,Kp*(pwmDesired-pwmMessured)+Ki*e_sum),100) # get the duty cycle 
+    dutyCycle = min(max(0,pwmDesired+Kp*(pwmDesired-pwmMessured)+Ki*e_sum),100) # get the duty cycle 
     e_sum += (pwmDesired-pwmMessured)
     pin.start(dutyCycle)
     return e_sum
 
 def gotTo(X:float,Y:float):
+    Kp =1
+    Ki =0
     angle = atan2(Y,X)*180/pi
     print(wheelBaseCircumference*pi)
     distance = wheelBaseCircumference*abs(angle)/360 # get the distance of the circle 
@@ -181,15 +183,21 @@ def gotTo(X:float,Y:float):
     speed =30 
     oldEncoderCountL = 0
     oldEncoderCountR = 0 
+    errorRight = 0 
+    leftPin = None
+    rightPin = None 
     try: 
         # rotate
         if (angle >-1 and angle <1):
             time.sleep(0.01)
         elif (angle>0):
-            turn(speed,False)
+            [leftPin,rightPin]= turn(speed,False)
         else: 
-            turn(speed,True)
+            [leftPin,rightPin]=turn(speed,True)
         while (EncoderL.encoderCount <numPulses):
+            newCount = EncoderR.encoderCount-oldEncoderCountR
+            oldEncoderCountR = EncoderR.encoderCount
+            errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
             time.sleep(0.02)
         # stop rotating 
         pwm1a.stop()
@@ -200,8 +208,11 @@ def gotTo(X:float,Y:float):
         distance = sqrt(X**2+Y**2)
         encoderOldCount = EncoderL.encoderCount
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
-        fowards(speed)
+        [leftPin,rightPin]=fowards(speed)
         while (EncoderL.encoderCount <numPulses):
+            newCount = EncoderR.encoderCount-oldEncoderCountR
+            oldEncoderCountR = EncoderR.encoderCount
+            errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
             time.sleep(0.02)
         pwm1a.stop()
         pwm1b.stop()
