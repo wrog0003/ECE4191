@@ -85,6 +85,7 @@ if __name__ == "__main__":
         if key == 27: #ESC Key to exit
             break
         result = looker.detect()
+        
         print(result)
         sleep(0.2)
 
