@@ -20,10 +20,11 @@ class Sys4_Vision:
 
         result, image = self.cap.read() # get the first image 
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
+        self.image = None
         
     #detect
     def detect(self)->tuple[DIRECTION,bool]:
-        result, image = self.cap.read() # get image 
+        result, self.image = self.cap.read() # get image 
         if result:
             # blur to reduce artifacts
             blurred = cv2.GaussianBlur(image, (11, 11), 0)
@@ -46,8 +47,8 @@ class Sys4_Vision:
                 center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])) # save the momets in terms of center of area
                 if not self.rpi: #is debugging on laptop
                     ((x, y), radius) = cv2.minEnclosingCircle(c) 
-                    cv2.circle(image, (int(x), int(y)), int(radius),(0, 255, 255), 2) # track perimeter of ball 
-                    cv2.circle(image, center, 5, (0, 0, 255), -1) # marks centre 
+                    cv2.circle(self.image, (int(x), int(y)), int(radius),(0, 255, 255), 2) # track perimeter of ball 
+                    cv2.circle(self.image, center, 5, (0, 0, 255), -1) # marks centre 
                     cv2.imshow("frame",image) # show the resulting image 
 
                 if abs(center[0]-self.midpoint)<self.tolerence:
@@ -63,6 +64,8 @@ class Sys4_Vision:
         else:
             return DIRECTION.CannotFind
 
+    def distanceCalc(self)->float:
+        pass 
     #disconnect     
     def disconnect(self)->None:
         self.cap.release() 
