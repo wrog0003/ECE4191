@@ -27,7 +27,7 @@ class Sys4_Vision:
         result, self.image = self.cap.read() # get image 
         if result:
             # blur to reduce artifacts
-            blurred = cv2.GaussianBlur(image, (11, 11), 0)
+            blurred = cv2.GaussianBlur(self.image, (11, 11), 0)
             # filter image 
             hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
             mask = cv2.inRange(hsv, Vision.greenLower, Vision.greenUpper)
