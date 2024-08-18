@@ -91,7 +91,7 @@ def turnAtBallTest():
     NotAhead = True # init ending variable 
     try :
         while (NotAhead): 
-            [direction, temp]= vision.detect() # run vision check 
+            (direction, temp, distance)= vision.detect() # run vision check 
             if (direction == DIRECTION.Ahead): # if ball is ahead
                 NotAhead = False # change to end while loop 
             elif (direction == DIRECTION.CannotFind): # if no ball detected in current frame 
@@ -124,10 +124,9 @@ def hitBallTest():
     noHit = True # define stop condition 
     try :
         while (noHit): # while not close enough to ball 
-            [direction, temp]= vision.detect() # run vision check 
+            (direction, temp, distance)= vision.detect() # run vision check 
 
             if (direction == DIRECTION.Ahead): # if ball ahead
-                distance = vision.distanceCalc() # get the distance to ball 
                 if (distance <0.01): # if close to ball (1cm)
                     noHit = False # end 
                 else: 
