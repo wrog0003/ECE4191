@@ -342,7 +342,7 @@ def robot_position(u, w, x_old, y_old, phi_old, dt):
     dphi = w*dt 
     phi = phi_old + dphi # calculate new angle 
 
-    # ensure that phi is always between -pi to +pi 
+    # ensure that phi is always between -pi to +pi bc when we sart, angle is 0 --> angle range is b/w -pi to pi 
     if phi >= pi:
         phi -= 2*pi
     elif phi <= -pi:
