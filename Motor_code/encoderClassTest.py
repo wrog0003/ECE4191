@@ -1,17 +1,18 @@
 from gpiozero import Button 
 import RPi.GPIO as GPIO
 import time
-from math import pi, atan2, sqrt
+from math import pi, atan2, sqrt, cos, sin
 
 # Set up a simple encoder class to track miltiple encoders on single system
 class SimpleEncoder:
-    #init to set up all sections 
+    # define initialisation parameters to set up all sections 
     def __init__(self,Apin:int,Bpin:int) -> None:
-        self.Apin = Button(Apin, pull_up=True) 
+        self.Apin = Button(Apin, pull_up=True) # high = logic 1, low = logic 0
         self.Bpin = Button(Bpin, pull_up=True) 
-        self.encoderCount = 0
-        self.clockWise = False #facing in from outside
-        self.Apin.when_pressed = self.encoderCallA
+        self.encoderCount = 0 # initialise encoder count to 0
+        self.clockWise = False # facing in from outside
+        # set up interrupts (rising and falling)
+        self.Apin.when_pressed = self.encoderCallA 
         self.Bpin.when_pressed = self.encoderCallB
         self.Apin.when_released = self.encoderCall
         self.Bpin.when_released = self.encoderCall
@@ -97,7 +98,10 @@ def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
 
 def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
 
-    # input: duty cycle between 0 - 100, if you want to turn clockwise or anticlockwise 
+    # inputs: 
+    # duty cycle between 0 - 100, 
+    # clockwise (bool) let you choose if you want to turn clockwise or anticlockwise 
+
     # output: return the active pins
 
     if clockWise:
@@ -116,8 +120,8 @@ def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
 
 # Use this test to verify the direction for the encoder pins
 def directionTest()->None:
-    EncoderL = SimpleEncoder(motor1cha,motor1chb) # define Motor 1 as a class
-    EncoderR = SimpleEncoder(motor2cha,motor2chb) # define Motor 2 as a class
+    EncoderL = SimpleEncoder(motor1cha,motor1chb) # define left motor as a class
+    EncoderR = SimpleEncoder(motor2cha,motor2chb) # define right motor as a class
     fowards(50)
     try:
         time.sleep(2)
@@ -234,6 +238,7 @@ def gotTo(X:float,Y:float):
     EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
     EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor 
     speed =30 # define the speed at which to travel
+
     # set the encoder count to 0
     oldEncoderCountL = 0
     oldEncoderCountR = 0 
@@ -293,3 +298,107 @@ def gotTo(X:float,Y:float):
         EncoderR.end()
 
 gotTo(-1.1,-0.1)
+
+ #################### LOCALISATION ############################
+
+# code sourced from: https://github.com/felipenmartins/Mobile-Robot-Control/blob/main/odometry-based_localization.ipynb
+
+# we start from a known position (e.g. x = 0, y = 0, phi = 0)
+# by counting encoder pulses, we calculate angular speeds of each wheel 
+# calculate linear and angular speeds
+# calculate displacement 
+# update x and y position each cycle
+
+
+def wheel_speed(pulses_per_turn, dt, EncoderCountL, EncoderCountR, EncoderOldCountL, EncoderOldCountR): 
+
+    # calculate change in angular position of the wheels
+    angleL = 2*pi*(EncoderCountL - EncoderOldCountL)/pulses_per_turn
+    angleR = 2*pi*(EncoderCountR - EncoderOldCountR)/pulses_per_turn
+
+    # calculate angular speed
+    wL = angleL/dt
+    wR = angleR/dt 
+
+    # Note that units are in radians per second
+
+    return wL, wR 
+
+def speed(wL, wR, R, D):
+
+    # compute the robot's linear and angular speed
+    
+    u = R/2 * (wR + wL) # linear speed of the robot. Compute the robot's forward velocity
+    w = R/D * (wR-wL) # rotational velocity (i.e. how fast the robot is rotating)
+
+    # u has units of m/s
+    # w had units of rad/s
+
+    return u, w
+
+def robot_position(u, w, x_old, y_old, phi_old, dt):
+    
+    # calculate change in rotational velocity
+    dphi = w*dt 
+    phi = phi_old + dphi # calculate new angle 
+
+    # ensure that phi is always between -pi to +pi 
+    if phi >= pi:
+        phi -= 2*pi
+    elif phi <= -pi:
+        phi += 2*pi
+    
+    # calculate the change in x and y 
+    dx = u * cos(phi) * dt 
+    dy = u * sin(phi) * dt 
+
+    # calculate the new x and y position 
+    x = x_old + dx 
+    y = y_old + dy 
+
+    return x, y, phi, x_old, y_old, phi_old
+
+    
+# main function
+
+# define startup up variables  
+
+EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
+EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up Right Motor 
+
+EncoderOldCountL = 0 # initalise to zero
+EncoderOldCountR = 0 # initalise to zero
+
+EncoderCountL = EncoderL.encoderCount
+EncoderCountR = EncoderR.encoderCount
+
+
+pulses_per_turn = 48 # TO CONFIRM 
+dt = 0.1 # time step to calculate position
+
+R = 0.1 # radius of the wheels TO CONFIRM VALUES
+D = 0.1 # distance between the wheels of the robot TO CONFIRM VALUES
+
+# define robots initial position
+x_old = 0 
+y_old = 0 
+phi_old = 0 
+
+try:
+    while(True):
+        wL, wR = wheel_speed(pulses_per_turn, dt, EncoderCountL, EncoderCountR, EncoderOldCountL, EncoderOldCountR)
+
+        u, w = speed(wL, wR, R, D)
+
+        x, y, phi, x_old, y_old, phi_old = robot_position(u, w, x_old, y_old, phi_old, dt)
+
+        time.sleep(0.1)
+except KeyboardInterrupt:
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        EncoderL.end()
+        EncoderR.end()
+

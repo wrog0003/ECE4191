@@ -9,7 +9,7 @@ from time import sleep
 # In3 - 23
 # In4 - 24
 
-# PI controller to achieve desired duty cycele
+# PI controller to achieve desired duty cycles
 # Source: Unit GIT Page
 
 #def pwm_control(w_desired,w_measured,Kp,Ki,e_sum):
