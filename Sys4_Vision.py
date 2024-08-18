@@ -50,7 +50,7 @@ class Sys4_Vision:
                     ((x, y), radius) = cv2.minEnclosingCircle(c) 
                     cv2.circle(self.image, (int(x), int(y)), int(radius),(0, 255, 255), 2) # track perimeter of ball 
                     cv2.circle(self.image, center, 5, (0, 0, 255), -1) # marks centre 
-                    cv2.imshow("frame",image) # show the resulting image 
+                    cv2.imshow("frame",self.image) # show the resulting image 
 
                 if abs(center[0]-self.midpoint)<self.tolerence:
                     return DIRECTION.Ahead
@@ -66,16 +66,15 @@ class Sys4_Vision:
             return DIRECTION.CannotFind
 
     # Calculate the distance from the camera to the tennis ball 
+    # if basing of off detect function could be much simpler 
     def distanceCalc(self)->float:
         known_radius = 3.4  # Tennis ball radius in cm. Must be changed based on what sized tennis ball is being used. 
         focal_length = 700  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
 
-        # Start video capture
-        cap = cv2.VideoCapture(0)
         try:
             while True:
                 # Capture frame-by-frame
-                ret, frame = cap.read()
+                ret, frame = self.cap.read()
         
                 if not ret:
                     break

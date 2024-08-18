@@ -85,19 +85,22 @@ def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
 
 # simple test to make sure that the robot can turn towards the ball 
 def turnAtBallTest():
+    #init function variables 
     speed = 50
     vision = Sys4_Vision()
-    [direction, temp]= vision.detect() # run first vision check 
+    NotAhead = True # init ending variable 
     try :
-        while (direction != DIRECTION.Ahead):
-            if (direction == DIRECTION.CannotFind):
+        while (NotAhead): 
+            [direction, temp]= vision.detect() # run vision check 
+            if (direction == DIRECTION.Ahead): # if ball is ahead
+                NotAhead = False # change to end while loop 
+            elif (direction == DIRECTION.CannotFind): # if no ball detected in current frame 
                 turn(speed,True)
             elif (direction == DIRECTION.Left):
                 turn(speed,False)
             else:
-                turn(speed,True)
-            time.sleep(0.2)
-            [direction, temp]= vision.detect() # run vision check 
+                turn(speed,True) 
+            time.sleep(0.2) # delay 200ms 
         # exit and release pins 
         pwm1a.stop()
         pwm1b.stop()
@@ -105,7 +108,6 @@ def turnAtBallTest():
         pwm2b.stop()
         GPIO.cleanup()
             
-
     except KeyboardInterrupt:
         # STOP and RELEASE all pins 
         pwm1a.stop()
@@ -113,5 +115,45 @@ def turnAtBallTest():
         pwm2a.stop()
         pwm2b.stop()
         GPIO.cleanup()
+
+# simple test to get the robot to find the ball, turn to the ball and get close to the ball 
+def hitBallTest():
+    # init function variables 
+    speed = 50
+    vision = Sys4_Vision()
+    noHit = True # define stop condition 
+    try :
+        while (noHit): # while not close enough to ball 
+            [direction, temp]= vision.detect() # run vision check 
+
+            if (direction == DIRECTION.Ahead): # if ball ahead
+                distance = vision.distanceCalc() # get the distance to ball 
+                if (distance <0.01): # if close to ball (1cm)
+                    noHit = False # end 
+                else: 
+                    fowards(speed) # move forward 
+            elif (direction == DIRECTION.CannotFind):
+                turn(speed,True)
+            elif (direction == DIRECTION.Left):
+                turn(speed,False)
+            else:
+                turn(speed,True)
+            time.sleep(0.2)
+            
+        # exit and release pins 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+            
+    except KeyboardInterrupt:
+        # STOP and RELEASE all pins 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+
 
 turnAtBallTest() 
