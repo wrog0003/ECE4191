@@ -2,6 +2,7 @@
 
 import cv2
 from ECE4191enums import DIRECTION
+import numpy as np
 
 
 class Sys4_Vision:
@@ -64,8 +65,75 @@ class Sys4_Vision:
         else:
             return DIRECTION.CannotFind
 
+    # Calculate the distance from the camera to the tennis ball 
     def distanceCalc(self)->float:
-        pass 
+        known_radius = 3.4  # Tennis ball radius in cm. Must be changed based on what sized tennis ball is being used. 
+        focal_length = 700  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
+
+        # Start video capture
+        cap = cv2.VideoCapture(0)
+        try:
+            while True:
+                # Capture frame-by-frame
+                ret, frame = cap.read()
+        
+                if not ret:
+                    break
+        
+                ##### Detect the tennis ball in the frame #####
+                min_radius=10
+                
+                # Convert the frame to HSV color space
+                hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    
+                # Define the HSV color range for a tennis ball (adjust these values for better results as this will depend on the actual colour of the ball being used)
+                lower_yellow = np.array([25, 50, 50])
+                upper_yellow = np.array([35, 255, 255])
+    
+                # Create a mask to filter out everything but the yellow color
+                mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    
+                # Perform some morphological operations to remove noise
+                mask = cv2.erode(mask, None, iterations=2)
+                mask = cv2.dilate(mask, None, iterations=2)
+    
+                # Find contours in the mask
+                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+                # Initialize variables
+                center = None
+                radius = 0
+
+                # Only proceed if at least one contour was found
+                if contours:
+                    # Find the largest contour in the mask, then use it to compute the minimum enclosing circle
+                    largest_contour = max(contours, key=cv2.contourArea)
+                    ((x, y), radius) = cv2.minEnclosingCircle(largest_contour)
+        
+                    # Only proceed if the radius meets a minimum size
+                    if radius > min_radius:
+                        # Draw the circle and centroid on the frame
+                        center = (int(x), int(y))
+                        cv2.circle(frame, center, int(radius), (0, 255, 255), 2)
+                        cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                
+                ##### Calculate Distance to the Ball ####
+                # Calculate the distance to the camera
+                if radius > 0:
+                    distance = (known_radius * focal_length) / radius
+
+                print(f"Distance: {distance:.2f} cm")
+
+
+                
+        except KeyboardInterrupt:
+            # Release the capture and close windows
+            cap.release()
+            cv2.destroyAllWindows()
+
+
+
+
     #disconnect     
     def disconnect(self)->None:
         self.cap.release() 
