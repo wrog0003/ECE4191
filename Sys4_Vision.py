@@ -123,9 +123,10 @@ class Sys4_Vision:
                     distance = (known_radius * focal_length) / radius
 
                 print(f"Distance: {distance:.2f} cm")
+                return distance
 
 
-                
+
         except KeyboardInterrupt:
             # Release the capture and close windows
             cap.release()
