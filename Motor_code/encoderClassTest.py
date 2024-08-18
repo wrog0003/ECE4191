@@ -297,7 +297,7 @@ def gotTo(X:float,Y:float):
         EncoderL.end()
         EncoderR.end()
 
-gotTo(-1.1,-0.1)
+
 
  #################### LOCALISATION ############################
 
