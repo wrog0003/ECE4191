@@ -10,10 +10,10 @@ class Sys4_Vision:
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (64, 255, 255) # upper limit for the ball color
     known_radius = 0.034  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
-    focal_length = 700  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
+    focal_length = 1200  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
 
     #init
-    def __init__(self, rpi: bool = True, tolerence: int =30 )-> None:
+    def __init__(self, rpi: bool = True, tolerence: int =50 )-> None:
         self.tolerence = tolerence #tollerence of straight ahead in pixels
         self.rpi = rpi # define which OS is running
         if rpi:

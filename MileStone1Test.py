@@ -125,25 +125,46 @@ def turnAtBallTest():
 # simple test to get the robot to find the ball, turn to the ball and get close to the ball 
 def hitBallTest():
     # init function variables 
-    speed = 20
+    speed = 50
+    pauseTime = 0.2
     vision = Sys4_Vision()
     noHit = True # define stop condition 
     try :
         while (noHit): # while not close enough to ball 
             (direction, temp, distance)= vision.detect() # run vision check 
-
+            print(direction.name)
+            print(distance)
             if (direction == DIRECTION.Ahead): # if ball ahead
-                if (distance <0.01): # if close to ball (1cm)
+                speed = 100
+                pauseTime = 0.5
+                if (distance <0.3):
+                    speed = 20
+                    vision.tolerence = 150
+                    fowards(speed)
+                if (distance <0.2): # if close to ball 
+                    fowards(30)
+                    time.sleep(3)
                     noHit = False # end 
+                    pwm1a.stop()
+                    pwm1b.stop()
+                    pwm2a.stop()
+                    pwm2b.stop()
                 else: 
                     fowards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind):
+                speed = 20
+                pauseTime = 0.3
                 turn(speed,ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
+                speed = 20
+                pauseTime =0.15
                 turn(speed,ANTICLOCKWISE)
+
             else:
                 turn(speed,CLOCKWISE)
-            time.sleep(0.2)
+                speed = 20
+                pauseTime =0.15
+            time.sleep(pauseTime)
             
         # exit and release pins 
         pwm1a.stop()
