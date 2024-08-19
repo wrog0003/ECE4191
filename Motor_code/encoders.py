@@ -6,8 +6,8 @@ import math
 import time
 
 # Constants
-WHEEL_DIAMETER = 0.1  # Wheel diameter in meters
-WHEEL_BASE = 0.3      # Distance between wheels in meters
+WHEEL_DIAMETER = 0.054  # Wheel diameter in meters
+WHEEL_BASE = 0.22      # Distance between wheels in meters
 COUNTS_PER_REV = 48  # Full quadrature counts per revolution
 DIST_PER_COUNT = (math.pi * WHEEL_DIAMETER) / COUNTS_PER_REV
 
@@ -25,9 +25,9 @@ theta = 0.0
 last_left_count = 0
 last_right_count = 0
 
-# Set up the motors (ASSUMING motor controller is wired to these GPIO pins)
-left_motor = Motor(forward=4, backward=14)
-right_motor = Motor(forward=17, backward=18)
+# Set up the motors
+left_motor = Motor(forward=13, backward=19)
+right_motor = Motor(forward=5, backward=6)
 
 # Set up the motors (ASSUMING motor controller is wired to these GPIO pins)
 left_encoder = SimpleEncoder(LEFT_ENCODER_A_PIN, LEFT_ENCODER_B_PIN)
