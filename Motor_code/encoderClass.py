@@ -1,3 +1,5 @@
+from gpiozero import button
+
 # Set up a simple encoder class to track miltiple encoders on single system
 class SimpleEncoder:
     # define initialisation parameters to set up all sections 
@@ -6,25 +8,19 @@ class SimpleEncoder:
         self.Bpin = Button(Bpin, pull_up=True) 
         self.encoderCount = 0 # initialise encoder count to 0
         self.clockWise = False # facing in from outside
-        # set up interrupts (rising and falling)
-        self.Apin.when_pressed = self.encoderCallA 
-        self.Bpin.when_pressed = self.encoderCallB
-        self.Apin.when_released = self.encoderCall
-        self.Bpin.when_released = self.encoderCall
 
-    # interrupt callback functions
-    def encoderCallA(self,channel):
-        self.encoderCount+=1 # increment encoder count
-        if (self.Apin.value and self.Bpin.value):
+        # Set up interrupts
+        self.Apin.when_pressed = self._encoder_callback
+        self.Bpin.when_pressed = self._encoder_callback
+
+    def _encoder_callback(self):
+        # Update encoder count based on the direction
+        if self.Apin.value == self.Bpin.value:
+            self.encoderCount += 1
             self.clockWise = True
-
-    def encoderCallB(self,channel):
-        self.encoderCount+=1 # increment encoder count
-        if (self.Apin.value and self.Bpin.value):
+        else:
+            self.encoderCount -= 1
             self.clockWise = False
-
-    def encoderCall(self,channel):
-        self.encoderCount+=1
 
     #get the state of the encoder 
     def getValues(self)->tuple[int,bool]:

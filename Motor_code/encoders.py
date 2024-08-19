@@ -1,5 +1,6 @@
 from gpiozero import Motor
 from gpiozero import Button
+from encoderClass import SimpleEncoder
 from signal import pause
 import math
 import time
@@ -21,39 +22,27 @@ x = 0.0
 y = 0.0
 theta = 0.0
 
-left_count = 0
-right_count = 0
 last_left_count = 0
 last_right_count = 0
 
-# Set up the motors (assuming motor controller is wired to these GPIO pins)
+# Set up the motors (ASSUMING motor controller is wired to these GPIO pins)
 left_motor = Motor(forward=4, backward=14)
 right_motor = Motor(forward=17, backward=18)
+
+# Set up the motors (ASSUMING motor controller is wired to these GPIO pins)
+left_encoder = SimpleEncoder(LEFT_ENCODER_A_PIN, LEFT_ENCODER_B_PIN)
+right_encoder = SimpleEncoder(RIGHT_ENCODER_A_PIN, RIGHT_ENCODER_B_PIN)
 
 # Set up the encoder pins as buttons for detecting changes
 left_encoder_a = Button(LEFT_ENCODER_A_PIN)
 right_encoder_a = Button(RIGHT_ENCODER_A_PIN)
 
-def left_encoder_change():
-    global left_count
-    # Check direction using the B channel
-    # Incrementing for forward and decrementing for backwards
-    if gpiozero.Device.pin_factory.pin(LEFT_ENCODER_B_PIN).state == gpiozero.Device.pin_factory.pin(LEFT_ENCODER_A_PIN).state:
-        left_count += 1
-    else:
-        left_count -= 1
-
-def right_encoder_change():
-    global right_count
-    # Check direction using the B channel
-    # Incrementing for forward and decrementing for backwards
-    if gpiozero.Device.pin_factory.pin(RIGHT_ENCODER_B_PIN).state == gpiozero.Device.pin_factory.pin(RIGHT_ENCODER_A_PIN).state:
-        right_count += 1
-    else:
-        right_count -= 1
-
 def update_position():
     global x, y, theta, last_left_count, last_right_count
+
+    # Get the current counts from the encoders
+    left_count, left_direction = left_encoder.get_values()
+    right_count, right_direction = right_encoder.get_values()
 
     # Calculating thhe distance moved by each wheel
     # by getting the difference between the current and previoous count
@@ -76,11 +65,12 @@ def update_position():
     x += delta_distance * math.cos(theta)
     y += delta_distance * math.sin(theta)
 
-# Attach the encoder callbacks to the encoder signal changes
-left_encoder_a.when_pressed = left_encoder_change
-right_encoder_a.when_pressed = right_encoder_change
+def return_to_start(distance, theta):
+    # Rotate by theta (modify so the range is from -pi to pi)
+    # Move forward by distance
+    pass
 
-# Example loop to update the position periodically
+# Loop to update the position periodically
 try:
     while True:
         update_position()
@@ -90,3 +80,5 @@ try:
 finally:
     left_motor.stop()
     right_motor.stop()
+    left_encoder.end()
+    right_encoder.end()
