@@ -124,7 +124,7 @@ def turnAtBallTest():
         GPIO.cleanup()
 
 # simple test to get the robot to find the ball, turn to the ball and get close to the ball 
-def hitBallTestComplex():
+def hitBallTestBasic():
     # init function variables 
     speed = 50
     pauseTime = 0.2
@@ -182,43 +182,59 @@ def hitBallTestComplex():
         pwm2b.stop()
         GPIO.cleanup()
 
-# simple ball hitter that turns towards ball then goes until it hits ball
-def hitBallTestSimple():
+def hitBallTestBetter():
     # init function variables 
-    speed = 15
-    pauseTime = 0.1
+    speed = 50
+    pauseTime = 0.2
     vision = Sys4_Vision()
-    vision.tolerence = 15 # decrease tollerence 
-    notAhead = True # define turing stop condition 
-    notHit = True # define running stop condition 
-    distance = 100 # predefine distance 
+    oldDirection = None 
+    noHit = True # define stop condition 
     try :
-        while notAhead:
+        while (noHit): # while not close enough to ball 
             (direction, temp, distance)= vision.detect() # run vision check 
-            if (direction == DIRECTION.Ahead): # if directly ahead
-                notAhead = False
-                pwm1a.stop()
-                pwm1b.stop()
-                pwm2a.stop()
-                pwm2b.stop()
-                speed = 100 
-            elif(direction==DIRECTION.CannotFind):
-                speed = 50
+            print(direction.name)
+            print(distance)
+            if (direction == DIRECTION.Ahead): # if ball ahead
+                speed = 100
+                pauseTime = 0.5
+                if (distance <0.3):
+                    speed = 20
+                    vision.tolerence = 150
+                    fowards(speed)
+                if (distance <0.2): # if close to ball 
+                    fowards(30)
+                    time.sleep(3)
+                    noHit = False # end 
+                    pwm1a.stop()
+                    pwm1b.stop()
+                    pwm2a.stop()
+                    pwm2b.stop()
+                else: 
+                    fowards(speed) # move forward 
+            elif (direction == DIRECTION.CannotFind): #cannot find ball
+                speed = 20
+                pauseTime = 0.3
                 turn(speed,ANTICLOCKWISE)
-            elif(direction == DIRECTION.Left):
-                speed = 15
-                turn(speed,ANTICLOCKWISE)
-            else: # right 
-                speed =15 
-                turn(speed,CLOCKWISE)
-            time.sleep(pauseTime)
-        
-        #move forward
-        pauseTime = distance/0.25
-        fowards(100)
-        time.sleep(pauseTime)
-        #should hit ball
+            elif (direction == DIRECTION.Left):
+                if (oldDirection == DIRECTION.Right): # reduce occilations 
+                    speed -=5
+                    speed = max(speed,10)
+                else:
+                    speed = 20
+                    pauseTime =0.15
+                    turn(speed,ANTICLOCKWISE)
 
+            else: #right 
+                if oldDirection ==DIRECTION.Left: # reduce occilations
+                    speed -=5
+                    speed = max(speed,10)
+                else:
+                    turn(speed,CLOCKWISE)
+                    speed = 20
+                    pauseTime =0.15
+            oldDirection = direction
+            time.sleep(pauseTime)
+            
         # exit and release pins 
         pwm1a.stop()
         pwm1b.stop()
@@ -235,4 +251,5 @@ def hitBallTestSimple():
         GPIO.cleanup()
 
 
-hitBallTestSimple()
+
+hitBallTestBetter()
