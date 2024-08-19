@@ -60,7 +60,7 @@ class Sys4_Vision:
                 if abs(center[0]-self.midpoint)<self.tolerence:
                     distance = self.aspcectRatio / radius #get the distance to the ball from the camera 
                     return (DIRECTION.Ahead,False,distance)
-                elif center[0] < self.midpoint:
+                elif center[0] > self.midpoint:
                     return (DIRECTION.Left, False, distance)
                 else:
                     return (DIRECTION.Right, False, distance) 

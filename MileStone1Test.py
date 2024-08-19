@@ -3,11 +3,13 @@ import RPi.GPIO as GPIO
 import time
 from math import pi, atan2, sqrt
 
-from Motor_code.encoderClassTest import SimpleEncoder
+#from Motor_code.encoderClassTest import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
 from ECE4191enums import DIRECTION
 
 
+ANTICLOCKWISE = False
+CLOCKWISE = True
 
 # MOTOR OUTPUT PINS (DRIVING)
 
@@ -52,6 +54,7 @@ pwm1b = GPIO.PWM(motor1b,1000)
 pwm2a = GPIO.PWM(motor2a,1000)
 pwm2b = GPIO.PWM(motor2b,1000)
 
+
 def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
    
     # input: duty cycle between 0 - 100
@@ -86,26 +89,29 @@ def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
 # simple test to make sure that the robot can turn towards the ball 
 def turnAtBallTest():
     #init function variables 
-    speed = 50
+    print("entered")
+    speed = 20
     vision = Sys4_Vision()
     NotAhead = True # init ending variable 
     try :
         while (NotAhead): 
             (direction, temp, distance)= vision.detect() # run vision check 
+            print(direction)
             if (direction == DIRECTION.Ahead): # if ball is ahead
                 NotAhead = False # change to end while loop 
+                pwm1a.stop()
+                pwm1b.stop()
+                pwm2a.stop()
+                pwm2b.stop()
             elif (direction == DIRECTION.CannotFind): # if no ball detected in current frame 
-                turn(speed,True)
+                turn(speed, ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
-                turn(speed,False)
+                turn(speed, ANTICLOCKWISE)
             else:
-                turn(speed,True) 
+                turn(speed,CLOCKWISE) 
             time.sleep(0.2) # delay 200ms 
         # exit and release pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        
         GPIO.cleanup()
             
     except KeyboardInterrupt:
@@ -155,4 +161,4 @@ def hitBallTest():
         GPIO.cleanup()
 
 
-turnAtBallTest() 
+hitBallTest()

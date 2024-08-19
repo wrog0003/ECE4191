@@ -255,12 +255,12 @@ def gotTo(X:float,Y:float):
         else: 
             [leftPin,rightPin]=turn(speed,True)# rotatte CW 
         while (EncoderL.encoderCount <numPulses):
-            newCount = EncoderR.encoderCount-oldEncoderCountR
-            oldEncoderCountR = EncoderR.encoderCount
-            errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
-            newCount = EncoderL.encoderCount-oldEncoderCountL
-            oldEncoderCountL = EncoderL.encoderCount
-            errorLeft= pwmControl(speed,newCount,Kp,Ki,errorLeft,leftPin)
+            # newCount = EncoderR.encoderCount-oldEncoderCountR
+            # oldEncoderCountR = EncoderR.encoderCount
+            # errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
+            # newCount = EncoderL.encoderCount-oldEncoderCountL
+            # oldEncoderCountL = EncoderL.encoderCount
+            # errorLeft= pwmControl(speed,newCount,Kp,Ki,errorLeft,leftPin)
             time.sleep(0.02)
         # stop rotating 
         pwm1a.stop()
@@ -274,12 +274,12 @@ def gotTo(X:float,Y:float):
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
         fowards(speed) # drive forwards 
         while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
-            newCount = EncoderR.encoderCount-oldEncoderCountR
-            oldEncoderCountR = EncoderR.encoderCount
-            errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
-            newCount = EncoderL.encoderCount-oldEncoderCountL
-            oldEncoderCountL = EncoderL.encoderCount
-            errorLeft= pwmControl(speed,newCount,Kp,Ki,errorLeft,leftPin)
+            # newCount = EncoderR.encoderCount-oldEncoderCountR
+            # oldEncoderCountR = EncoderR.encoderCount
+            # errorRight= pwmControl(speed,newCount,Kp,Ki,errorRight,rightPin)
+            # newCount = EncoderL.encoderCount-oldEncoderCountL
+            # oldEncoderCountL = EncoderL.encoderCount
+            # errorLeft= pwmControl(speed,newCount,Kp,Ki,errorLeft,leftPin)
             time.sleep(0.02)
         pwm1a.stop()
         pwm1b.stop()
@@ -297,7 +297,7 @@ def gotTo(X:float,Y:float):
         EncoderL.end()
         EncoderR.end()
 
-gotTo(-1.1,-0.1)
+gotTo(0.2,0)
 
  #################### LOCALISATION ############################
 
@@ -359,46 +359,46 @@ def robot_position(u, w, x_old, y_old, phi_old, dt):
     return x, y, phi, x_old, y_old, phi_old
 
     
-# main function
+# # main function
 
-# define startup up variables  
+# # define startup up variables  
 
-EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
-EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up Right Motor 
+# EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
+# EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up Right Motor 
 
-EncoderOldCountL = 0 # initalise to zero
-EncoderOldCountR = 0 # initalise to zero
+# EncoderOldCountL = 0 # initalise to zero
+# EncoderOldCountR = 0 # initalise to zero
 
-EncoderCountL = EncoderL.encoderCount
-EncoderCountR = EncoderR.encoderCount
+# EncoderCountL = EncoderL.encoderCount
+# EncoderCountR = EncoderR.encoderCount
 
 
-pulses_per_turn = 48 # TO CONFIRM 
-dt = 0.1 # time step to calculate position
+# pulses_per_turn = 48 # TO CONFIRM 
+# dt = 0.1 # time step to calculate position
 
-R = 0.1 # radius of the wheels TO CONFIRM VALUES
-D = 0.1 # distance between the wheels of the robot TO CONFIRM VALUES
+# R = 0.1 # radius of the wheels TO CONFIRM VALUES
+# D = 0.1 # distance between the wheels of the robot TO CONFIRM VALUES
 
-# define robots initial position
-x_old = 0 
-y_old = 0 
-phi_old = 0 
+# # define robots initial position
+# x_old = 0 
+# y_old = 0 
+# phi_old = 0 
 
-try:
-    while(True):
-        wL, wR = wheel_speed(pulses_per_turn, dt, EncoderCountL, EncoderCountR, EncoderOldCountL, EncoderOldCountR)
+# try:
+#     while(True):
+#         wL, wR = wheel_speed(pulses_per_turn, dt, EncoderCountL, EncoderCountR, EncoderOldCountL, EncoderOldCountR)
 
-        u, w = speed(wL, wR, R, D)
+#         u, w = speed(wL, wR, R, D)
 
-        x, y, phi, x_old, y_old, phi_old = robot_position(u, w, x_old, y_old, phi_old, dt)
+#         x, y, phi, x_old, y_old, phi_old = robot_position(u, w, x_old, y_old, phi_old, dt)
 
-        time.sleep(0.1)
-except KeyboardInterrupt:
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
-        GPIO.cleanup()
-        EncoderL.end()
-        EncoderR.end()
+#         time.sleep(0.1)
+# except KeyboardInterrupt:
+#         pwm1a.stop()
+#         pwm1b.stop()
+#         pwm2a.stop()
+#         pwm2b.stop()
+#         GPIO.cleanup()
+#         EncoderL.end()
+#         EncoderR.end()
 
