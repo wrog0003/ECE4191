@@ -301,6 +301,7 @@ def gotTo(X:float,Y:float):
 
 def gotToAndReturn(X:float,Y:float):
     # Function: takes in coordinates (X,Y) and moves to those co-ordinates 
+    # keep track of location relative to starting position
 
     # Inputs: 
     # X: x coordinate (forwards)
@@ -312,13 +313,12 @@ def gotToAndReturn(X:float,Y:float):
     Ki =0
     angle = atan2(Y,X)*180/pi
     print(wheelBaseCircumference*pi)
-
     distance = wheelBaseCircumference*abs(angle)/360 # get the distance that needs to be travelled to 
-    # achieve required turn
     
     print(distance)
     #by getting the circumference and then multiplying by the angle/360
 
+    # achieve required turn
     numPulses = distance/distancePerPulse # get the number of pulses required to achieve the turn 
     EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
     EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
@@ -330,6 +330,13 @@ def gotToAndReturn(X:float,Y:float):
 
     leftPin = None
     rightPin = None 
+
+    # define variables for robot position
+    dt = 0.1 
+    x_old = 0
+    y_old = 0
+    phi_old = 0 
+
     try: 
         # rotate
         if (angle >-1 and angle <1): # no rotation required 
@@ -339,8 +346,9 @@ def gotToAndReturn(X:float,Y:float):
         else: 
             [leftPin,rightPin]=turn(speed,True)# rotatte CW 
         while (EncoderL.encoderCount <numPulses):
+            x_old, y_old, phi_old = robot_position(EncoderL.encoderCount, EncoderR.encoderCount, dt, x_old, y_old, phi_old)
 
-            time.sleep(0.02)
+            time.sleep(dt)
         # stop rotating 
         pwm1a.stop()
         pwm1b.stop()
@@ -352,13 +360,17 @@ def gotToAndReturn(X:float,Y:float):
         encoderOldCount = EncoderL.encoderCount # update encoder count 
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
         fowards(speed) # drive forwards 
-        while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
 
-            time.sleep(0.02)
+
+        while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
+            x_old, y_old, phi_old = robot_position(EncoderL.encoderCount, EncoderR.encoderCount, dt, x_old, y_old, phi_old)
+            time.sleep(dt)
         pwm1a.stop()
         pwm1b.stop()
         pwm2a.stop()
         pwm2b.stop()
+
+
         
     except KeyboardInterrupt:
          # STOP and RELEASE all GPIO pins
@@ -409,7 +421,7 @@ def speed(wL, wR, R, D):
 
     return u, w
 
-def robot_position(u, w, x_old, y_old, phi_old, dt):
+def robot_positionOLD(u, w, x_old, y_old, phi_old, dt):
     
     # calculate change in rotational velocity
     dphi = w*dt 
@@ -431,7 +443,57 @@ def robot_position(u, w, x_old, y_old, phi_old, dt):
 
     return x, y, phi, x_old, y_old, phi_old
 
+def robot_position(EncoderCountL:int, EncoderCountR:int, dt: float, x_old:float, y_old:float, phi_old:float)->list[float]:
+
+    # STEP 1: calculate change in angular position of the wheels
+    angleL = 2*pi*(EncoderCountL - EncoderOldCountL)/pulsesPerRotation # radians
+    angleR = 2*pi*(EncoderCountR - EncoderOldCountR)/pulsesPerRotation # radians
+
+    # update EncoderCount for both L & R motor
+    EncoderOldCountL = EncoderCountL
+    EncoderOldCountR  = EncoderCountR
+
+    # calculate angular speed
+    wL = angleL/dt
+    wR = angleR/dt 
+
+    # Note that units are in radians per second
+
+    # STEP 2: compute the robot's linear and angular speed
+
+    # linear speed of the robot. Compute the robot's forward velocity
+    u = wheelDiameter/2 * (wR + wL)/2 # m/s
+
+    # rotational velocity (i.e. how fast the robot is rotating)
+    w = (wheelDiameter/2)/wheelBase * (wR-wL) # rad/s
+
+    # STEP 3: Update Position
+
+    # calculate change in rotational velocity
+    dphi = w*dt 
+    phi = phi_old + dphi # calculate new angle 
+
+    # ensure that phi is always between -pi to +pi bc when we sart, angle is 0 --> angle range is b/w -pi to pi 
+    if phi >= pi:
+        phi -= 2*pi
+    elif phi <= -pi:
+        phi += 2*pi
     
+    # calculate the change in x and y 
+    dx = u * cos(phi) * dt 
+    dy = u * sin(phi) * dt 
+
+    # calculate the new x and y position 
+    x = x_old + dx 
+    y = y_old + dy 
+
+    return x, y, phi
+
+
+
+
+
+
 # main function
 
 # define startup up variables  
