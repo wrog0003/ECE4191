@@ -359,46 +359,46 @@ def robot_position(u, w, x_old, y_old, phi_old, dt):
     return x, y, phi, x_old, y_old, phi_old
 
     
-# # main function
+# main function
 
-# # define startup up variables  
+# define startup up variables  
 
-# EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
-# EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up Right Motor 
+EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
+EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up Right Motor 
 
-# EncoderOldCountL = 0 # initalise to zero
-# EncoderOldCountR = 0 # initalise to zero
+EncoderOldCountL = 0 # initalise to zero
+EncoderOldCountR = 0 # initalise to zero
 
-# EncoderCountL = EncoderL.encoderCount
-# EncoderCountR = EncoderR.encoderCount
+EncoderCountL = EncoderL.encoderCount
+EncoderCountR = EncoderR.encoderCount
 
 
-# pulses_per_turn = 48 # TO CONFIRM 
-# dt = 0.1 # time step to calculate position
+pulses_per_turn = 48*75 # TO CONFIRM 
+dt = 0.1 # time step to calculate position
 
-# R = 0.1 # radius of the wheels TO CONFIRM VALUES
-# D = 0.1 # distance between the wheels of the robot TO CONFIRM VALUES
+R = wheelDiameter/2 # radius of the wheels TO CONFIRM VALUES
+D = wheelBase # distance between the wheels of the robot TO CONFIRM VALUES
 
-# # define robots initial position
-# x_old = 0 
-# y_old = 0 
-# phi_old = 0 
+# define robots initial position
+x_old = 0 
+y_old = 0 
+phi_old = 0 
 
-# try:
-#     while(True):
-#         wL, wR = wheel_speed(pulses_per_turn, dt, EncoderCountL, EncoderCountR, EncoderOldCountL, EncoderOldCountR)
+try:
+    while(True):
+        wL, wR = wheel_speed(pulses_per_turn, dt, EncoderL.encoderCount, EncoderR.encoderCount, EncoderOldCountL, EncoderOldCountR)
 
-#         u, w = speed(wL, wR, R, D)
+        u, w = speed(wL, wR, R, D)
 
-#         x, y, phi, x_old, y_old, phi_old = robot_position(u, w, x_old, y_old, phi_old, dt)
+        x, y, phi, x_old, y_old, phi_old = robot_position(u, w, x_old, y_old, phi_old, dt)
 
-#         time.sleep(0.1)
-# except KeyboardInterrupt:
-#         pwm1a.stop()
-#         pwm1b.stop()
-#         pwm2a.stop()
-#         pwm2b.stop()
-#         GPIO.cleanup()
-#         EncoderL.end()
-#         EncoderR.end()
+        time.sleep(dt)
+except KeyboardInterrupt:
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        EncoderL.end()
+        EncoderR.end()
 
