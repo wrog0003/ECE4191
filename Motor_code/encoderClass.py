@@ -1,3 +1,5 @@
+from gpiozero import Button 
+
 # Set up a simple encoder class to track miltiple encoders on single system
 class SimpleEncoder:
     # define initialisation parameters to set up all sections 
