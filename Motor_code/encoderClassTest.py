@@ -299,6 +299,78 @@ def gotTo(X:float,Y:float):
         EncoderR.end()
 
 
+def gotToAndReturn(X:float,Y:float):
+    # Function: takes in coordinates (X,Y) and moves to those co-ordinates 
+
+    # Inputs: 
+    # X: x coordinate (forwards)
+    # Y: y coordinate (left)
+    # this is the coordinate system we have defined 
+
+    # calculate important information
+    Kp =1
+    Ki =0
+    angle = atan2(Y,X)*180/pi
+    print(wheelBaseCircumference*pi)
+
+    distance = wheelBaseCircumference*abs(angle)/360 # get the distance that needs to be travelled to 
+    # achieve required turn
+    
+    print(distance)
+    #by getting the circumference and then multiplying by the angle/360
+
+    numPulses = distance/distancePerPulse # get the number of pulses required to achieve the turn 
+    EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
+    EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
+    speed =30 # define the speed at which to travel
+
+    # set the encoder count to 0
+    oldEncoderCountL = 0
+    oldEncoderCountR = 0 
+
+    leftPin = None
+    rightPin = None 
+    try: 
+        # rotate
+        if (angle >-1 and angle <1): # no rotation required 
+            time.sleep(0.01)
+        elif (angle>0):
+            [leftPin,rightPin]= turn(speed,False)# rotate CCW
+        else: 
+            [leftPin,rightPin]=turn(speed,True)# rotatte CW 
+        while (EncoderL.encoderCount <numPulses):
+
+            time.sleep(0.02)
+        # stop rotating 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        
+        # Now that the robot have reached its desired angle, we want to drive it forward a certain distance 
+        distance = sqrt(X**2+Y**2) # calculate distance to drive forward 
+        encoderOldCount = EncoderL.encoderCount # update encoder count 
+        numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
+        fowards(speed) # drive forwards 
+        while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
+
+            time.sleep(0.02)
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        
+    except KeyboardInterrupt:
+         # STOP and RELEASE all GPIO pins
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        EncoderL.end()
+        EncoderR.end()
+
+
 
  #################### LOCALISATION ############################
 
