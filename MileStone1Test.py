@@ -125,7 +125,7 @@ def turnAtBallTest():
 # simple test to get the robot to find the ball, turn to the ball and get close to the ball 
 def hitBallTest():
     # init function variables 
-    speed = 50
+    speed = 20
     vision = Sys4_Vision()
     noHit = True # define stop condition 
     try :
@@ -138,11 +138,11 @@ def hitBallTest():
                 else: 
                     fowards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind):
-                turn(speed,True)
+                turn(speed,ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
-                turn(speed,False)
+                turn(speed,ANTICLOCKWISE)
             else:
-                turn(speed,True)
+                turn(speed,CLOCKWISE)
             time.sleep(0.2)
             
         # exit and release pins 
