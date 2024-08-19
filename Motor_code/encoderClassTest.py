@@ -3,6 +3,10 @@ import RPi.GPIO as GPIO
 import time
 from math import pi, atan2, sqrt, cos, sin
 
+#DEFINE
+ANTICLOCKWISE = False
+CLOCKWISE = True 
+
 # Set up a simple encoder class to track miltiple encoders on single system
 class SimpleEncoder:
     # define initialisation parameters to set up all sections 
@@ -300,19 +304,16 @@ def gotTo(X:float,Y:float):
 
 
 def gotToAndReturn(X:float,Y:float):
-    # Function: takes in coordinates (X,Y) and moves to those co-ordinates 
+    # Function: takes in coordinates (X,Y) and moves to those co-ordinates and then back home 
     # keep track of location relative to starting position
 
     # Inputs: 
-    # X: x coordinate (forwards)
-    # Y: y coordinate (left)
+    # X: x coordinate (forwards) meters
+    # Y: y coordinate (left) meters
     # this is the coordinate system we have defined 
 
     # calculate important information
-    Kp =1
-    Ki =0
-    angle = atan2(Y,X)*180/pi
-    print(wheelBaseCircumference*pi)
+    angle = atan2(Y,X)*180/pi # angle to target point
     distance = wheelBaseCircumference*abs(angle)/360 # get the distance that needs to be travelled to 
     
     print(distance)
@@ -347,7 +348,6 @@ def gotToAndReturn(X:float,Y:float):
             [leftPin,rightPin]=turn(speed,True)# rotatte CW 
         while (EncoderL.encoderCount <numPulses):
             x_old, y_old, phi_old = robot_position(EncoderL.encoderCount, EncoderR.encoderCount, dt, x_old, y_old, phi_old)
-
             time.sleep(dt)
         # stop rotating 
         pwm1a.stop()
@@ -360,8 +360,6 @@ def gotToAndReturn(X:float,Y:float):
         encoderOldCount = EncoderL.encoderCount # update encoder count 
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
         fowards(speed) # drive forwards 
-
-
         while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
             x_old, y_old, phi_old = robot_position(EncoderL.encoderCount, EncoderR.encoderCount, dt, x_old, y_old, phi_old)
             time.sleep(dt)
@@ -369,6 +367,47 @@ def gotToAndReturn(X:float,Y:float):
         pwm1b.stop()
         pwm2a.stop()
         pwm2b.stop()
+
+        ########################## go home 
+        # next based on its X, Y and rot, it should go back home 
+        #calcualte rotation number of pulses
+        #given X and Y, get rotation 
+        oldEncoderCountL = EncoderL.encoderCount
+        oldEncoderCountR = EncoderR.encoderCount
+        angle = atan2(-y_old,-x_old)
+        distance = wheelBaseCircumference*abs(angle)/360
+        numPulses = (distance/distancePerPulse) + oldEncoderCountL
+        if (angle >-1 and angle <1): # no rotation required 
+            time.sleep(0.01)
+        elif (angle>0):
+            [leftPin,rightPin]= turn(speed,ANTICLOCKWISE)# rotate CCW
+        else: 
+            [leftPin,rightPin]=turn(speed,CLOCKWISE)# rotatte CW 
+        while (EncoderL.encoderCount <numPulses):
+            x_old, y_old, phi_old = robot_position(EncoderL.encoderCount, EncoderR.encoderCount, dt, x_old, y_old, phi_old)
+            time.sleep(dt)
+        # stop rotating 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+
+        #calculate distance number of pulses 
+        oldEncoderCountL = EncoderL.encoderCount
+        oldEncoderCountR = EncoderR.encoderCount
+        distance = sqrt(x_old**2+y_old**2)
+        numPulses = (distance/distancePerPulse)+oldEncoderCountL
+        fowards(speed)
+        while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
+            x_old, y_old, phi_old = robot_position(EncoderL.encoderCount, EncoderR.encoderCount, dt, x_old, y_old, phi_old)
+            time.sleep(dt)
+
+        #should be at home 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
 
 
         
