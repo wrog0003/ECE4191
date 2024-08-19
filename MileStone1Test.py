@@ -144,13 +144,13 @@ def hitBallTestBasic():
             if (direction == DIRECTION.Ahead): # if ball ahead
                 speed = 100
                 pauseTime = 0.5
-                if (distance <0.3):
+                if (distance <0.4):
                     speed = 20
-                    vision.tolerence = 150
+                    vision.tolerence = 100
                     fowards(speed)
-                if (distance <0.2): # if close to ball 
+                if (distance <0.3): # if close to ball 
                     fowards(30)
-                    time.sleep(3)
+                    time.sleep(4)
                     noHit = False # end 
                     pwm1a.stop()
                     pwm1b.stop()
@@ -203,13 +203,13 @@ def hitBallTestBetter():
             if (direction == DIRECTION.Ahead): # if ball ahead
                 speed = 100
                 pauseTime = 0.5
-                if (distance <0.3):
+                if (distance <0.35):
                     speed = 20
-                    vision.tolerence = 150
+                    vision.tolerence = 100
                     fowards(speed)
-                if (distance <0.2): # if close to ball 
+                if (distance <0.25): # if close to ball 
                     fowards(30)
-                    time.sleep(3)
+                    time.sleep(3.5)
                     noHit = False # end 
                     pwm1a.stop()
                     pwm1b.stop()
@@ -375,4 +375,4 @@ def got2andHome(X:float,Y:float):
 
     
 
-got2andHome(0.2,0)
+got2andHome(0.6,0.5)
