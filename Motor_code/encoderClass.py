@@ -36,3 +36,11 @@ class SimpleEncoder:
     def end(self)->None:
         self.Apin.close()
         self.Bpin.close() 
+
+
+# drive definitions 
+#   L   R       direction
+#   CCW CW      forward
+#   CW  CCW     backward
+#   CCW CCW     right
+#   CW  CW      left

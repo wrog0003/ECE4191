@@ -6,6 +6,7 @@ from math import pi, atan2, sqrt
 #from Motor_code.encoderClassTest import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
 from ECE4191enums import DIRECTION
+from Motor_code.encoderClass import SimpleEncoder
 
 
 ANTICLOCKWISE = False
@@ -123,7 +124,7 @@ def turnAtBallTest():
         GPIO.cleanup()
 
 # simple test to get the robot to find the ball, turn to the ball and get close to the ball 
-def hitBallTest():
+def hitBallTestComplex():
     # init function variables 
     speed = 50
     pauseTime = 0.2
@@ -181,5 +182,57 @@ def hitBallTest():
         pwm2b.stop()
         GPIO.cleanup()
 
+# simple ball hitter that turns towards ball then goes until it hits ball
+def hitBallTestSimple():
+    # init function variables 
+    speed = 15
+    pauseTime = 0.1
+    vision = Sys4_Vision()
+    vision.tolerence = 15 # decrease tollerence 
+    notAhead = True # define turing stop condition 
+    notHit = True # define running stop condition 
+    distance = 100 # predefine distance 
+    try :
+        while notAhead:
+            (direction, temp, distance)= vision.detect() # run vision check 
+            if (direction == DIRECTION.Ahead): # if directly ahead
+                notAhead = False
+                pwm1a.stop()
+                pwm1b.stop()
+                pwm2a.stop()
+                pwm2b.stop()
+                speed = 100 
+            elif(direction==DIRECTION.CannotFind):
+                speed = 50
+                turn(speed,ANTICLOCKWISE)
+            elif(direction == DIRECTION.Left):
+                speed = 15
+                turn(speed,ANTICLOCKWISE)
+            else: # right 
+                speed =15 
+                turn(speed,CLOCKWISE)
+            time.sleep(pauseTime)
+        
+        #move forward
+        pauseTime = distance/0.25
+        fowards(100)
+        time.sleep(pauseTime)
+        #should hit ball
 
-hitBallTest()
+        # exit and release pins 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+            
+    except KeyboardInterrupt:
+        # STOP and RELEASE all pins 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+
+
+hitBallTestSimple()

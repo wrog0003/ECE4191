@@ -482,11 +482,11 @@ def robot_positionOLD(u, w, x_old, y_old, phi_old, dt):
 
     return x, y, phi, x_old, y_old, phi_old
 
-def robot_position(EncoderCountL:int, EncoderCountR:int, dt: float, x_old:float, y_old:float, phi_old:float)->list[float]:
+def robot_position(encoderCurrent:list[int], encoderOld:list[int], dt: float, x_old:float, y_old:float, phi_old:float)->list[float]:
 
     # STEP 1: calculate change in angular position of the wheels
-    angleL = 2*pi*(EncoderCountL - EncoderOldCountL)/pulsesPerRotation # radians
-    angleR = 2*pi*(EncoderCountR - EncoderOldCountR)/pulsesPerRotation # radians
+    angleL = 2*pi*(encoderCurrent[0] - encoderOld[0])/pulsesPerRotation # radians
+    angleR = 2*pi*(encoderCurrent[1] - encoderOld[1])/pulsesPerRotation # radians
 
     # update EncoderCount for both L & R motor
     EncoderOldCountL = EncoderCountL
