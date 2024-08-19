@@ -1,7 +1,5 @@
 from gpiozero import Motor
-from gpiozero import Button
 from encoderClass import SimpleEncoder
-from signal import pause
 import math
 import time
 
@@ -32,10 +30,6 @@ right_motor = Motor(forward=5, backward=6)
 # Set up the motors (ASSUMING motor controller is wired to these GPIO pins)
 left_encoder = SimpleEncoder(LEFT_ENCODER_A_PIN, LEFT_ENCODER_B_PIN)
 right_encoder = SimpleEncoder(RIGHT_ENCODER_A_PIN, RIGHT_ENCODER_B_PIN)
-
-# Set up the encoder pins as buttons for detecting changes
-left_encoder_a = Button(LEFT_ENCODER_A_PIN)
-right_encoder_a = Button(RIGHT_ENCODER_A_PIN)
 
 def update_position():
     global x, y, theta, last_left_count, last_right_count
