@@ -67,6 +67,7 @@ wheelDiameter = 0.054 # diameter of the wheel
 wheelBase = 0.22 # distance between the centre of both wheels 
 wheelBaseCircumference = pi*wheelBase # circumference of the wheel 
 distancePerPulse = wheelDiameter*pi/(75*48) # how far the robot can move per pulse of the encoders
+pulsesPerRotation = 48*75
 
 # Set up GPIO pins
 GPIO.setmode(GPIO.BCM)
@@ -297,7 +298,7 @@ def gotTo(X:float,Y:float):
         EncoderL.end()
         EncoderR.end()
 
-gotTo(0.2,0)
+
 
  #################### LOCALISATION ############################
 
@@ -310,11 +311,11 @@ gotTo(0.2,0)
 # update x and y position each cycle
 
 
-def wheel_speed(pulses_per_turn, dt, EncoderCountL, EncoderCountR, EncoderOldCountL, EncoderOldCountR): 
+def wheel_speed(dt, EncoderCountL, EncoderCountR, EncoderOldCountL, EncoderOldCountR)->list[float]: 
 
     # calculate change in angular position of the wheels
-    angleL = 2*pi*(EncoderCountL - EncoderOldCountL)/pulses_per_turn
-    angleR = 2*pi*(EncoderCountR - EncoderOldCountR)/pulses_per_turn
+    angleL = 2*pi*(EncoderCountL - EncoderOldCountL)/pulsesPerRotation #radians
+    angleR = 2*pi*(EncoderCountR - EncoderOldCountR)/pulsesPerRotation
 
     # calculate angular speed
     wL = angleL/dt
@@ -322,13 +323,13 @@ def wheel_speed(pulses_per_turn, dt, EncoderCountL, EncoderCountR, EncoderOldCou
 
     # Note that units are in radians per second
 
-    return wL, wR 
+    return wL, wR, EncoderCountL, EncoderCountR 
 
 def speed(wL, wR, R, D):
 
     # compute the robot's linear and angular speed
     
-    u = R/2 * (wR + wL) # linear speed of the robot. Compute the robot's forward velocity
+    u = R * (wR + wL)/2 # linear speed of the robot. Compute the robot's forward velocity
     w = R/D * (wR-wL) # rotational velocity (i.e. how fast the robot is rotating)
 
     # u has units of m/s
@@ -372,8 +373,6 @@ EncoderOldCountR = 0 # initalise to zero
 EncoderCountL = EncoderL.encoderCount
 EncoderCountR = EncoderR.encoderCount
 
-
-pulses_per_turn = 48*75 # TO CONFIRM 
 dt = 0.1 # time step to calculate position
 
 R = wheelDiameter/2 # radius of the wheels TO CONFIRM VALUES
@@ -386,7 +385,7 @@ phi_old = 0
 
 try:
     while(True):
-        wL, wR = wheel_speed(pulses_per_turn, dt, EncoderL.encoderCount, EncoderR.encoderCount, EncoderOldCountL, EncoderOldCountR)
+        wL, wR,EncoderOldCountL,EncoderOldCountR = wheel_speed( dt, EncoderL.encoderCount, EncoderR.encoderCount, EncoderOldCountL, EncoderOldCountR)
 
         u, w = speed(wL, wR, R, D)
 
