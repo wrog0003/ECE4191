@@ -7,6 +7,7 @@ class SimpleEncoder:
         self.Apin = Button(Apin, pull_up=True) # high = logic 1, low = logic 0
         self.Bpin = Button(Bpin, pull_up=True) 
         self.encoderCount = 0 # initialise encoder count to 0
+        self.encoderOldCount = 0 
         self.clockWise = False # facing in from outside
         # set up interrupts (rising and falling)
         self.Apin.when_pressed = self.encoderCallA 
@@ -28,9 +29,11 @@ class SimpleEncoder:
     def encoderCall(self,channel):
         self.encoderCount+=1
 
-    #get the state of the encoder 
-    def getValues(self)->tuple[int,bool]:
-        return [self.encoderCount,self.clockWise]
+    #get the state of the encoder, current count, direction, old count
+    def getValues(self)->tuple[int,bool,int]:
+        temp = self.encoderOldCount
+        self.encoderOldCount = self.encoderCount
+        return [self.encoderCount,self.clockWise,temp]
     
     #function call to relase pins
     def end(self)->None:
