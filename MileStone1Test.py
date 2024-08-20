@@ -385,7 +385,7 @@ def got2andHome(X:float,Y:float):
 
 def hitBallGetHome():
     # init function variables 
-    speed = 50
+    speed = 20
     pauseTime = 0.2
     vision = Sys4_Vision()
     EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
@@ -422,7 +422,7 @@ def hitBallGetHome():
                 else: 
                     fowards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind): #cannot find ball
-                speed = 20
+                speed = 10
                 pauseTime = 0.3
                 turn(speed,ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
@@ -430,7 +430,7 @@ def hitBallGetHome():
                     speed -=5
                     speed = max(speed,10)
                 else:
-                    speed = 20
+                    speed = 10
                     pauseTime =0.15
                     turn(speed,ANTICLOCKWISE)
 
@@ -439,9 +439,10 @@ def hitBallGetHome():
                     speed -=5
                     speed = max(speed,10)
                 else:
-                    turn(speed,CLOCKWISE)
-                    speed = 20
+                    speed = 10
                     pauseTime =0.15
+                    turn(speed,CLOCKWISE)
+                    
             oldDirection = direction
             time.sleep(pauseTime)
         # go back to disengauge from the ball
@@ -450,7 +451,7 @@ def hitBallGetHome():
         x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
         
         #return 2 home 
-        print(f'X {x_pos}, Y {y_pos}, rot {rot}\n')
+        print(f' at X {x_pos}, Y {y_pos}, rot {rot}\n')
         angle = atan2(-y_pos,-x_pos)*180/pi
         angle = angle -rot #make it relitive to current pos
         distance = wheelBaseCircumference*abs(angle)/360 # get the distance that needs to be travelled to 
