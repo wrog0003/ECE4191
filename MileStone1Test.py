@@ -36,7 +36,7 @@ motor2chb = 6
 
 # Useful data units: meters
 wheelDiameter = 0.054 # diameter of the wheel
-wheelBase = 0.217 # distance between the centre of both wheels 
+wheelBase = 0.205 # distance between the centre of both wheels 
 wheelBaseCircumference = pi*wheelBase # circumference of the wheel 
 distancePerPulse = wheelDiameter*pi/(75*48) # how far the robot can move per pulse of the encoders
 
@@ -523,7 +523,7 @@ def calibrateDegrees(angle:float):
     x_pos =0
     y_pos = 0
     try:
-        while (abs(rot-angle)>2):
+        while (abs(rot-angle)>1):
             turn(50,CLOCKWISE)
             time.sleep(0.02)
             x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
@@ -541,4 +541,4 @@ def calibrateDegrees(angle:float):
         EncoderL.end()
         EncoderR.end()
 #got2andHome(0.5,0.2)
-turnForAWhile()
+hitBallGetHome()

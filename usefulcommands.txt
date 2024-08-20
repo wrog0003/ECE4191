@@ -24,3 +24,15 @@ Calibration values for 2 seconds of run
 100% 10410
 1% equivlent to 100 pulses in 2 seconds 
 therefore 1 pulse every 20ms per percent 
+
+
+for 90 degrees: inaccray of 15-20 degrees
+for 179 degrees: incarracy 15-20 degrees
+overrotation of 10 degrees per 90 degrees 
+
+
+3600 pulses per rotation of the wheel 
+
+
+wheelDiameter = 0.054 # diameter of the wheel
+wheelBase = 0.205 # distance between the centre of both wheels 
