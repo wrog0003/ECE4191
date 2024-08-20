@@ -277,7 +277,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     #difference
     delL = newL-oldL
     delR = newR-oldR
-    print(delL-delR)
+    #print(delL-delR)
     #get average travelled distance 
     distanceAvg = ((delL*distancePerPulse)+(delR*distancePerPulse))/2 
     #determine direction
@@ -515,5 +515,30 @@ def turnForAWhile():
         pwm2a.stop()
         pwm2b.stop()
         GPIO.cleanup()
+
+def calibrateDegrees(angle:float):
+    EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
+    EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
+    rot = 0
+    x_pos =0
+    y_pos = 0
+    try:
+        while (abs(rot-angle)>2):
+            turn(50,CLOCKWISE)
+            time.sleep(0.02)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+        GPIO.cleanup()
+            
+
+    except KeyboardInterrupt:
+        # STOP and RELEASE all pins 
+        print(rot)
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+        EncoderL.end()
+        EncoderR.end()
 #got2andHome(0.5,0.2)
 turnForAWhile()
