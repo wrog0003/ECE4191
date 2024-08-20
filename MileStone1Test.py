@@ -282,6 +282,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     distanceAvg = ((delL*distancePerPulse)+(delR*distancePerPulse))/2 
     #determine direction
     if (dirL==dirR): #turning
+        print("turing")
         #define non changing aspects
         x = x_old
         y = y_old
@@ -297,6 +298,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
             rot += 360
 
     else:
+        print("forwards")
         rot = rot_old
         if (dirR): #forward
             y= y_old+distanceAvg*sin(rot*pi/180)
