@@ -68,6 +68,18 @@ def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm2b.start(duty_cycle)
 
     return [pwm1b,pwm2b] 
+def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
+   
+    # input: duty cycle between 0 - 100
+    # output: return the active pins
+
+    # drive the motor forwards 
+    pwm1b.start(0)
+    pwm1a.start(duty_cycle)
+    pwm2b.start(0)
+    pwm2a.start(duty_cycle)
+
+    return [pwm1a,pwm2a] 
 
 def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
 
@@ -275,9 +287,9 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         y = y_old
         delAngle = distanceAvg*360/wheelBaseCircumference #convert from distance to angle 
         if dirL: #left 
-            rot = rot_old+delAngle
-        else: #right 
             rot = rot_old-delAngle
+        else: #right 
+            rot = rot_old+delAngle
         #deal with limiting angle domain 
         if rot > 180:
             rot -=360
@@ -304,7 +316,7 @@ def got2andHome(X:float,Y:float):
     oldEncoderCountR = 0 
     x_pos = 0 #meters
     y_pos = 0
-    rot = 0 #radians
+    rot = 0 #degrees
     speed =50
 
     # get angle to point
@@ -371,8 +383,114 @@ def got2andHome(X:float,Y:float):
         pwm2b.stop()
         GPIO.cleanup()
 
+def hitBallGetHome():
+    # init function variables 
+    speed = 50
+    pauseTime = 0.2
+    vision = Sys4_Vision()
+    EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
+    EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
+    oldEncoderCountL = 0
+    oldEncoderCountR = 0 
+    x_pos = 0 #meters
+    y_pos = 0
+    rot = 0 #degrees
+    
+    oldDirection = None 
+    noHit = True # define stop condition 
+    try :
+        while (noHit): # while not close enough to ball 
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            print(f'X {x_pos}, Y {y_pos}, rot {rot}\n')
+            (direction, temp, distance)= vision.detect() # run vision check 
+            print(direction.name)
+            print(distance)
+            if (direction == DIRECTION.Ahead): # if ball ahead
+                speed = 100
+                pauseTime = 0.5
+                if (distance <0.35):
+                    speed = 20
+                    vision.tolerence = 100
+                    fowards(speed)
+                if (distance <0.25): # if close to ball 
+                    fowards(30)
+                    time.sleep(3.5)
+                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+                    noHit = False # end 
+                    pwm1a.stop()
+                    pwm1b.stop()
+                    pwm2a.stop()
+                    pwm2b.stop()
+                else: 
+                    fowards(speed) # move forward 
+            elif (direction == DIRECTION.CannotFind): #cannot find ball
+                speed = 20
+                pauseTime = 0.3
+                turn(speed,ANTICLOCKWISE)
+            elif (direction == DIRECTION.Left):
+                if (oldDirection == DIRECTION.Right): # reduce occilations 
+                    speed -=5
+                    speed = max(speed,10)
+                else:
+                    speed = 20
+                    pauseTime =0.15
+                    turn(speed,ANTICLOCKWISE)
 
+            else: #right 
+                if oldDirection ==DIRECTION.Left: # reduce occilations
+                    speed -=5
+                    speed = max(speed,10)
+                else:
+                    turn(speed,CLOCKWISE)
+                    speed = 20
+                    pauseTime =0.15
+            oldDirection = direction
+            time.sleep(pauseTime)
+            
+        
+        #return 2 home 
+        print(f'X {x_pos}, Y {y_pos}, rot {rot}\n')
+        angle = atan2(-y_pos,-x_pos)*180/pi
+        angle = angle -rot #make it relitive to current pos
+        distance = wheelBaseCircumference*abs(angle)/360 # get the distance that needs to be travelled to 
+        numPulses = (distance/distancePerPulse)+EncoderL.encoderCount
+        if (angle >-1 and angle <1): # no rotation required 
+            time.sleep(0.01)
+        elif (angle>0):
+            [leftPin,rightPin]= turn(speed,ANTICLOCKWISE)# rotate CCW
+        else: 
+            [leftPin,rightPin]=turn(speed,CLOCKWISE)# rotatte CW 
+        while (EncoderL.encoderCount <numPulses):
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            time.sleep(0.02)
+        stop()
+
+        #move 
+        distance = sqrt(x_pos**2+y_pos**2) # calculate distance to drive forward 
+        encoderOldCount = EncoderL.encoderCount # update encoder count 
+        numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
+        fowards(speed) # drive forwards 
+        while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            time.sleep(0.02)
+        stop()
+        GPIO.cleanup()
+
+        # exit and release pins 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
+            
+    except KeyboardInterrupt:
+        # STOP and RELEASE all pins 
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
 
     
-
-got2andHome(0.6,0.5)
+#got2andHome(0.5,0.2)
+hitBallGetHome()
