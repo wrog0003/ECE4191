@@ -36,7 +36,7 @@ motor2chb = 6
 
 # Useful data units: meters
 wheelDiameter = 0.054 # diameter of the wheel
-wheelBase = 0.22 # distance between the centre of both wheels 
+wheelBase = 0.217 # distance between the centre of both wheels 
 wheelBaseCircumference = pi*wheelBase # circumference of the wheel 
 distancePerPulse = wheelDiameter*pi/(75*48) # how far the robot can move per pulse of the encoders
 
@@ -277,7 +277,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     #difference
     delL = newL-oldL
     delR = newR-oldR
-
+    print(delL-delR)
     #get average travelled distance 
     distanceAvg = ((delL*distancePerPulse)+(delR*distancePerPulse))/2 
     #determine direction
@@ -287,9 +287,9 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         y = y_old
         delAngle = distanceAvg*360/wheelBaseCircumference #convert from distance to angle 
         if dirL: #left 
-            rot = rot_old-delAngle
-        else: #right 
             rot = rot_old+delAngle
+        else: #right 
+            rot = rot_old-delAngle
         #deal with limiting angle domain 
         if rot > 180:
             rot -=360
@@ -390,8 +390,6 @@ def hitBallGetHome():
     vision = Sys4_Vision()
     EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
     EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
-    oldEncoderCountL = 0
-    oldEncoderCountR = 0 
     x_pos = 0 #meters
     y_pos = 0
     rot = 0 #degrees
@@ -446,7 +444,10 @@ def hitBallGetHome():
                     pauseTime =0.15
             oldDirection = direction
             time.sleep(pauseTime)
-            
+        # go back to disengauge from the ball
+        backwards(50) 
+        time.sleep(1)
+        x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
         
         #return 2 home 
         print(f'X {x_pos}, Y {y_pos}, rot {rot}\n')
@@ -492,5 +493,27 @@ def hitBallGetHome():
         GPIO.cleanup()
 
     
+def turnForAWhile():
+    EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
+    EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
+    rot = 0
+    x_pos =0
+    y_pos = 0
+    try:
+        while True:
+            turn(50,CLOCKWISE)
+            time.sleep(0.2)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            print(rot)
+            
+
+    except KeyboardInterrupt:
+        # STOP and RELEASE all pins 
+        print(rot)
+        pwm1a.stop()
+        pwm1b.stop()
+        pwm2a.stop()
+        pwm2b.stop()
+        GPIO.cleanup()
 #got2andHome(0.5,0.2)
-hitBallGetHome()
+turnForAWhile()
