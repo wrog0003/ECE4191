@@ -406,7 +406,7 @@ def hitBallGetHome():
             print(direction.name)
             print(distance)
             if (direction == DIRECTION.Ahead): # if ball ahead
-                speed = 100
+                speed = 50
                 pauseTime = 0.5
                 if (distance <0.35):
                     speed = 20
@@ -414,8 +414,10 @@ def hitBallGetHome():
                     fowards(speed)
                 if (distance <0.25): # if close to ball 
                     fowards(30)
+                    print(f'Inintal X {x_pos},Y {y_pos}, rot {rot}')
                     time.sleep(3.5)
                     x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+                    print(f'Final X {x_pos},Y {y_pos}, rot {rot}')
                     noHit = False # end 
                     pwm1a.stop()
                     pwm1b.stop()

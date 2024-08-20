@@ -8,8 +8,8 @@ import numpy as np
 class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
-    greenUpper = (64, 255, 255) # upper limit for the ball color
-    known_radius = 0.034  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
+    greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
+    known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1200  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
 
     #init
@@ -19,7 +19,7 @@ class Sys4_Vision:
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
-            self.cap =cv2.VideoCapture(1)#cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self.cap =cv2.VideoCapture(0)#cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
         result, image = self.cap.read() # get the first image 
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
@@ -55,7 +55,7 @@ class Sys4_Vision:
                     #((x, y), radius) = cv2.minEnclosingCircle(c) 
                     cv2.circle(self.image, (int(x), int(y)), int(radius),(0, 255, 255), 2) # track perimeter of ball 
                     cv2.circle(self.image, center, 5, (0, 0, 255), -1) # marks centre 
-                    cv2.imshow("Frame", self.image) # show the resulting image 
+                    cv2.imshow("Frame", mask) # show the resulting image 
 
                 if abs(center[0]-self.midpoint)<self.tolerence:
                     distance = self.aspcectRatio / radius #get the distance to the ball from the camera 
