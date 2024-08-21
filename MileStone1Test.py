@@ -214,9 +214,10 @@ def hitBallTestBetter():
     noHit = True # define stop condition 
     try :
         while (noHit): # while not close enough to ball 
+            (direction, temp, distance)= vision.detect() # run vision check 
+            time.sleep(0.01)
             x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
             print(f'X {x_pos}, Y {y_pos}, rot {rot}\n')
-            (direction, temp, distance)= vision.detect() # run vision check 
             print(direction.name)
             print(distance)
             if (direction == DIRECTION.Ahead): # if ball ahead
@@ -299,17 +300,16 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     distanceAvg = ((delL*distancePerPulse)+(delR*distancePerPulse))/2 
     #determine direction
     if (dirL==dirR): #turning
-        print("turing")
         #define non changing aspects
         x = x_old
         y = y_old
         delAngle = distanceAvg*360/wheelBaseCircumference #convert from distance to angle 
         if dirL: 
-            print("right")
-            rot = rot_old-delAngle
-        else: #
             print("left")
             rot = rot_old+delAngle
+        else: #
+            print("right")
+            rot = rot_old-delAngle
         #deal with limiting angle domain 
         if rot > 180:
             rot -=360
@@ -320,14 +320,14 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         
         rot = rot_old
         if (dirR): #backwards
-            y= y_old-(distanceAvg*sin(rot*pi/180))
-            x = x_old-(distanceAvg*cos(rot*pi/180) )
-            print("backwards")
-        else: #forwards
-
             y= y_old+(distanceAvg*sin(rot*pi/180))
             x = x_old+(distanceAvg*cos(rot*pi/180) )
             print("forwards")
+        else: #forwards
+
+            y= y_old-(distanceAvg*sin(rot*pi/180))
+            x = x_old-(distanceAvg*cos(rot*pi/180) )
+            print("backwards")
     return x,y,rot
         
 
@@ -372,6 +372,7 @@ def got2andHome(X:float,Y:float):
             time.sleep(0.02)
         stop()
         #return code 
+        print(f'X{x_pos}, Y{y_pos}, rot{rot}')
         #rotate 
         angle = atan2(-y_pos,-x_pos)*180/pi
         angle = angle -rot #make it relitive to current pos
@@ -568,4 +569,5 @@ def calibrateDegrees(angle:float):
         EncoderL.end()
         EncoderR.end()
 #got2andHome(0.5,0.2)
-got2andHome(0.3,0.2)
+# add 10ms delay between camera and location
+got2andHome(0.305,0.305)
