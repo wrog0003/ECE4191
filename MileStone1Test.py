@@ -65,7 +65,7 @@ def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm1a.start(0)
     pwm1b.start(duty_cycle)
     pwm2a.start(0)
-    pwm2b.start(min(duty_cycle+5,100))
+    pwm2b.start(max(duty_cycle-2.5,5))
 
     return [pwm1b,pwm2b] 
 def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
@@ -77,7 +77,7 @@ def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm1b.start(0)
     pwm1a.start(duty_cycle)
     pwm2b.start(0)
-    pwm2a.start(min(duty_cycle+5,100))
+    pwm2a.start(max(duty_cycle-2.5,5))
 
     return [pwm1a,pwm2a] 
 
@@ -89,14 +89,14 @@ def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
     if clockWise:
         pwm1a.start(0)
         pwm1b.start(duty_cycle)
-        pwm2a.start(min(duty_cycle+5,100))
+        pwm2a.start(max(duty_cycle-2.5,5))
         pwm2b.start(0)
         return [pwm1b,pwm2a]
     else:
         pwm1a.start(duty_cycle)
         pwm1b.start(0)
         pwm2a.start(0)
-        pwm2b.start(min(duty_cycle+5,100))
+        pwm2b.start(max(duty_cycle-2.5,5))
         return [pwm1a,pwm2b]
 
 def stop()->None:
@@ -295,7 +295,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     #difference
     delL = abs(newL-oldL)
     delR = abs(newR-oldR)
-    #print(delL-delR)
+    print(delL-delR)
     #get average travelled distance 
     distanceAvg = ((delL*distancePerPulse)+(delR*distancePerPulse))/2 
     #determine direction
@@ -305,10 +305,10 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         y = y_old
         delAngle = distanceAvg*360/wheelBaseCircumference #convert from distance to angle 
         if dirL: 
-            print("left")
+            #print("left")
             rot = rot_old+delAngle
         else: #
-            print("right")
+            #print("right")
             rot = rot_old-delAngle
         #deal with limiting angle domain 
         if rot > 180:
@@ -322,12 +322,12 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         if (dirR): #backwards
             y= y_old+(distanceAvg*sin(rot*pi/180))
             x = x_old+(distanceAvg*cos(rot*pi/180) )
-            print("forwards")
+            #print("forwards")
         else: #forwards
 
             y= y_old-(distanceAvg*sin(rot*pi/180))
             x = x_old-(distanceAvg*cos(rot*pi/180) )
-            print("backwards")
+            #print("backwards")
     return x,y,rot
         
 
@@ -570,4 +570,4 @@ def calibrateDegrees(angle:float):
         EncoderR.end()
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-got2andHome(0.61,0)
+got2andHome(1,0)
