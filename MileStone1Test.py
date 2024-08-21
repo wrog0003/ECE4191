@@ -288,8 +288,10 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         y = y_old
         delAngle = distanceAvg*360/wheelBaseCircumference #convert from distance to angle 
         if dirL: #left 
+            print("left")
             rot = rot_old+delAngle
         else: #right 
+            print("right")
             rot = rot_old-delAngle
         #deal with limiting angle domain 
         if rot > 180:
@@ -304,6 +306,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
             y= y_old+distanceAvg*sin(rot*pi/180)
             x = x_old+distanceAvg*cos(rot*pi/180) 
         else: #backward
+            print("backwards")
             y= y_old-distanceAvg*sin(rot*pi/180)
             x = x_old-distanceAvg*cos(rot*pi/180) 
     return x,y,rot
