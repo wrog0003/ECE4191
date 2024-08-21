@@ -206,14 +206,21 @@ def hitBallTestBetter():
     pauseTime = 0.2
     vision = Sys4_Vision()
     oldDirection = None 
+    EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
+    EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
+    rot = 0
+    x_pos = 0
+    y_pos = 0
     noHit = True # define stop condition 
     try :
         while (noHit): # while not close enough to ball 
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            print(f'X {x_pos}, Y {y_pos}, rot {rot}\n')
             (direction, temp, distance)= vision.detect() # run vision check 
             print(direction.name)
             print(distance)
             if (direction == DIRECTION.Ahead): # if ball ahead
-                speed = 100
+                speed = 50
                 pauseTime = 0.5
                 if (distance <0.35):
                     speed = 20
@@ -221,8 +228,13 @@ def hitBallTestBetter():
                     fowards(speed)
                 if (distance <0.25): # if close to ball 
                     fowards(30)
+                    print(f'Inintal X {x_pos},Y {y_pos}, rot {rot}')
+                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
                     time.sleep(3.5)
+                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+                    print(f'Final X {x_pos},Y {y_pos}, rot {rot}')
                     noHit = False # end 
+                    time.sleep(0.1)
                     pwm1a.stop()
                     pwm1b.stop()
                     pwm2a.stop()
@@ -230,7 +242,7 @@ def hitBallTestBetter():
                 else: 
                     fowards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind): #cannot find ball
-                speed = 20
+                speed = 100
                 pauseTime = 0.3
                 turn(speed,ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
@@ -238,7 +250,7 @@ def hitBallTestBetter():
                     speed -=5
                     speed = max(speed,10)
                 else:
-                    speed = 20
+                    speed = 100
                     pauseTime =0.15
                     turn(speed,ANTICLOCKWISE)
 
@@ -247,12 +259,17 @@ def hitBallTestBetter():
                     speed -=5
                     speed = max(speed,10)
                 else:
-                    turn(speed,CLOCKWISE)
-                    speed = 20
+                    speed = 100
                     pauseTime =0.15
+                    turn(speed,CLOCKWISE)
+                    
             oldDirection = direction
             time.sleep(pauseTime)
-            
+            stop()
+            print(f'X {x_pos},Y {y_pos}, rot {rot}')
+            time.sleep(1)
+
+        print(f'END X {x_pos},Y {y_pos}, rot {rot}')
         # exit and release pins 
         pwm1a.stop()
         pwm1b.stop()
@@ -275,8 +292,8 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     [newR, dirR, oldR] = encoderR.getValues()
 
     #difference
-    delL = newL-oldL
-    delR = newR-oldR
+    delL = abs(newL-oldL)
+    delR = abs(newR-oldR)
     #print(delL-delR)
     #get average travelled distance 
     distanceAvg = ((delL*distancePerPulse)+(delR*distancePerPulse))/2 
@@ -287,10 +304,12 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         x = x_old
         y = y_old
         delAngle = distanceAvg*360/wheelBaseCircumference #convert from distance to angle 
-        if dirL: #left 
-            rot = rot_old+delAngle
-        else: #right 
+        if dirL: 
+            print("right")
             rot = rot_old-delAngle
+        else: #
+            print("left")
+            rot = rot_old+delAngle
         #deal with limiting angle domain 
         if rot > 180:
             rot -=360
@@ -298,14 +317,17 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
             rot += 360
 
     else:
-        print("forwards")
+        
         rot = rot_old
-        if (dirR): #forward
-            y= y_old+distanceAvg*sin(rot*pi/180)
-            x = x_old+distanceAvg*cos(rot*pi/180) 
-        else: #backward
-            y= y_old-distanceAvg*sin(rot*pi/180)
-            x = x_old-distanceAvg*cos(rot*pi/180) 
+        if (dirR): #backwards
+            y= y_old-(distanceAvg*sin(rot*pi/180))
+            x = x_old-(distanceAvg*cos(rot*pi/180) )
+            print("backwards")
+        else: #forwards
+
+            y= y_old+(distanceAvg*sin(rot*pi/180))
+            x = x_old+(distanceAvg*cos(rot*pi/180) )
+            print("forwards")
     return x,y,rot
         
 
@@ -546,4 +568,4 @@ def calibrateDegrees(angle:float):
         EncoderL.end()
         EncoderR.end()
 #got2andHome(0.5,0.2)
-hitBallGetHome()
+got2andHome(0.3,0.2)
