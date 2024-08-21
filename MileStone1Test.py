@@ -38,7 +38,7 @@ motor2chb = 6
 wheelDiameter = 0.054 # diameter of the wheel
 wheelBase = 0.205 # distance between the centre of both wheels 
 wheelBaseCircumference = pi*wheelBase # circumference of the wheel 
-distancePerPulse = wheelDiameter*pi/(75*48) # how far the robot can move per pulse of the encoders
+distancePerPulse = wheelDiameter*pi/(74.8*24) # how far the robot can move per pulse of the encoders
 
 # Set up GPIO pins
 GPIO.setmode(GPIO.BCM)
@@ -65,7 +65,7 @@ def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm1a.start(0)
     pwm1b.start(duty_cycle)
     pwm2a.start(0)
-    pwm2b.start(duty_cycle)
+    pwm2b.start(min(duty_cycle+5,100))
 
     return [pwm1b,pwm2b] 
 def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
@@ -77,7 +77,7 @@ def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm1b.start(0)
     pwm1a.start(duty_cycle)
     pwm2b.start(0)
-    pwm2a.start(duty_cycle)
+    pwm2a.start(min(duty_cycle+5,100))
 
     return [pwm1a,pwm2a] 
 
@@ -89,14 +89,14 @@ def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
     if clockWise:
         pwm1a.start(0)
         pwm1b.start(duty_cycle)
-        pwm2a.start(duty_cycle)
+        pwm2a.start(min(duty_cycle+5,100))
         pwm2b.start(0)
         return [pwm1b,pwm2a]
     else:
         pwm1a.start(duty_cycle)
         pwm1b.start(0)
         pwm2a.start(0)
-        pwm2b.start(duty_cycle)
+        pwm2b.start(min(duty_cycle+5,100))
         return [pwm1a,pwm2b]
 
 def stop()->None:
@@ -570,4 +570,4 @@ def calibrateDegrees(angle:float):
         EncoderR.end()
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-got2andHome(0.305,0.305)
+got2andHome(0.61,0)

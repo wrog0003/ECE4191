@@ -12,8 +12,8 @@ class SimpleEncoder:
         # set up interrupts (rising and falling)
         self.Apin.when_pressed = self.encoderCallA 
         self.Bpin.when_pressed = self.encoderCallB
-        self.Apin.when_released = self.encoderCall
-        self.Bpin.when_released = self.encoderCall
+        #self.Apin.when_released = self.encoderCall
+        #self.Bpin.when_released = self.encoderCall
 
     # interrupt callback functions
     def encoderCallA(self,channel):
