@@ -8,7 +8,9 @@ class SimpleEncoder:
         self.Bpin = Button(Bpin, pull_up=True) 
         self.encoderCount = 0 # initialise encoder count to 0
         self.encoderOldCount = 0 
+    
         self.clockWise = False # facing in from outside
+        #self.DirectionList = [self.clockWise]*3
         # set up interrupts (rising and falling)
         self.Apin.when_pressed = self.encoderCallA 
         self.Bpin.when_pressed = self.encoderCallB
@@ -18,16 +20,20 @@ class SimpleEncoder:
     # interrupt callback functions
     def encoderCallA(self,channel):
         self.encoderCount+=1 # increment encoder count
-        if (self.Apin.value and self.Bpin.value):
+        if (self.Bpin.value):
             self.clockWise = True
+        else:
+            self.clockWise = False
 
     def encoderCallB(self,channel):
         self.encoderCount+=1 # increment encoder count
-        if (self.Apin.value and self.Bpin.value):
+        if (self.Apin.value):
             self.clockWise = False
+        else:
+            self.clockWise = True 
 
-    def encoderCall(self,channel):
-        self.encoderCount+=1
+    # def encoderCall(self,channel):
+    #     self.encoderCount+=1
 
     #get the state of the encoder, current count, direction, old count
     def getValues(self)->tuple[int,bool,int]:
