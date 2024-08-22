@@ -36,9 +36,10 @@ motor2chb = 6
 
 # Useful data units: meters
 wheelDiameter = 0.054 # diameter of the wheel
-wheelBase = 0.205 # distance between the centre of both wheels 
+wheelBase = 0.22 # distance between the centre of both wheels 
 wheelBaseCircumference = pi*wheelBase # circumference of the wheel 
 distancePerPulse = wheelDiameter*pi/(74.8*24) # how far the robot can move per pulse of the encoders
+duty_cycle_bias = 1.00 
 
 # Set up GPIO pins
 GPIO.setmode(GPIO.BCM)
@@ -65,7 +66,7 @@ def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm1a.start(0)
     pwm1b.start(duty_cycle)
     pwm2a.start(0)
-    pwm2b.start(max(duty_cycle-2.5,5))
+    pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
 
     return [pwm1b,pwm2b] 
 def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
@@ -77,7 +78,7 @@ def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm1b.start(0)
     pwm1a.start(duty_cycle)
     pwm2b.start(0)
-    pwm2a.start(max(duty_cycle-2.5,5))
+    pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
 
     return [pwm1a,pwm2a] 
 
@@ -89,14 +90,14 @@ def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
     if clockWise:
         pwm1a.start(0)
         pwm1b.start(duty_cycle)
-        pwm2a.start(max(duty_cycle-2.5,5))
+        pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
         pwm2b.start(0)
         return [pwm1b,pwm2a]
     else:
         pwm1a.start(duty_cycle)
         pwm1b.start(0)
         pwm2a.start(0)
-        pwm2b.start(max(duty_cycle-2.5,5))
+        pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
         return [pwm1a,pwm2b]
 
 def stop()->None:
@@ -295,7 +296,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     #difference
     delL = abs(newL-oldL)
     delR = abs(newR-oldR)
-    print(delL-delR)
+    #print(delL-delR)
     #get average travelled distance 
     distanceAvg = ((delL*distancePerPulse)+(delR*distancePerPulse))/2 
     #determine direction
@@ -305,10 +306,10 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         y = y_old
         delAngle = distanceAvg*360/wheelBaseCircumference #convert from distance to angle 
         if dirL: 
-            #print("left")
+            print("left")
             rot = rot_old+delAngle
         else: #
-            #print("right")
+            print("right")
             rot = rot_old-delAngle
         #deal with limiting angle domain 
         if rot > 180:
@@ -322,12 +323,12 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
         if (dirR): #backwards
             y= y_old+(distanceAvg*sin(rot*pi/180))
             x = x_old+(distanceAvg*cos(rot*pi/180) )
-            #print("forwards")
+            print("forwards")
         else: #forwards
 
             y= y_old-(distanceAvg*sin(rot*pi/180))
             x = x_old-(distanceAvg*cos(rot*pi/180) )
-            #print("backwards")
+            print("backwards")
     return x,y,rot
         
 
@@ -341,7 +342,7 @@ def got2andHome(X:float,Y:float):
     x_pos = 0 #meters
     y_pos = 0
     rot = 0 #degrees
-    speed =50
+    speed =30
 
     # get angle to point
     angle = atan2(Y,X)*180/pi
