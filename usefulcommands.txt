@@ -36,3 +36,7 @@ overrotation of 10 degrees per 90 degrees
 
 wheelDiameter = 0.054 # diameter of the wheel
 wheelBase = 0.205 # distance between the centre of both wheels 
+
+
+LAST RESORT IDEA 
+- don't worry ab external state and use flags in command to define direction - speak to Emma if this does not make sense 
