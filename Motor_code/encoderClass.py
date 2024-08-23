@@ -20,17 +20,17 @@ class SimpleEncoder:
     # interrupt callback functions
     def encoderCallA(self,channel):
         self.encoderCount+=1 # increment encoder count
-        if (self.Bpin.value):
-            self.clockWise = True
-        else:
-            self.clockWise = False
+        # if (self.Bpin.value):
+        #     self.clockWise = True
+        # else:
+        #     self.clockWise = False
 
     def encoderCallB(self,channel):
         self.encoderCount+=1 # increment encoder count
-        if (self.Apin.value):
-            self.clockWise = False
-        else:
-            self.clockWise = True 
+        # if (self.Apin.value):
+        #     self.clockWise = False
+        # else:
+        #     self.clockWise = True 
 
     # def encoderCall(self,channel):
     #     self.encoderCount+=1

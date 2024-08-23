@@ -372,6 +372,8 @@ def got2andHome(X:float,Y:float):
             x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
             time.sleep(0.02)
         stop()
+
+        '''
         #return code 
         print(f'X{x_pos}, Y{y_pos}, rot{rot}')
         #rotate 
@@ -399,6 +401,7 @@ def got2andHome(X:float,Y:float):
             x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
             time.sleep(0.02)
         stop()
+        '''
         GPIO.cleanup()
 
     except KeyboardInterrupt:
