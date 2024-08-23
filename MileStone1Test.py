@@ -441,9 +441,9 @@ def hitBallGetHome():
                 if (distance <0.35):
                     speed = 20
                     vision.tolerence = 100
-                    fowards(speed)
+                    forwards(speed)
                 if (distance <0.25): # if close to ball 
-                    fowards(30)
+                    forwards(30)
                     print(f'Inintal X {x_pos},Y {y_pos}, rot {rot}')
                     time.sleep(3.5)
                     x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
@@ -454,7 +454,7 @@ def hitBallGetHome():
                     pwm2a.stop()
                     pwm2b.stop()
                 else: 
-                    fowards(speed) # move forward 
+                    forwards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind): #cannot find ball
                 speed = 10
                 pauseTime = 0.3
@@ -505,7 +505,7 @@ def hitBallGetHome():
         distance = sqrt(x_pos**2+y_pos**2) # calculate distance to drive forward 
         encoderOldCount = EncoderL.encoderCount # update encoder count 
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
-        fowards(speed) # drive forwards 
+        forwards(speed) # drive forwards 
         while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
             x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
             time.sleep(0.02)
@@ -577,4 +577,4 @@ def calibrateDegrees(angle:float):
         EncoderR.end()
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-got2andHome(1,0)
+got2andHome(0,0)
