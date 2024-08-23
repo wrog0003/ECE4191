@@ -233,7 +233,7 @@ def hitBallTestBetter():
                 else: 
                     State = forwards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind): #cannot find ball
-                speed = 100
+                speed = 20
                 pauseTime = 0.3
                 State = turn(speed,ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
@@ -241,7 +241,7 @@ def hitBallTestBetter():
                     speed -=5
                     speed = max(speed,10)
                 else:
-                    speed = 100
+                    speed = 20
                     pauseTime =0.15
                     State = turn(speed,ANTICLOCKWISE)
 
@@ -250,15 +250,15 @@ def hitBallTestBetter():
                     speed -=5
                     speed = max(speed,10)
                 else:
-                    speed = 100
+                    speed = 20
                     pauseTime =0.15
                     State = turn(speed,CLOCKWISE)
                     
             oldDirection = direction
             time.sleep(pauseTime)
-            stop()
+            
             print(f'X {x_pos},Y {y_pos}, rot {rot}')
-            time.sleep(1)
+            #time.sleep(0.01)
 
         print(f'END X {x_pos},Y {y_pos}, rot {rot}')
         # exit and release pins 
@@ -391,9 +391,9 @@ def got2andHome(X:float,Y:float):
         if (angle >-1 and angle <1): # no rotation required 
             time.sleep(0.01)
         elif (angle>0):
-            [leftPin,rightPin]= turn(speed,ANTICLOCKWISE)# rotate CCW
+            State= turn(speed,ANTICLOCKWISE)# rotate CCW
         else: 
-            [leftPin,rightPin]=turn(speed,CLOCKWISE)# rotatte CW 
+            State=turn(speed,CLOCKWISE)# rotatte CW 
         while (EncoderL.encoderCount <numPulses):
             x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             time.sleep(0.02)
@@ -577,4 +577,4 @@ def calibrateDegrees(angle:float):
         EncoderR.end()
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-got2andHome(0,0)
+hitBallTestBetter()
