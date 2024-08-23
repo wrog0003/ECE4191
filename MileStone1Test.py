@@ -428,6 +428,7 @@ def hitBallGetHome():
     
     oldDirection = None 
     noHit = True # define stop condition 
+    State = None 
     try :
         while (noHit): # while not close enough to ball 
             x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
@@ -574,4 +575,4 @@ def calibrateDegrees(angle:float):
         EncoderR.end()
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-hitBallGetHome()
+hitBallTestBetter()
