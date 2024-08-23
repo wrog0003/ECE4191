@@ -430,7 +430,7 @@ def hitBallGetHome():
     noHit = True # define stop condition 
     try :
         while (noHit): # while not close enough to ball 
-            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             print(f'X {x_pos}, Y {y_pos}, rot {rot}\n')
             (direction, temp, distance)= vision.detect() # run vision check 
             print(direction.name)
@@ -441,24 +441,21 @@ def hitBallGetHome():
                 if (distance <0.35):
                     speed = 20
                     vision.tolerence = 100
-                    forwards(speed)
+                    State = forwards(speed)
                 if (distance <0.25): # if close to ball 
-                    forwards(30)
+                    State = forwards(30)
                     print(f'Inintal X {x_pos},Y {y_pos}, rot {rot}')
                     time.sleep(3.5)
-                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
                     print(f'Final X {x_pos},Y {y_pos}, rot {rot}')
                     noHit = False # end 
-                    pwm1a.stop()
-                    pwm1b.stop()
-                    pwm2a.stop()
-                    pwm2b.stop()
+                    stop()
                 else: 
-                    forwards(speed) # move forward 
+                    State = forwards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind): #cannot find ball
                 speed = 10
                 pauseTime = 0.3
-                turn(speed,ANTICLOCKWISE)
+                State = turn(speed,ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
                 if (oldDirection == DIRECTION.Right): # reduce occilations 
                     speed -=5
@@ -466,7 +463,7 @@ def hitBallGetHome():
                 else:
                     speed = 10
                     pauseTime =0.15
-                    turn(speed,ANTICLOCKWISE)
+                    State =turn(speed,ANTICLOCKWISE)
 
             else: #right 
                 if oldDirection ==DIRECTION.Left: # reduce occilations
@@ -475,14 +472,14 @@ def hitBallGetHome():
                 else:
                     speed = 10
                     pauseTime =0.15
-                    turn(speed,CLOCKWISE)
+                    State =turn(speed,CLOCKWISE)
                     
             oldDirection = direction
             time.sleep(pauseTime)
         # go back to disengauge from the ball
-        backwards(50) 
+        State = backwards(50) 
         time.sleep(1)
-        x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+        x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
         
         #return 2 home 
         print(f' at X {x_pos}, Y {y_pos}, rot {rot}\n')
@@ -493,11 +490,11 @@ def hitBallGetHome():
         if (angle >-1 and angle <1): # no rotation required 
             time.sleep(0.01)
         elif (angle>0):
-            [leftPin,rightPin]= turn(speed,ANTICLOCKWISE)# rotate CCW
+            State= turn(speed,ANTICLOCKWISE)# rotate CCW
         else: 
-            [leftPin,rightPin]=turn(speed,CLOCKWISE)# rotatte CW 
+            State=turn(speed,CLOCKWISE)# rotatte CW 
         while (EncoderL.encoderCount <numPulses):
-            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             time.sleep(0.02)
         stop()
 
@@ -505,9 +502,9 @@ def hitBallGetHome():
         distance = sqrt(x_pos**2+y_pos**2) # calculate distance to drive forward 
         encoderOldCount = EncoderL.encoderCount # update encoder count 
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
-        forwards(speed) # drive forwards 
+        State =forwards(speed) # drive forwards 
         while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
-            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             time.sleep(0.02)
         stop()
         GPIO.cleanup()
@@ -577,4 +574,4 @@ def calibrateDegrees(angle:float):
         EncoderR.end()
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-hitBallTestBetter()
+hitBallGetHome()
