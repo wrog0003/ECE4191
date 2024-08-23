@@ -17,6 +17,11 @@ class DIRECTION (Enum):
     Right = 3
     CannotFind = 4 
 
-# use boundry = true 
+class ACTION (Enum):
+    FORWARD =1
+    BACKWARD =2
+    LEFT = 3
+    RIGHT =4
+
     
     

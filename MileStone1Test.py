@@ -5,7 +5,7 @@ from math import pi, atan2, sqrt, sin, cos
 
 #from Motor_code.encoderClassTest import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
-from ECE4191enums import DIRECTION
+from ECE4191enums import DIRECTION, ACTION
 from Motor_code.encoderClass import SimpleEncoder
 
 
@@ -39,7 +39,7 @@ wheelDiameter = 0.054 # diameter of the wheel
 wheelBase = 0.22 # distance between the centre of both wheels 
 wheelBaseCircumference = pi*wheelBase # circumference of the wheel 
 distancePerPulse = wheelDiameter*pi/(74.8*24) # how far the robot can move per pulse of the encoders
-duty_cycle_bias = 1.00 
+duty_cycle_bias = 0.95
 
 # Set up GPIO pins
 GPIO.setmode(GPIO.BCM)
@@ -57,7 +57,7 @@ pwm2a = GPIO.PWM(motor2a,1000)
 pwm2b = GPIO.PWM(motor2b,1000)
 
 
-def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
+def forwards(duty_cycle:float)->ACTION:
    
     # input: duty cycle between 0 - 100
     # output: return the active pins
@@ -68,8 +68,9 @@ def fowards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm2a.start(0)
     pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
 
-    return [pwm1b,pwm2b] 
-def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
+    return ACTION.FORWARD
+
+def backwards(duty_cycle:float)->ACTION:
    
     # input: duty cycle between 0 - 100
     # output: return the active pins
@@ -80,9 +81,9 @@ def backwards(duty_cycle:float)->list[GPIO.PWM,GPIO.PWM]:
     pwm2b.start(0)
     pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
 
-    return [pwm1a,pwm2a] 
+    return ACTION.BACKWARD 
 
-def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
+def turn(duty_cycle:float,clockWise:bool)->ACTION:
 
     # input: duty cycle between 0 - 100, if you want to turn clockwise or anticlockwise 
     # output: return the active pins
@@ -92,13 +93,13 @@ def turn(duty_cycle:float,clockWise:bool)->list[GPIO.PWM,GPIO.PWM]:
         pwm1b.start(duty_cycle)
         pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
         pwm2b.start(0)
-        return [pwm1b,pwm2a]
+        return ACTION.RIGHT
     else:
         pwm1a.start(duty_cycle)
         pwm1b.start(0)
         pwm2a.start(0)
         pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
-        return [pwm1a,pwm2b]
+        return ACTION.LEFT
 
 def stop()->None:
     pwm1a.stop()
@@ -113,22 +114,20 @@ def turnAtBallTest():
     speed = 20
     vision = Sys4_Vision()
     NotAhead = True # init ending variable 
+    State =None 
     try :
         while (NotAhead): 
             (direction, temp, distance)= vision.detect() # run vision check 
             print(direction)
             if (direction == DIRECTION.Ahead): # if ball is ahead
                 NotAhead = False # change to end while loop 
-                pwm1a.stop()
-                pwm1b.stop()
-                pwm2a.stop()
-                pwm2b.stop()
+                stop()
             elif (direction == DIRECTION.CannotFind): # if no ball detected in current frame 
-                turn(speed, ANTICLOCKWISE)
+                State = turn(speed, ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
-                turn(speed, ANTICLOCKWISE)
+                State = turn(speed, ANTICLOCKWISE)
             else:
-                turn(speed,CLOCKWISE) 
+                State = turn(speed,CLOCKWISE) 
             time.sleep(0.2) # delay 200ms 
         # exit and release pins 
         
@@ -149,6 +148,7 @@ def hitBallTestBasic():
     pauseTime = 0.2
     vision = Sys4_Vision()
     noHit = True # define stop condition 
+    State = None
     try :
         while (noHit): # while not close enough to ball 
             (direction, temp, distance)= vision.detect() # run vision check 
@@ -160,45 +160,36 @@ def hitBallTestBasic():
                 if (distance <0.4):
                     speed = 20
                     vision.tolerence = 100
-                    fowards(speed)
+                    State = forwards(speed)
                 if (distance <0.3): # if close to ball 
-                    fowards(30)
+                    State = forwards(30)
                     time.sleep(4)
                     noHit = False # end 
-                    pwm1a.stop()
-                    pwm1b.stop()
-                    pwm2a.stop()
-                    pwm2b.stop()
+                    stop()
                 else: 
-                    fowards(speed) # move forward 
+                    State = forwards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind):
                 speed = 20
                 pauseTime = 0.3
-                turn(speed,ANTICLOCKWISE)
+                State = turn(speed,ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
                 speed = 20
                 pauseTime =0.15
-                turn(speed,ANTICLOCKWISE)
+                State = turn(speed,ANTICLOCKWISE)
 
             else:
-                turn(speed,CLOCKWISE)
+                State = turn(speed,CLOCKWISE)
                 speed = 20
                 pauseTime =0.15
             time.sleep(pauseTime)
             
         # exit and release pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
             
     except KeyboardInterrupt:
         # STOP and RELEASE all pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
 
 def hitBallTestBetter():
@@ -213,11 +204,12 @@ def hitBallTestBetter():
     x_pos = 0
     y_pos = 0
     noHit = True # define stop condition 
+    State = None 
     try :
         while (noHit): # while not close enough to ball 
             (direction, temp, distance)= vision.detect() # run vision check 
             time.sleep(0.01)
-            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             print(f'X {x_pos}, Y {y_pos}, rot {rot}\n')
             print(direction.name)
             print(distance)
@@ -227,26 +219,23 @@ def hitBallTestBetter():
                 if (distance <0.35):
                     speed = 20
                     vision.tolerence = 100
-                    fowards(speed)
+                    State = forwards(speed)
                 if (distance <0.25): # if close to ball 
-                    fowards(30)
+                    State = forwards(30)
                     print(f'Inintal X {x_pos},Y {y_pos}, rot {rot}')
-                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
                     time.sleep(3.5)
-                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+                    x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
                     print(f'Final X {x_pos},Y {y_pos}, rot {rot}')
                     noHit = False # end 
                     time.sleep(0.1)
-                    pwm1a.stop()
-                    pwm1b.stop()
-                    pwm2a.stop()
-                    pwm2b.stop()
+                    stop()
                 else: 
-                    fowards(speed) # move forward 
+                    State = forwards(speed) # move forward 
             elif (direction == DIRECTION.CannotFind): #cannot find ball
                 speed = 100
                 pauseTime = 0.3
-                turn(speed,ANTICLOCKWISE)
+                State = turn(speed,ANTICLOCKWISE)
             elif (direction == DIRECTION.Left):
                 if (oldDirection == DIRECTION.Right): # reduce occilations 
                     speed -=5
@@ -254,7 +243,7 @@ def hitBallTestBetter():
                 else:
                     speed = 100
                     pauseTime =0.15
-                    turn(speed,ANTICLOCKWISE)
+                    State = turn(speed,ANTICLOCKWISE)
 
             else: #right 
                 if oldDirection ==DIRECTION.Left: # reduce occilations
@@ -263,7 +252,7 @@ def hitBallTestBetter():
                 else:
                     speed = 100
                     pauseTime =0.15
-                    turn(speed,CLOCKWISE)
+                    State = turn(speed,CLOCKWISE)
                     
             oldDirection = direction
             time.sleep(pauseTime)
@@ -273,22 +262,16 @@ def hitBallTestBetter():
 
         print(f'END X {x_pos},Y {y_pos}, rot {rot}')
         # exit and release pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
             
     except KeyboardInterrupt:
         # STOP and RELEASE all pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
 
 #returns x, y, rot
-def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:float,rot_old:float)->list[float]:
+def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:float,rot_old:float,State:ACTION)->list[float]:
     # get data
     [newL, dirL, oldL] = encoderL.getValues()
     [newR, dirR, oldR] = encoderR.getValues()
@@ -299,7 +282,29 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     #print(delL-delR)
     #get average travelled distance 
     distanceAvg = ((delL*distancePerPulse)+(delR*distancePerPulse))/2 
+    x = 0
+    y = 0 
+    rot = 0 
     #determine direction
+    if State == ACTION.FORWARD:
+        rot = rot_old
+        y= y_old+(distanceAvg*sin(rot*pi/180))
+        x = x_old+(distanceAvg*cos(rot*pi/180))
+    elif State ==ACTION.BACKWARD:
+        rot = rot_old
+        y= y_old-(distanceAvg*sin(rot*pi/180))
+        x = x_old-(distanceAvg*cos(rot*pi/180))
+    elif State == ACTION.LEFT:
+        x= x_old
+        y = y_old
+        delAngle = distanceAvg*360/wheelBaseCircumference
+        rot = rot_old+delAngle
+    elif State == ACTION.RIGHT:
+        x= x_old
+        y = y_old 
+        delAngle = distanceAvg*360/wheelBaseCircumference
+        rot = rot_old-delAngle
+    '''
     if (dirL==dirR): #turning
         #define non changing aspects
         x = x_old
@@ -329,6 +334,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
             y= y_old-(distanceAvg*sin(rot*pi/180))
             x = x_old-(distanceAvg*cos(rot*pi/180) )
             print("backwards")
+    '''
     return x,y,rot
         
 
@@ -342,7 +348,7 @@ def got2andHome(X:float,Y:float):
     x_pos = 0 #meters
     y_pos = 0
     rot = 0 #degrees
-    speed =30
+    speed =90
 
     # get angle to point
     angle = atan2(Y,X)*180/pi
@@ -350,32 +356,33 @@ def got2andHome(X:float,Y:float):
     numPulses = distance/distancePerPulse
     EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
     EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
+    State = None 
 
     try:
         # rotate 
         if (angle >-1 and angle <1): # no rotation required 
             time.sleep(0.01)
         elif (angle>0):
-            [leftPin,rightPin]= turn(speed,False)# rotate CCW
+            State= turn(speed,False)# rotate CCW
         else: 
-            [leftPin,rightPin]=turn(speed,True)# rotatte CW 
+            State=turn(speed,True)# rotatte CW 
         while (EncoderL.encoderCount <numPulses):
-            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             time.sleep(0.02)
         stop()
 
         distance = sqrt(X**2+Y**2) # calculate distance to drive forward 
         encoderOldCount = EncoderL.encoderCount # update encoder count 
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
-        fowards(speed) # drive forwards 
+        State = forwards(speed) # drive forwards 
         while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
-            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             time.sleep(0.02)
         stop()
 
-        '''
+        
         #return code 
-        print(f'X{x_pos}, Y{y_pos}, rot{rot}')
+        print(f'Point: X{x_pos}, Y{y_pos}, rot{rot}')
         #rotate 
         angle = atan2(-y_pos,-x_pos)*180/pi
         angle = angle -rot #make it relitive to current pos
@@ -388,7 +395,7 @@ def got2andHome(X:float,Y:float):
         else: 
             [leftPin,rightPin]=turn(speed,CLOCKWISE)# rotatte CW 
         while (EncoderL.encoderCount <numPulses):
-            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             time.sleep(0.02)
         stop()
 
@@ -396,20 +403,16 @@ def got2andHome(X:float,Y:float):
         distance = sqrt(x_pos**2+y_pos**2) # calculate distance to drive forward 
         encoderOldCount = EncoderL.encoderCount # update encoder count 
         numPulses = (distance/distancePerPulse)+encoderOldCount # get the new final target pulses
-        fowards(speed) # drive forwards 
+        forwards(speed) # drive forwards 
         while (EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
-            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot)
+            x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
             time.sleep(0.02)
         stop()
-        '''
         GPIO.cleanup()
 
     except KeyboardInterrupt:
         # STOP and RELEASE all pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
 
 def hitBallGetHome():
