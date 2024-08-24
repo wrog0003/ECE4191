@@ -1,7 +1,6 @@
 # overall brains script for robot, written by Warren Rogan 
 
-from ECE4191enums import STATE, DIRECTION
-from Sys1_Balls import Sys1_Balls
+from ECE4191enums import STATE, DIRECTION, ACTION
 from Sys3_SLAM import Sys3_SLAM
 from Sys4_Vision import Sys4_Vision
 
@@ -9,136 +8,107 @@ from time import sleep
 from math import sqrt, atan2, pi
 
 import RPi.GPIO as GPIO
+import GLOBALSM1 #for physical values 
 
-'''
-functions are either timed or untimed
-timed functions get called then do their task including a delay then return to main loop
-untimed functions get called then return to main loop
-'''
+#DEFINE
+ANTICLOCKWISE = False
+CLOCKWISE = True
+
+#PINS
+# Motor Left 
+motor1a = 17
+motor1b = 27
+
+# Motor Right 
+motor2a = 23
+motor2b = 24
+
+# Encoder Left 
+motor1cha = 13
+motor1chb = 19
+
+# Encoder Right 
+motor2cha = 5
+motor2chb = 6
+
+#Wheel bias
+duty_cycle_bias = 0.95
 
 
-
+#Milestone 1 controll top level class 
 class Sys5_Control:
-    # init function to set up everything
-    angleRotationSpeed = 5 #time in seconds per degree of rotation 
-    rotTolerance = 2 # degrees tollerence for rotation
-    locTolerance = 0.05 # tollerence for location in meters 
 
-    def __init__(self,motorPins:list[int],encoderPins:list[int],switchPins:list[int], sensorPin:int) -> None:
-        # init variables
-        self.State = STATE.null
-        self.M1Complete = False #if it has completed hitting the ball 
-        self.X =0
-        self.Y =0
-        self.rot=0
-        self.hitBall = False # check if it hit the ball
+    def __init__(self) -> None:
 
-        #clear pins
-        GPIO.cleanup()
-        GPIO.setmode(GPIO.BCM)
+        GPIO.setmode(GPIO.BCM) # set pin types 
+        # Set up the output pins 
+        GPIO.setup(motor1a, GPIO.OUT) 
+        GPIO.setup(motor1b, GPIO.OUT)
+        GPIO.setup(motor2a, GPIO.OUT)
+        GPIO.setup(motor2b, GPIO.OUT)
 
-        #instantiate classes
-        self.ball = Sys1_Balls(switchPins[0])
-        self.localization = Sys3_SLAM(encoderPins,switchPins[0])
+        # Set up the PWM pins
+        self.pwm1a = GPIO.PWM(motor1a,1000)
+        self.pwm1b = GPIO.PWM(motor1b,1000)
+        self.pwm2a = GPIO.PWM(motor2a,1000)
+        self.pwm2b = GPIO.PWM(motor2b,1000)
+
+        # create class instances 
         self.vision = Sys4_Vision()
-
-        # connect pins
-        self.motorLPins = motorPins[0:1]
-        self.motorRPins = motorPins[2:3]
-        GPIO.setup(self.motorLPins[0],GPIO.OUT)
-        GPIO.setup(self.motorLPins[1],GPIO.OUT)
-        GPIO.setup(self.motorRPins[0],GPIO.OUT)
-        GPIO.setup(self.motorRPins[1],GPIO.OUT)
-
-    #set the mode to get the robot moving forward, untimed
-    def _forward(self)->None:
-        GPIO.output(self.motorLPins[1],GPIO.LOW)
-        GPIO.output(self.motorRPins[1],GPIO.LOW)
-        GPIO.output(self.motorLPins[0],GPIO.HIGH)
-        GPIO.output(self.motorRPins[0],GPIO.HIGH)
-
-    #spin in a direction, untimed
-    def _turn(self,ClockWise:bool)->None:
-        GPIO.output(self.motorLPins[1],GPIO.LOW)
-        GPIO.output(self.motorRPins[1],GPIO.LOW)
-        GPIO.output(self.motorLPins[0],GPIO.LOW)
-        GPIO.output(self.motorRPins[0],GPIO.LOW)
-        if (ClockWise):
-            GPIO.output(self.motorLPins[0],GPIO.HIGH)
-            GPIO.output(self.motorRPins[1],GPIO.HIGH)
-        else: #anticlockwise 
-            GPIO.output(self.motorRPins[0],GPIO.HIGH)
-            GPIO.output(self.motorLPins[1],GPIO.HIGH)
-
-    #stop, untimed 
-    def _stop(self)->None:
-        PIO.output(self.motorLPins[1],GPIO.LOW)
-        GPIO.output(self.motorRPins[1],GPIO.LOW)
-        GPIO.output(self.motorLPins[0],GPIO.LOW)
-        GPIO.output(self.motorRPins[0],GPIO.LOW)
+        self.location = Sys3_SLAM() 
     
-    # tries to return to home, untimed
-    def _return2Home(self)->bool:
-        angle = atan2(self.Y,self.X)*180/pi # get the angle towards home absolute
+    def forwards(self,duty_cycle:float)->ACTION:
     
-        if (abs(self.rot-angle)>Sys5_Control.rotTolerance): # if the angle is greater than the tolerance 
-            if (abs(self.rot-angle)>180): #against convention as the arc in conventional method would mean going around a further way
-                self._turn(self.rot >angle) #against the direction that convention expects
-            else: # is conventinal way as it is less than 180 degrees
-                self._turn(not (self.rot>angle)) # based on the angle that needs to be achieved 
-            return False 
+        # input: duty cycle between 0 - 100
+        # output: return the state of the robot
+
+        # drive the motor forwards 
+        self.pwm1a.start(0)
+        self.pwm1b.start(duty_cycle)
+        self.pwm2a.start(0)
+        self.pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
+
+        return ACTION.FORWARD
+
+    def backwards(self,duty_cycle:float)->ACTION:
+    
+        # input: duty cycle between 0 - 100
+        # output: return the state of the robot
+
+        # drive the motor forwards 
+        self.pwm1b.start(0)
+        self.pwm1a.start(duty_cycle)
+        self.pwm2b.start(0)
+        self.pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
+
+        return ACTION.BACKWARD 
+
+    def turn(self,duty_cycle:float,clockWise:bool)->ACTION:
+
+        # input: duty cycle between 0 - 100, if you want to turn clockwise or anticlockwise 
+        # output: return the state of the robot
+
+        if clockWise:
+            self.pwm1a.start(0)
+            self.pwm1b.start(duty_cycle)
+            self.pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
+            self.pwm2b.start(0)
+            return ACTION.RIGHT
         else:
-            self._stop() # prevent over rotation 
-            if (sqrt(self.X^2+self.Y^2)>Sys5_Control.locTolerance):
-                self._forward() # move toward home 
-                return False
-            else:
-                return True # is at home
-        
-    # #turn around by an amount, + angle is anticlockwise
-    # # timed 
-    # def _turnAround(self,amount: float )->None:
-    #     pauseTime = abs(amount*Sys5_Control.angleRotationSpeed)
-    #     #rotate in correct direction
-    #     if (amount >0):
-    #         self._turn(False)
-    #     else:
-    #         self._turn(True)
-    #     sleep(pauseTime) # wait until it should have turned to the correct angle 
+            self.pwm1a.start(duty_cycle)
+            self.pwm1b.start(0)
+            self.pwm2a.start(0)
+            self.pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
+            return ACTION.LEFT
+
+    def stop(self)->None:
+        self.pwm1a.stop()
+        self.pwm1b.stop()
+        self.pwm2a.stop()
+        self.pwm2b.stop()
 
 
-    #brains of the robot 
-    def run(self)->None:
-        try:
-            while True:
-                if (self.State == STATE.atHome):
-                    GPIO.cleanup()
-                    break; # finish up M1 
-                #get sensor data
-                [desiredDirection, boundry] = self.vision.detect()
-                
-                [self.X, self.Y, self.rot, home] = self.localization.getLocationRot()  #make sure self.rot is limited to -180->180
-                if(not self.hitBall): #before it has hit the ball
-                    #decide what to do 
-                    if desiredDirection == DIRECTION.CannotFind:
-                        self._turn(False)
-                    elif desiredDirection == DIRECTION.Ahead:
-                        self._forward()
-                    elif desiredDirection == DIRECTION.Left:
-                        self._turn(False)
-                    elif desiredDirection == DIRECTION.Right:
-                        self._turn(True)
-                    else: #once it has hit the ball
-                        home =self._return2Home(); #return to home
-                        if (home): #if it has reached home 
-                            self.State = STATE.atHome
 
-                sleep(0.1) # wait before next check
-
-        except KeyboardInterrupt:
-            # Cleanup GPIO settings before exiting
-            GPIO.cleanup()
-            print("GPIO cleanup done. Exiting gracefully.")
 
 
 

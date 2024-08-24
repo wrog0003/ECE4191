@@ -60,7 +60,7 @@ pwm2b = GPIO.PWM(motor2b,1000)
 def forwards(duty_cycle:float)->ACTION:
    
     # input: duty cycle between 0 - 100
-    # output: return the active pins
+    # output: return the state of the robot
 
     # drive the motor forwards 
     pwm1a.start(0)
@@ -73,7 +73,7 @@ def forwards(duty_cycle:float)->ACTION:
 def backwards(duty_cycle:float)->ACTION:
    
     # input: duty cycle between 0 - 100
-    # output: return the active pins
+    # output: return the state of the robot
 
     # drive the motor forwards 
     pwm1b.start(0)
@@ -86,7 +86,7 @@ def backwards(duty_cycle:float)->ACTION:
 def turn(duty_cycle:float,clockWise:bool)->ACTION:
 
     # input: duty cycle between 0 - 100, if you want to turn clockwise or anticlockwise 
-    # output: return the active pins
+    # output: return the state of the robot
 
     if clockWise:
         pwm1a.start(0)
@@ -107,10 +107,30 @@ def stop()->None:
     pwm2a.stop()
     pwm2b.stop()
 
+#run basic tests to ensure that all gpio are in the correct positions
+def calibrationTest()->None:
+    try:
+        forwards(30)
+        time.sleep(1)
+        backwards(30)
+        time.sleep(1)
+        turn(30,ANTICLOCKWISE)
+        time.sleep(1)
+        turn(30,CLOCKWISE)
+        time.sleep(1)
+        stop() 
+        print("Test run")
+        GPIO.cleanup()
+    # clear up if exited manually
+    except KeyboardInterrupt:
+        stop()
+        GPIO.cleanup()
+
+
+
 # simple test to make sure that the robot can turn towards the ball 
 def turnAtBallTest():
     #init function variables 
-    print("entered")
     speed = 20
     vision = Sys4_Vision()
     NotAhead = True # init ending variable 
@@ -337,8 +357,6 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     '''
     return x,y,rot
         
-
-
 #warrens interpretation of this 
 def got2andHome(X:float,Y:float):
 
@@ -575,4 +593,4 @@ def calibrateDegrees(angle:float):
         EncoderR.end()
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-hitBallTestBetter()
+calibrationTest()
