@@ -496,7 +496,7 @@ def hitBallGetHome():
             oldDirection = direction
             time.sleep(pauseTime)
 
-        time.sleep(10)
+        time.sleep(1)
         # go back to disengauge from the ball
         State = backwards(50) 
         time.sleep(1)
