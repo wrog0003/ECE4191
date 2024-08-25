@@ -79,7 +79,7 @@ class Sys5_Control:
         self.pwm1b = GPIO.PWM(motor1b,1000)
         self.pwm2a = GPIO.PWM(motor2a,1000)
         self.pwm2b = GPIO.PWM(motor2b,1000)
-
+        self._stop() # prevent random movements
         # create class instances 
         # Ball finding 
         self.vision = Sys4_Vision()
@@ -184,6 +184,11 @@ class Sys5_Control:
             y = y_old
             delAngle = distanceAvg*360/GLOBALSM1.wheelBaseCircumference
             rot = rot_old-delAngle
+
+        if rot > 180:
+            rot -=360 #limit to correct domain
+        elif rot <-180:
+            rot +360 # limit to correct domain 
         return x,y,rot
     #Calibration test to check that the robot goes in the right direction
     def CalibrationTest(self)->None:
@@ -285,7 +290,7 @@ class Sys5_Control:
 
     def hitBallBetter(self)->None:
         oldDirection = None
-        notHit = True   
+        noHit = True   
         pauseTime = 0.2 
         try :
             while (noHit): # while not close enough to ball 
@@ -463,9 +468,10 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     # tell robot to do stuff between here 
     robot.SearchPattern()
-    robot.hitBallBasic()
+    robot.hitBallBetter()
     robot.disEngage()
     robot.Home()
+    print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 
     robot.release() #release motor pins 
