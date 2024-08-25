@@ -161,7 +161,7 @@ class Sys5_Control:
         #print(delL-delR)
         #get average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
-        print(distanceAvg)
+        #print(distanceAvg)
         x = 0
         y = 0 
         rot = 0 
@@ -381,7 +381,7 @@ class Sys5_Control:
             distance = sqrt(self.x_pos**2 + self.y_pos**2)
             # update encoder count 
             encoderOldCount = self.EncoderL.encoderCount
-            numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount
+            numPulses = (distance*1.05/GLOBALSM1.distancePerPulse)+encoderOldCount
             self.State = self._forwards(speed)
 
             while (self.EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
@@ -462,7 +462,10 @@ if __name__ == "__main__":
     print(GLOBALSM1.distancePerPulse)
     robot = Sys5_Control() 
     # tell robot to do stuff between here 
-    robot.GoTo(0.2,0)
+    robot.SearchPattern()
+    robot.hitBallBasic()
+    robot.disEngage()
+    robot.Home()
     
     #and here 
     robot.release() #release motor pins 
