@@ -251,54 +251,7 @@ class Sys5_Control:
             self._stop()
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
         except KeyboardInterrupt:
-            self._exemptExit()
-    
-    def Home(self)->None:
-        try:
-            speed = 30 # define the speed at which the robot will move
-            print(f' at X {self.x_pos}, Y {self.y_pos}, rot {self.rot}\n')
-
-            # calculate the angle at which the robot needs to turn 
-            angle = atan2(-self.y_pos,-self.x_pos)*180/pi
-            angle = angle - self.rot # make it relative to the current position of the robot
-
-            # calculate the distance that the robot needs to travel to return to home  
-            distance = GLOBALSM1.wheelBaseCircumference*abs(angle)/360
-            numPulses = (distance/GLOBALSM1.distancePerPulse)+self.EncoderL.encoderCount
-
-            # rotate the amount calculated above
-            if (angle >-1 and angle <1): # no rotation required 
-                sleep(0.01)
-            elif (angle>0):
-                self.State = self._turn(speed,ANTICLOCKWISE) # rotate CCW
-            else: 
-                self.State = self._turn(speed,CLOCKWISE) # rotate CW 
-            while (self.EncoderL.encoderCount <numPulses):
-                x_pos, y_pos, rot = self._updatePos()
-                sleep(0.02)
-            self._stop()
-
-            # calculate the forwards distance that needs to be travelled to arrive to starting positon
-            distance = sqrt(self.x_pos**2 + self.y_pos**2)
-            # update encoder count 
-            encoderOldCount = self.EncoderL.encoderCount
-            numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount
-            self.State = self.forwards(speed)
-
-            while (self.EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
-                self.x_pos, self.y_pos, self.rot = self.updatePos()
-                sleep(0.02)
-            self._stop
-            GPIO.cleanup()
-
-            # exit and release pins 
-            self._stop
-            GPIO.cleanup()
-            
-        except KeyboardInterrupt:
-            # STOP and RELEASE all pins 
-            self._exemptExit()
-        
+            self._exemptExit()   
 
     def hitBallBetter(self)->None:
         oldDirection = None
@@ -358,6 +311,53 @@ class Sys5_Control:
         except KeyboardInterrupt:
             # STOP and RELEASE all pins 
            self._exemptExit()  
+    
+    #goto home
+    def Home(self)->None:
+        try:
+            speed = 30 # define the speed at which the robot will move
+            print(f' at X {self.x_pos}, Y {self.y_pos}, rot {self.rot}\n')
+
+            # calculate the angle at which the robot needs to turn 
+            angle = atan2(-self.y_pos,-self.x_pos)*180/pi
+            angle = angle - self.rot # make it relative to the current position of the robot
+
+            # calculate the distance that the robot needs to travel to return to home  
+            distance = GLOBALSM1.wheelBaseCircumference*abs(angle)/360
+            numPulses = (distance/GLOBALSM1.distancePerPulse)+self.EncoderL.encoderCount
+
+            # rotate the amount calculated above
+            if (angle >-1 and angle <1): # no rotation required 
+                sleep(0.01)
+            elif (angle>0):
+                self.State = self._turn(speed,ANTICLOCKWISE) # rotate CCW
+            else: 
+                self.State = self._turn(speed,CLOCKWISE) # rotate CW 
+            while (self.EncoderL.encoderCount <numPulses):
+                x_pos, y_pos, rot = self._updatePos()
+                sleep(0.02)
+            self._stop()
+
+            # calculate the forwards distance that needs to be travelled to arrive to starting positon
+            distance = sqrt(self.x_pos**2 + self.y_pos**2)
+            # update encoder count 
+            encoderOldCount = self.EncoderL.encoderCount
+            numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount
+            self.State = self.forwards(speed)
+
+            while (self.EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
+                self.x_pos, self.y_pos, self.rot = self.updatePos()
+                sleep(0.02)
+            self._stop
+            GPIO.cleanup()
+
+            # exit and release pins 
+            self._stop
+            GPIO.cleanup()
+            
+        except KeyboardInterrupt:
+            # STOP and RELEASE all pins 
+            self._exemptExit()
 
 
 
@@ -366,9 +366,8 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     # tell robot to do stuff between here 
 
-    robot.GoTo(0.2,0)
     robot.hitBallBasic()
-
+    robot.Home()
     
     #and here 
     robot.release() #release motor pins 
