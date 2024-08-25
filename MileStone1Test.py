@@ -1,4 +1,4 @@
-#Written by Warren Rogan
+#Written by Warren Rogan DO NOT EDIT ANYMORE
 import RPi.GPIO as GPIO
 import time
 from math import pi, atan2, sqrt, sin, cos
