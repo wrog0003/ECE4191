@@ -150,7 +150,7 @@ class Sys5_Control:
         self.EncoderR.end()
     
     #Position tracking 
-    def _updatePos(self)->list[float]:
+    def _updatePos(self,x_old:float,y_old:float,rot_old:float)->list[float]:
         # get data
         [newL, dirL, oldL] = self.EncoderL.getValues()
         [newR, dirR, oldR] = self.EncoderR.getValues()
@@ -161,28 +161,29 @@ class Sys5_Control:
         #print(delL-delR)
         #get average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
+        print(distanceAvg)
         x = 0
         y = 0 
         rot = 0 
         #determine direction
         if self.State == ACTION.FORWARD:
-            rot = self.rot
-            y= self.y_pos+(distanceAvg*sin(rot*pi/180))
-            x = self.y_pos+(distanceAvg*cos(rot*pi/180))
+            rot = rot_old
+            y= y_old+(distanceAvg*sin(rot*pi/180))
+            x = x_old+(distanceAvg*cos(rot*pi/180))
         elif self.State ==ACTION.BACKWARD:
-            rot = self.rot
-            y= self.y_pos-(distanceAvg*sin(rot*pi/180))
-            x = self.x_pos-(distanceAvg*cos(rot*pi/180))
+            rot = rot_old
+            y= y_old-(distanceAvg*sin(rot*pi/180))
+            x = x_old-(distanceAvg*cos(rot*pi/180))
         elif self.State == ACTION.LEFT:
-            x= self.x_pos
-            y = self.y_pos
+            x= x_old
+            y = y_old
             delAngle = distanceAvg*360/GLOBALSM1.wheelBaseCircumference
-            rot = self.rot+delAngle
+            rot = rot_old+delAngle
         elif self.State == ACTION.RIGHT:
-            x= self.x_pos
-            y = self.y_pos 
+            x= x_old
+            y = y_old
             delAngle = distanceAvg*360/GLOBALSM1.wheelBaseCircumference
-            rot = self.rot-delAngle
+            rot = rot_old-delAngle
         return x,y,rot
     #Calibration test to check that the robot goes in the right direction
     def CalibrationTest(self)->None:
@@ -220,7 +221,7 @@ class Sys5_Control:
             else: 
                 self.State=self._turn(speed,True)# rotatte CW 
             while (self.EncoderL.encoderCount <numPulses):
-                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                 sleep(0.02)
             self._stop()
 
@@ -229,11 +230,11 @@ class Sys5_Control:
             numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount # get the new final target pulses
             self.State = self._forwards(speed) # drive forwards   
             while (self.EncoderL.encoderCount <numPulses):# keep going forwards until you reach the desired number of pulses 
-                self.x_pos, self.y_pos, self.rot = self._updatePos()
-                sleep(0.02)
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+                sleep(0.5)
             self._stop()
             #Print out location reached based on encoders
-            self.x_pos, self.y_pos, self.rot = self._updatePos()
+            self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
         except KeyboardInterrupt:
@@ -255,7 +256,7 @@ class Sys5_Control:
                     if (distance <0.3): # if close to ball 
                         self.State = self._forwards(30)
                         sleep(4)
-                        self.x_pos, self.y_pos, self.rot = self._updatePos()
+                        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                         noHit = False # end 
                         self._stop()
                     else: 
@@ -276,7 +277,7 @@ class Sys5_Control:
                 
 
                 sleep(pauseTime)
-                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
             self._stop()
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
         except KeyboardInterrupt:
@@ -290,7 +291,7 @@ class Sys5_Control:
             while (noHit): # while not close enough to ball 
                 (direction, temp, distance)= self.vision.detect() # run vision check 
                 sleep(0.01)
-                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                 if (direction == DIRECTION.Ahead): # if ball ahead
                     speed = 50
                     pauseTime = 0.5
@@ -300,9 +301,9 @@ class Sys5_Control:
                         self.State = self._forwards(speed)
                     if (distance <0.25): # if close to ball 
                         self.State = self._forwards(30)
-                        self.x_pos, self.y_pos, self.rot = self._updatePos()
+                        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                         sleep(3.5)
-                        self.x_pos, self.y_pos, self.rot = self._updatePos()
+                        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                         noHit = False # end 
                         sleep(0.1)
                         self._stop()
@@ -332,7 +333,7 @@ class Sys5_Control:
                         
                 oldDirection = direction
                 sleep(pauseTime)
-                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
             self._stop()
@@ -342,13 +343,13 @@ class Sys5_Control:
            self._exemptExit()  
     #disengages from the ball so that it doesn't hit the ball incorrectly during the return to home sequence
     def disEngage(self)->None:
-        self.x_pos, self.y_pos, self.rot = self._updatePos()
+        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
         self.State = self._backwards(30)
         sleep(3)
-        self.x_pos, self.y_pos, self.rot = self._updatePos()
+        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
         self.State = self._forwards(30)
         sleep(1)
-        self.x_pos, self.y_pos, self.rot = self._updatePos()
+        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
     #goto home
     def Home(self)->None:
@@ -372,7 +373,7 @@ class Sys5_Control:
             else: 
                 self.State = self._turn(speed,CLOCKWISE) # rotate CW 
             while (self.EncoderL.encoderCount <numPulses):
-                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                 sleep(0.02)
             self._stop()
 
@@ -384,7 +385,7 @@ class Sys5_Control:
             self.State = self._forwards(speed)
 
             while (self.EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
-                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                 sleep(0.02)
             self._stop
             GPIO.cleanup()
@@ -402,7 +403,7 @@ class Sys5_Control:
 
         # setup constant variables
         turn_speed = 15
-        self.x_pos, self.y_pos, self.rot = self._updatePos() # update position 
+        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position 
         try: 
 
             # start vision feed
@@ -413,7 +414,7 @@ class Sys5_Control:
                 (direction, temp, distance)= self.vision.detect() 
                 self.State = self._turn(turn_speed, ANTICLOCKWISE) # turn anticlocwise, +ve in our coordinate system
                 sleep(0.2)
-                self.x_pos, self.y_pos, self.rot = self._updatePos() # update position 
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position 
 
                 # if the rotation angle is greater than 90 ball will not be in out field of view --> change location
                 if (self.rot >= 90):
@@ -431,7 +432,7 @@ class Sys5_Control:
                     else: 
                         self.State=self._turn(turn_speed,True)# rotatte CW 
                     while (self.EncoderL.encoderCount <numPulses):
-                        self.x_pos, self.y_pos, self.rot = self._updatePos()
+                        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                         sleep(0.02)
                     self._stop()
 
@@ -440,10 +441,12 @@ class Sys5_Control:
                     forward_speed = 30 # speed when driving forwards
                     encoderOldCount = self.EncoderL.encoderCount
                     numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount # get the new final target pulses
-                    self.State = self._forwards(forward_speed) # drive forwards   
+                    self.State = self._forwards(forward_speed) # drive forwards  
+                    print(f'at {self.x_pos}, {self.y_pos} with rot of {self.rot}\n') 
                     while (self.EncoderL.encoderCount <numPulses):# keep going forwards until you reach the desired number of pulses 
-                        self.x_pos, self.y_pos, self.rot = self._updatePos()
-                        sleep(0.02)
+                        print(f'at {self.x_pos}, {self.y_pos} with rot of {self.rot}\n') 
+                        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+                        sleep(0.2)
                     self._stop()
 
                     #Print out location reached based on encoders
@@ -456,12 +459,10 @@ class Sys5_Control:
 
 
 if __name__ == "__main__":
+    print(GLOBALSM1.distancePerPulse)
     robot = Sys5_Control() 
     # tell robot to do stuff between here 
-
-    robot.hitBallBasic()
-    robot.disEngage()
-    robot.Home()
+    robot.GoTo(0.2,0)
     
     #and here 
     robot.release() #release motor pins 
