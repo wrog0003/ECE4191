@@ -259,7 +259,7 @@ def hitBallTestBetter():
             elif (direction == DIRECTION.Left):
                 if (oldDirection == DIRECTION.Right): # reduce occilations 
                     speed -=5
-                    speed = max(speed,10)
+                    speed = max(speed,15)
                 else:
                     speed = 20
                     pauseTime =0.15
@@ -268,7 +268,7 @@ def hitBallTestBetter():
             else: #right 
                 if oldDirection ==DIRECTION.Left: # reduce occilations
                     speed -=5
-                    speed = max(speed,10)
+                    speed = max(speed,15)
                 else:
                     speed = 20
                     pauseTime =0.15
@@ -366,7 +366,7 @@ def got2andHome(X:float,Y:float):
     x_pos = 0 #meters
     y_pos = 0
     rot = 0 #degrees
-    speed =90
+    speed =30
 
     # get angle to point
     angle = atan2(Y,X)*180/pi
@@ -455,8 +455,8 @@ def hitBallGetHome():
             print(direction.name)
             print(distance)
             if (direction == DIRECTION.Ahead): # if ball ahead
-                speed = 50
-                pauseTime = 0.5
+                speed = 30
+                pauseTime = 0.6
                 if (distance <0.35):
                     speed = 20
                     vision.tolerence = 100
@@ -478,7 +478,7 @@ def hitBallGetHome():
             elif (direction == DIRECTION.Left):
                 if (oldDirection == DIRECTION.Right): # reduce occilations 
                     speed -=5
-                    speed = max(speed,10)
+                    speed = max(speed,15)
                 else:
                     speed = 10
                     pauseTime =0.15
@@ -487,7 +487,7 @@ def hitBallGetHome():
             else: #right 
                 if oldDirection ==DIRECTION.Left: # reduce occilations
                     speed -=5
-                    speed = max(speed,10)
+                    speed = max(speed,15)
                 else:
                     speed = 10
                     pauseTime =0.15
@@ -495,12 +495,18 @@ def hitBallGetHome():
                     
             oldDirection = direction
             time.sleep(pauseTime)
+
+        time.sleep(10)
         # go back to disengauge from the ball
         State = backwards(50) 
         time.sleep(1)
         x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
+        State = forwards(30) 
+        time.sleep(0.5)
+        x_pos, y_pos, rot = updatePos(EncoderL,EncoderR, x_pos,y_pos,rot,State)
         
         #return 2 home 
+        speed = 30
         print(f' at X {x_pos}, Y {y_pos}, rot {rot}\n')
         angle = atan2(-y_pos,-x_pos)*180/pi
         angle = angle -rot #make it relitive to current pos
@@ -593,4 +599,4 @@ def calibrateDegrees(angle:float):
         EncoderR.end()
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-calibrationTest()
+hitBallGetHome()
