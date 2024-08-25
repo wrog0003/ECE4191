@@ -1,4 +1,8 @@
-#Written by Warren Rogan
+# Date created: 25/8/24 
+
+# This document holds all the functions used to test for M1 
+
+# SETUP: import required systems & functions 
 import RPi.GPIO as GPIO
 import time
 from math import pi, atan2, sqrt, sin, cos
@@ -8,6 +12,8 @@ from Sys4_Vision import Sys4_Vision
 from ECE4191enums import DIRECTION, ACTION
 from Motor_code.encoderClass import SimpleEncoder
 
+
+# DEFINE VARIABLES: define constants that will be used in all functions 
 
 ANTICLOCKWISE = False
 CLOCKWISE = True
@@ -57,6 +63,10 @@ pwm2a = GPIO.PWM(motor2a,1000)
 pwm2b = GPIO.PWM(motor2b,1000)
 
 
+# FUNCTIONS 
+
+# Functions to control direction of robot (i.e. forwards, backwards, left & right)
+
 def forwards(duty_cycle:float)->ACTION:
    
     # input: duty cycle between 0 - 100
@@ -85,7 +95,9 @@ def backwards(duty_cycle:float)->ACTION:
 
 def turn(duty_cycle:float,clockWise:bool)->ACTION:
 
-    # input: duty cycle between 0 - 100, if you want to turn clockwise or anticlockwise 
+    # input: 
+    # duty cycle = between 0 - 100, 
+    # cclockWise = if you want to turn clockwise or anticlockwise 
     # output: return the state of the robot
 
     if clockWise:
@@ -107,8 +119,12 @@ def stop()->None:
     pwm2a.stop()
     pwm2b.stop()
 
-#run basic tests to ensure that all gpio are in the correct positions
+# Run basic tests to ensure that all gpio are in the correct positions
 def calibrationTest()->None:
+
+    # inputs: None 
+    # outputs: None
+
     try:
         forwards(30)
         time.sleep(1)
@@ -126,13 +142,14 @@ def calibrationTest()->None:
         stop()
         GPIO.cleanup()
 
-
-
-# simple test to make sure that the robot can turn towards the ball 
+# Make robot turn towards the ball
 def turnAtBallTest():
-    #init function variables 
-    speed = 20
-    vision = Sys4_Vision()
+    # inputs: None 
+    # outputs: None 
+
+    # initalise function variables 
+    speed = 20 
+    vision = Sys4_Vision() # call the vision system
     NotAhead = True # init ending variable 
     State =None 
     try :
@@ -142,28 +159,25 @@ def turnAtBallTest():
             if (direction == DIRECTION.Ahead): # if ball is ahead
                 NotAhead = False # change to end while loop 
                 stop()
-            elif (direction == DIRECTION.CannotFind): # if no ball detected in current frame 
-                State = turn(speed, ANTICLOCKWISE)
-            elif (direction == DIRECTION.Left):
+            elif (direction == DIRECTION.CannotFind): # no ball detected in current frame 
+                State = turn(speed, ANTICLOCKWISE)  
+            elif (direction == DIRECTION.Left): # ball is to the left of the current frame
                 State = turn(speed, ANTICLOCKWISE)
             else:
-                State = turn(speed,CLOCKWISE) 
+                State = turn(speed,CLOCKWISE) # ball is to the right of the current frame
             time.sleep(0.2) # delay 200ms 
-        # exit and release pins 
         
+        # exit and release pins 
         GPIO.cleanup()
             
     except KeyboardInterrupt:
         # STOP and RELEASE all pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
 
-# simple test to get the robot to find the ball, turn to the ball and get close to the ball 
+# Make robot find the ball, turn to the ball and get close to the ball 
 def hitBallTestBasic():
-    # init function variables 
+    # initalise function variables 
     speed = 50
     pauseTime = 0.2
     vision = Sys4_Vision()
@@ -212,6 +226,8 @@ def hitBallTestBasic():
         stop()
         GPIO.cleanup()
 
+# Make robot find the ball, turn to the ball and get close to the ball 
+# Labelled as better because trying to reduce osciallations to get directly to the ball
 def hitBallTestBetter():
     # init function variables 
     speed = 50
@@ -290,7 +306,7 @@ def hitBallTestBetter():
         stop()
         GPIO.cleanup()
 
-#returns x, y, rot
+# Localisation script; returns x, y, rot
 def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:float,rot_old:float,State:ACTION)->list[float]:
     # get data
     [newL, dirL, oldL] = encoderL.getValues()
@@ -357,7 +373,7 @@ def updatePos(encoderL:SimpleEncoder,encoderR:SimpleEncoder,x_old:float,y_old:fl
     '''
     return x,y,rot
         
-#warrens interpretation of this 
+# Get robot to get to a designated X & Y position and then come back to starting location
 def got2andHome(X:float,Y:float):
 
     #init base variables
@@ -433,6 +449,7 @@ def got2andHome(X:float,Y:float):
         stop()
         GPIO.cleanup()
 
+# Get to the ball, hit it and return to starting position
 def hitBallGetHome():
     # init function variables 
     speed = 20
@@ -496,7 +513,7 @@ def hitBallGetHome():
             oldDirection = direction
             time.sleep(pauseTime)
 
-        time.sleep(1)
+        time.sleep(10)
         # go back to disengauge from the ball
         State = backwards(50) 
         time.sleep(1)
@@ -535,21 +552,14 @@ def hitBallGetHome():
         GPIO.cleanup()
 
         # exit and release pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
             
     except KeyboardInterrupt:
         # STOP and RELEASE all pins 
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
 
-    
 def turnForAWhile():
     EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
     EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
@@ -567,10 +577,7 @@ def turnForAWhile():
     except KeyboardInterrupt:
         # STOP and RELEASE all pins 
         print(rot)
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
 
 def calibrateDegrees(angle:float):
@@ -590,13 +597,12 @@ def calibrateDegrees(angle:float):
     except KeyboardInterrupt:
         # STOP and RELEASE all pins 
         print(rot)
-        pwm1a.stop()
-        pwm1b.stop()
-        pwm2a.stop()
-        pwm2b.stop()
+        stop()
         GPIO.cleanup()
         EncoderL.end()
         EncoderR.end()
+
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
 hitBallGetHome()
+
