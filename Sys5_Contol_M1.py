@@ -340,7 +340,7 @@ class Sys5_Control:
         except KeyboardInterrupt:
             # STOP and RELEASE all pins 
            self._exemptExit()  
-    
+    #disengages from the ball so that it doesn't hit the ball incorrectly during the return to home sequence
     def disEngage(self)->None:
         self.x_pos, self.y_pos, self.rot = self._updatePos()
         self.State = self._backwards(30)
@@ -402,7 +402,7 @@ class Sys5_Control:
 
         # setup constant variables
         turn_speed = 15
-
+        self.x_pos, self.y_pos, self.rot = self._updatePos() # update position 
         try: 
 
             # start vision feed
@@ -410,7 +410,9 @@ class Sys5_Control:
 
             # whilst it cannot find the ball, keep rotating
             while(direction == DIRECTION.CannotFind):
-                self._turn(turn_speed, ANTICLOCKWISE) # turn anticlocwise, +ve in our coordinate system
+                (direction, temp, distance)= self.vision.detect() 
+                self.State = self._turn(turn_speed, ANTICLOCKWISE) # turn anticlocwise, +ve in our coordinate system
+                sleep(0.2)
                 self.x_pos, self.y_pos, self.rot = self._updatePos() # update position 
 
                 # if the rotation angle is greater than 90 ball will not be in out field of view --> change location
