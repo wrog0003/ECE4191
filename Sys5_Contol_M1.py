@@ -1,4 +1,4 @@
-# overall brains script for robot, written by Warren Rogan 
+# overall brains script for robot, written by Emma Vladicic and Warren Rogan 
 
 from ECE4191enums import STATE, DIRECTION, ACTION
 from Motor_code.encoderClass import SimpleEncoder
@@ -177,13 +177,13 @@ class Sys5_Control:
     #release pins
     def release(self)->None:
         GPIO.cleanup()
-    #Simple goto
+    #Simple goto absolute from starting point 
     def GoTo(self,X:float,Y:float,speed:float = 30)->None:
         
         # get angle to point
-        angle = atan2(Y,X)*180/pi
+        angle = atan2(Y,X)*180/pi -self.rot 
         distance = GLOBALSM1.wheelBaseCircumference*abs(angle)/360 # get the distance that needs to be travelled to 
-        numPulses = distance/GLOBALSM1.distancePerPulse
+        numPulses = distance/GLOBALSM1.distancePerPulse+self.EncoderL.encoderCount
         try:
             # rotate 
             if (angle >-1 and angle <1): # no rotation required 
@@ -197,7 +197,7 @@ class Sys5_Control:
                 sleep(0.02)
             self._stop()
 
-            distance = sqrt(X**2+Y**2) # calculate distance to drive forward 
+            distance = sqrt((X-self.x_pos)**2+(Y-self.y_pos)**2) # calculate distance to drive forward 
             encoderOldCount = self.EncoderL.encoderCount # update encoder count 
             numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount # get the new final target pulses
             self.State = self._forwards(speed) # drive forwards 
@@ -248,18 +248,83 @@ class Sys5_Control:
                     pauseTime =0.15
                 sleep(pauseTime)
                 self.x_pos, self.y_pos, self.rot = self._updatePos()
-
+            self._stop()
+            print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
         except KeyboardInterrupt:
             self._exemptExit()
-        
 
+    def hitBallBetter(self)->None:
+        oldDirection = None
+        notHit = True   
+        pauseTime = 0.2 
+        try :
+            while (noHit): # while not close enough to ball 
+                (direction, temp, distance)= self.vision.detect() # run vision check 
+                sleep(0.01)
+                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                if (direction == DIRECTION.Ahead): # if ball ahead
+                    speed = 50
+                    pauseTime = 0.5
+                    if (distance <0.35):
+                        speed = 20
+                        self.vision.tolerence = 100
+                        self.State = self._forwards(speed)
+                    if (distance <0.25): # if close to ball 
+                        self.State = self._forwards(30)
+                        self.x_pos, self.y_pos, self.rot = self._updatePos()
+                        sleep(3.5)
+                        self.x_pos, self.y_pos, self.rot = self._updatePos()
+                        noHit = False # end 
+                        sleep(0.1)
+                        self._stop()
+                    else: 
+                        self.State = self._forwards(speed) # move forward 
+                elif (direction == DIRECTION.CannotFind): #cannot find ball
+                    speed = 20
+                    pauseTime = 0.3
+                    self.State = self._turn(speed,ANTICLOCKWISE)
+                elif (direction == DIRECTION.Left):
+                    if (oldDirection == DIRECTION.Right): # reduce oscillations 
+                        speed -=5
+                        speed = max(speed,15)
+                    else:
+                        speed = 20
+                        pauseTime =0.15
+                        self.State = self._turn(speed,ANTICLOCKWISE)
 
+                else: #right 
+                    if oldDirection ==DIRECTION.Left: # reduce oscillations
+                        speed -=5
+                        speed = max(speed,15)
+                    else:
+                        speed = 20
+                        pauseTime =0.15
+                        self.State = self._turn(speed,CLOCKWISE)
+                        
+                oldDirection = direction
+                sleep(pauseTime)
+                self.x_pos, self.y_pos, self.rot = self._updatePos()
 
-
-
-
-
-
-
-
+            print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+            self._stop()
             
+        except KeyboardInterrupt:
+            # STOP and RELEASE all pins 
+           self._exemptExit()  
+
+
+
+
+if __name__ == "__main__":
+    robot = Sys5_Control() 
+    # tell robot to do stuff between here 
+
+    robot.GoTo(0.2,0)
+    robot.hitBallBasic()
+
+    
+    #and here 
+    robot.release() #release motor pins 
+
+
+
