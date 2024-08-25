@@ -200,7 +200,7 @@ class Sys5_Control:
             distance = sqrt((X-self.x_pos)**2+(Y-self.y_pos)**2) # calculate distance to drive forward 
             encoderOldCount = self.EncoderL.encoderCount # update encoder count 
             numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount # get the new final target pulses
-            self.State = self._forwards(speed) # drive forwards 
+            self.State = self._forwards(speed) # drive forwards   
             while (self.EncoderL.encoderCount <numPulses):# keep going forwards until you reach the desired number of pulses 
                 self.x_pos, self.y_pos, self.rot = self._updatePos()
                 sleep(0.02)
@@ -367,6 +367,45 @@ class Sys5_Control:
         except KeyboardInterrupt:
             # STOP and RELEASE all pins 
             self._exemptExit()
+    
+    # If robot cannot find the ball after a complete rotation, move forwards 1m in the y direction and restart search pattern 
+    def SearchPattern(self)->None:
+
+        # determine the angle that we need to rotate to get back to a rotation angle of 0 
+        angle = self.rot
+        distance = GLOBALSM1.wheelBaseCircumference*abs(angle)/360 # get the distance that needs to be travelled to achieve this rotation
+        numPulses = distance/GLOBALSM1.distancePerPulse+self.EncoderL.encoderCount # calculate the number of pulses achieve this rotation
+
+        speed = 30
+    
+        try:
+            # rotate 
+            if (angle >-1 and angle <1): # no rotation required 
+                sleep(0.01)
+            elif (angle>0):
+                self.State= self._turn(speed,False)# rotate CCW
+            else: 
+                self.State=self._turn(speed,True)# rotatte CW 
+            while (self.EncoderL.encoderCount <numPulses):
+                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                sleep(0.02)
+            self._stop()
+
+            # find out how many pulses are needed to travel 1m directly forwards (x direction)
+            distance = 1 
+            encoderOldCount = self.EncoderL.encoderCount
+            numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount # get the new final target pulses
+            self.State = self._forwards(speed) # drive forwards   
+            while (self.EncoderL.encoderCount <numPulses):# keep going forwards until you reach the desired number of pulses 
+                self.x_pos, self.y_pos, self.rot = self._updatePos()
+                sleep(0.02)
+            self._stop()
+            #Print out location reached based on encoders
+            self.x_pos, self.y_pos, self.rot = self._updatePos()
+            print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+
+        except KeyboardInterrupt:
+            self._exemptExit() 
 
 
 
