@@ -35,6 +35,33 @@ motor2chb = 6
 duty_cycle_bias = 0.95
 
 
+'''
+README FOR THIS CLASS
+This class is the combination of all the parts for milestone 1
+It uses the Sys4_Vision class to detect and return the location and distance of the tennis ball
+It also uses the SimpleEncoder class to get the distance traveled. 
+
+To use this create an instance of the class
+then add a call to the release function to ensure that upon completion of the program the GPIO pins are released.
+then between the creation and release call add your function calls to get the robot to move and complete actions 
+
+Functions with a _ at the start should only be used inside other functions
+
+External functions are:
+    Calibration Test: use this to ensure that the motor pins are correct, the robot should move forwards, 
+    backwards, turn left then turn right. Use this the determine if the pins have been plugged in correctly. 
+    release: call this to disconnect from the pins to prevent pins being driven when they should not be
+    GoTo: takes in an X and Y coordinate in terms of the start position to go to, then goes to this location while updating the 
+    position and rotation of the robot.
+    hitBallBasic: the first hit ball method, limited controls to make movement smooth
+    hitBallBetter: hit ball method, attempts to smooth turns to reduce osculations 
+    disEngage: used if the robot should have hit a ball, to move back and disengage, then forward to prevent oversteering due to 
+    the dolly wheel locking in place. 
+    Home: Uses the current X, Y and rotation to go to the home position. Should only be called after functions that update the 
+    position of the robot. 
+'''
+
+
 #Milestone 1 controll top level class 
 class Sys5_Control:
 
