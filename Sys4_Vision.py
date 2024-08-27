@@ -21,7 +21,7 @@ class Sys4_Vision:
         else:
             self.cap =cv2.VideoCapture(1) #cv2.VideoCapture(0, cv2.CAP_DSHOW)
         result, image = self.cap.read() # get the first image 
-        cv2.imshow('image',image)
+        cv2.imshow('test', image)    
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
         self.image = None
         self.aspcectRatio = Sys4_Vision.known_radius*Sys4_Vision.focal_length
@@ -38,6 +38,7 @@ class Sys4_Vision:
             mask = cv2.inRange(hsv, Sys4_Vision.greenLower, Sys4_Vision.greenUpper)
             mask = cv2.erode(mask, None, iterations=2)
             mask = cv2.dilate(mask, None, iterations=2)
+
             # get contors 
             cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
             cnts = cnts[0]
@@ -55,7 +56,7 @@ class Sys4_Vision:
                     #((x, y), radius) = cv2.minEnclosingCircle(c) 
                     cv2.circle(self.image, (int(x), int(y)), int(radius),(0, 255, 255), 2) # track perimeter of ball 
                     cv2.circle(self.image, center, 5, (0, 0, 255), -1) # marks centre 
-                    cv2.imshow("Frame", mask) # show the resulting image 
+                    cv2.imshow("Frame", self.image) # show the resulting image 
 
                 if abs(center[0]-self.midpoint)<self.tolerence:
                     distance = self.aspcectRatio / radius #get the distance to the ball from the camera 
@@ -148,7 +149,7 @@ class Sys4_Vision:
 # simple script for testing, do not use on rpi 
 if __name__ == "__main__":
     from time import sleep
-    looker = Sys4_Vision(True)
+    looker = Sys4_Vision(False)
     sleep(0.5) # wait for camera
     
     while True:
