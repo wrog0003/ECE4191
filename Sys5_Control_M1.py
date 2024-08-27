@@ -257,7 +257,7 @@ class Sys5_Control:
                     pauseTime = 0.5
                     if (distance <0.6):
                         speed = 20
-                        self.vision.tolerence = 100
+                        #self.vision.tolerence = 100
                         self.State = self._forwards(speed)
                     if (distance <0.5): # if close to ball 
                         self.State = self._forwards(30)
@@ -326,7 +326,7 @@ class Sys5_Control:
                         speed = max(speed,11)
                     else:
                         speed = 15
-                        pauseTime =0.1
+                        pauseTime =0.05
                         self.State = self._turn(speed,ANTICLOCKWISE)
 
                 else: #right 
@@ -335,7 +335,7 @@ class Sys5_Control:
                         speed = max(speed,11)
                     else:
                         speed = 15
-                        pauseTime =0.1
+                        pauseTime =0.05
                         self.State = self._turn(speed,CLOCKWISE)
                         
                 oldDirection = direction
@@ -389,7 +389,7 @@ class Sys5_Control:
             distance = sqrt(self.x_pos**2 + self.y_pos**2)
             # update encoder count 
             encoderOldCount = self.EncoderL.encoderCount
-            numPulses = (distance*1.05/GLOBALSM1.distancePerPulse)+encoderOldCount
+            numPulses = (distance*1.1/GLOBALSM1.distancePerPulse)+encoderOldCount
             self.State = self._forwards(speed)
 
             while (self.EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
@@ -467,8 +467,8 @@ class Sys5_Control:
 
 
 if __name__ == "__main__":
-    print(GLOBALSM1.distancePerPulse)
     robot = Sys5_Control() 
+    #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
     robot.SearchPattern()
     robot.hitBallBetter()
