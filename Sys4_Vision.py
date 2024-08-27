@@ -10,7 +10,7 @@ class Sys4_Vision:
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
-    focal_length = 1200  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
+    focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
 
     #init
     def __init__(self, rpi: bool = True, tolerence: int =50 )-> None:
@@ -21,7 +21,7 @@ class Sys4_Vision:
         else:
             self.cap =cv2.VideoCapture(1) #cv2.VideoCapture(0, cv2.CAP_DSHOW)
         result, image = self.cap.read() # get the first image 
-        cv2.imshow('test', image)    
+        #cv2.imshow('test', image)    
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
         self.image = None
         self.aspcectRatio = Sys4_Vision.known_radius*Sys4_Vision.focal_length
@@ -149,7 +149,7 @@ class Sys4_Vision:
 # simple script for testing, do not use on rpi 
 if __name__ == "__main__":
     from time import sleep
-    looker = Sys4_Vision(False)
+    looker = Sys4_Vision(True)
     sleep(0.5) # wait for camera
     
     while True:
