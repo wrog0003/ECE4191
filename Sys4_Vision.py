@@ -148,7 +148,7 @@ class Sys4_Vision:
 # simple script for testing, do not use on rpi 
 if __name__ == "__main__":
     from time import sleep
-    looker = Sys4_Vision(False)
+    looker = Sys4_Vision(True)
     sleep(0.5) # wait for camera
     
     while True:

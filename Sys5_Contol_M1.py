@@ -252,15 +252,16 @@ class Sys5_Control:
             while (noHit): # while not close enough to ball 
                 (direction, temp, distance)= self.vision.detect() # run vision check 
                 if (direction == DIRECTION.Ahead): # if ball ahead
+                    print(distance)
                     speed = 50
                     pauseTime = 0.5
-                    if (distance <0.4):
+                    if (distance <0.6):
                         speed = 20
                         self.vision.tolerence = 100
                         self.State = self._forwards(speed)
-                    if (distance <0.3): # if close to ball 
+                    if (distance <0.5): # if close to ball 
                         self.State = self._forwards(30)
-                        sleep(4)
+                        sleep(7.5)
                         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                         noHit = False # end 
                         self._stop()
@@ -298,16 +299,17 @@ class Sys5_Control:
                 sleep(0.01)
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                 if (direction == DIRECTION.Ahead): # if ball ahead
+                    print(distance)
                     speed = 50
                     pauseTime = 0.5
-                    if (distance <0.35):
+                    if (distance <0.55):
                         speed = 20
                         self.vision.tolerence = 100
                         self.State = self._forwards(speed)
-                    if (distance <0.25): # if close to ball 
+                    if (distance <0.45): # if close to ball 
                         self.State = self._forwards(30)
                         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
-                        sleep(3.5)
+                        sleep(5.5)
                         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                         noHit = False # end 
                         sleep(0.1)

@@ -1,4 +1,4 @@
-from gpiozero import Button 
+from gpiozero import Button, RotaryEncoder
 
 # Set up a simple encoder class to track miltiple encoders on single system
 class SimpleEncoder:
@@ -14,6 +14,7 @@ class SimpleEncoder:
         # set up interrupts (rising and falling)
         self.Apin.when_pressed = self.encoderCallA 
         self.Bpin.when_pressed = self.encoderCallB
+
         #self.Apin.when_released = self.encoderCall
         #self.Bpin.when_released = self.encoderCall
 
@@ -46,7 +47,8 @@ class SimpleEncoder:
         self.Apin.close()
         self.Bpin.close() 
 
-
+class BetterEncoder(RotaryEncoder):
+     
 # drive definitions 
 #   L   R       direction
 #   CCW CW      forward
