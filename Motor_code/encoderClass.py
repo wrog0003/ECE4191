@@ -48,6 +48,16 @@ class SimpleEncoder:
         self.Bpin.close() 
 
 class BetterEncoder(RotaryEncoder):
+    def __init__(self,Apin:int,Bpin:int)->None:
+        RotaryEncoder.__init__(self,Apin,Bpin) # call the init of the parent class 
+        self.encoderOldCount = 0 # create a save of the old encoder
+    
+    def getValues(self)->tuple[int,bool,int]:
+        temp = self.encoderOldCount
+        self.encoderOldCount = self.steps
+        return [self.steps,True,temp]
+    def end(self)->None:
+        self.close()
      
 # drive definitions 
 #   L   R       direction
