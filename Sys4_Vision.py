@@ -19,7 +19,7 @@ class Sys4_Vision:
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
-            self.cap =cv2.VideoCapture(0)#cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self.cap =cv2.VideoCapture(1)#cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
         result, image = self.cap.read() # get the first image 
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
