@@ -272,12 +272,12 @@ class Sys5_Control:
                     pauseTime = 0.3
                     self.State = self._turn(speed,ANTICLOCKWISE)
                 elif (direction == DIRECTION.Left):
-                    speed = 20
+                    speed = 15
                     pauseTime =0.15
                     self.State = self._turn(speed,ANTICLOCKWISE)
 
                 else:
-                    speed = 20
+                    speed = 15
                     pauseTime =0.15
                     self.State = self._turn(speed,CLOCKWISE)
                 
@@ -301,12 +301,12 @@ class Sys5_Control:
                 if (direction == DIRECTION.Ahead): # if ball ahead
                     print(distance)
                     speed = 50
-                    pauseTime = 0.5
-                    if (distance <0.55):
+                    pauseTime = 1
+                    if (distance <0.45):
                         speed = 20
-                        self.vision.tolerence = 100
+                        #self.vision.tolerence = 50
                         self.State = self._forwards(speed)
-                    if (distance <0.45): # if close to ball 
+                    if (distance <0.35): # if close to ball 
                         self.State = self._forwards(30)
                         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                         sleep(5.5)
@@ -322,20 +322,20 @@ class Sys5_Control:
                     self.State = self._turn(speed,ANTICLOCKWISE)
                 elif (direction == DIRECTION.Left):
                     if (oldDirection == DIRECTION.Right): # reduce oscillations 
-                        speed -=5
-                        speed = max(speed,15)
+                        speed -=2
+                        speed = max(speed,11)
                     else:
-                        speed = 20
-                        pauseTime =0.15
+                        speed = 15
+                        pauseTime =0.1
                         self.State = self._turn(speed,ANTICLOCKWISE)
 
                 else: #right 
                     if oldDirection ==DIRECTION.Left: # reduce oscillations
-                        speed -=5
-                        speed = max(speed,15)
+                        speed -=2
+                        speed = max(speed,11)
                     else:
-                        speed = 20
-                        pauseTime =0.15
+                        speed = 15
+                        pauseTime =0.1
                         self.State = self._turn(speed,CLOCKWISE)
                         
                 oldDirection = direction
@@ -348,14 +348,15 @@ class Sys5_Control:
         except KeyboardInterrupt:
             # STOP and RELEASE all pins 
            self._exemptExit()  
+    
     #disengages from the ball so that it doesn't hit the ball incorrectly during the return to home sequence
     def disEngage(self)->None:
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
         self.State = self._backwards(30)
-        sleep(3)
+        sleep(2)
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
         self.State = self._forwards(30)
-        sleep(1)
+        sleep(0.5)
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
     #goto home
