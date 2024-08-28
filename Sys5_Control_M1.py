@@ -307,7 +307,7 @@ class Sys5_Control:
                     print(distance)
                     speed = 30
                     pauseTime = 5
-                    if (distance <0.45):
+                    if (distance <0.55):
                         speed = 20
                         #self.vision.tolerence = 50
                         self.State = self._forwards(speed)
@@ -319,6 +319,7 @@ class Sys5_Control:
                         noHit = False # end 
                         sleep(0.1)
                         self._stop()
+                        pauseTime = 0.2
                     else: 
                         self.State = self._forwards(speed) # move forward 
                 elif (direction == DIRECTION.CannotFind): #cannot find ball
@@ -499,7 +500,7 @@ class Sys5_Control:
                     self._stop()
 
                     # find out how many pulses are needed to travel 1m directly forwards (x direction)
-                    distance = 1 
+                    distance = 2
                     forward_speed = 30 # speed when driving forwards
                     encoderOldCount = self.EncoderL.encoderCount
                     numPulses = (distance/GLOBALSM1.distancePerPulse)+encoderOldCount # get the new final target pulses
