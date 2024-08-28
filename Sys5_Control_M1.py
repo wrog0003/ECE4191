@@ -148,6 +148,7 @@ class Sys5_Control:
         GPIO.cleanup()
         self.EncoderL.end()
         self.EncoderR.end()
+        self.vision.disconnect()
     
     #Position tracking 
     def _updatePos(self,x_old:float,y_old:float,rot_old:float)->list[float]:
@@ -209,7 +210,11 @@ class Sys5_Control:
             self._exemptExit()
     #release pins
     def release(self)->None:
+        self._stop()
+        self.vision.disconnect()
         GPIO.cleanup()
+        sleep(0.1) # ensure that every peripheral is released 
+        
     #Simple goto absolute from starting point 
     def GoTo(self,X:float,Y:float,speed:float = 30)->None:
         
