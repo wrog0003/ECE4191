@@ -75,10 +75,10 @@ class Sys5_Control:
         GPIO.setup(motor2b, GPIO.OUT)
 
         # Set up the PWM pins
-        self.pwm1a = GPIO.PWM(motor1a,500)
-        self.pwm1b = GPIO.PWM(motor1b,500)
-        self.pwm2a = GPIO.PWM(motor2a,500)
-        self.pwm2b = GPIO.PWM(motor2b,500)
+        self.pwm1a = GPIO.PWM(motor1a,1000)
+        self.pwm1b = GPIO.PWM(motor1b,1000)
+        self.pwm2a = GPIO.PWM(motor2a,1000)
+        self.pwm2b = GPIO.PWM(motor2b,1000)
         self._stop() # prevent random movements
         # create class instances 
         # Ball finding 
@@ -114,7 +114,7 @@ class Sys5_Control:
         self.pwm1b.start(0)
         self.pwm1a.start(duty_cycle)
         self.pwm2b.start(0)
-        self.pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
+        self.pwm2a.start(max(duty_cycle,5))
 
         return ACTION.BACKWARD 
 
@@ -259,7 +259,7 @@ class Sys5_Control:
                 if (direction == DIRECTION.Ahead): # if ball ahead
                     print(distance)
                     speed = 30
-                    pauseTime = 2
+                    pauseTime = 5
                     if (distance <0.6):
                         speed = 20
                         #self.vision.tolerence = 100
@@ -306,12 +306,12 @@ class Sys5_Control:
                 if (direction == DIRECTION.Ahead): # if ball ahead
                     print(distance)
                     speed = 30
-                    pauseTime = 2
+                    pauseTime = 5
                     if (distance <0.45):
                         speed = 20
                         #self.vision.tolerence = 50
                         self.State = self._forwards(speed)
-                    if (distance <0.35): # if close to ball 
+                    if (distance <0.40): # if close to ball 
                         self.State = self._forwards(30)
                         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                         sleep(5.5)
@@ -403,6 +403,54 @@ class Sys5_Control:
                 sleep(0.02)
             self._stop
             GPIO.cleanup()
+
+            # exit and release pins 
+            self._stop
+            GPIO.cleanup()
+            
+        except KeyboardInterrupt:
+            # STOP and RELEASE all pins 
+            self._exemptExit()
+
+    # goto home move 75% of the distance calculate (re-establish position), rotate and then come home again 
+    def Home2(self)->None:
+        try:
+            speed = 30 # define the speed at which the robot will move
+            #self.y_pos = 1.07*self.y_pos
+            print(f' at X {self.x_pos}, Y {self.y_pos}, rot {self.rot}\n')
+
+            # calculate the angle at which the robot needs to turn 
+            angle = atan2(-self.y_pos,-self.x_pos)*180/pi
+            angle = angle - self.rot # make it relative to the current position of the robot
+
+            # calculate the distance that the robot needs to travel to return to home  
+            distance = GLOBALSM1.wheelBaseCircumference*abs(angle)/360
+            numPulses = (distance/GLOBALSM1.distancePerPulse)+self.EncoderL.encoderCount
+
+            # rotate the amount calculated above
+            if (angle >-1 and angle <1): # no rotation required 
+                sleep(0.01)
+            elif (angle>0):
+                self.State = self._turn(speed,ANTICLOCKWISE) # rotate CCW
+            else: 
+                self.State = self._turn(speed,CLOCKWISE) # rotate CW 
+            while (self.EncoderL.encoderCount <numPulses):
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+                sleep(0.02)
+            self._stop()
+
+            # calculate the forwards distance that needs to be travelled to arrive to starting positon
+            distance = sqrt(self.x_pos**2 + self.y_pos**2)
+            # update encoder count 
+            encoderOldCount = self.EncoderL.encoderCount
+            numPulses = (distance*1.1/GLOBALSM1.distancePerPulse)+encoderOldCount
+            self.State = self._forwards(speed)
+
+            while (self.EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+                sleep(0.02)
+            self._stop
+
 
             # exit and release pins 
             self._stop
