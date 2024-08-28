@@ -32,7 +32,7 @@ motor2cha = 5
 motor2chb = 6
 
 #Wheel bias
-duty_cycle_bias = 0.95
+duty_cycle_bias = 0.963
 
 
 '''
@@ -158,7 +158,7 @@ class Sys5_Control:
         #difference
         delL = abs(newL-oldL)
         delR = abs(newR-oldR)
-        #print(delL-delR)
+        print(delL-delR)
         #get average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
         #print(distanceAvg)
@@ -353,10 +353,10 @@ class Sys5_Control:
     def disEngage(self)->None:
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
         self.State = self._backwards(30)
-        sleep(2)
+        sleep(3) # Backs away from the ball
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
         self.State = self._forwards(30)
-        sleep(0.5)
+        sleep(0.5) # Re aligns the dolly wheel
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
     #goto home
@@ -470,10 +470,11 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    robot.SearchPattern()
-    robot.hitBallBetter()
-    robot.disEngage()
-    robot.Home()
+    #robot.SearchPattern()
+    #robot.hitBallBetter()
+    #robot.disEngage()
+    #robot.Home()
+    robot.GoTo(4,0,30)
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 
