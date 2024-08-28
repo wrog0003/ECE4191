@@ -75,10 +75,10 @@ class Sys5_Control:
         GPIO.setup(motor2b, GPIO.OUT)
 
         # Set up the PWM pins
-        self.pwm1a = GPIO.PWM(motor1a,1000)
-        self.pwm1b = GPIO.PWM(motor1b,1000)
-        self.pwm2a = GPIO.PWM(motor2a,1000)
-        self.pwm2b = GPIO.PWM(motor2b,1000)
+        self.pwm1a = GPIO.PWM(motor1a,500)
+        self.pwm1b = GPIO.PWM(motor1b,500)
+        self.pwm2a = GPIO.PWM(motor2a,500)
+        self.pwm2b = GPIO.PWM(motor2b,500)
         self._stop() # prevent random movements
         # create class instances 
         # Ball finding 
@@ -159,7 +159,7 @@ class Sys5_Control:
         #difference
         delL = abs(newL-oldL)
         delR = abs(newR-oldR)
-        print(delL-delR)
+        #print(delL-delR)
         #get average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
         #print(distanceAvg)
@@ -258,8 +258,8 @@ class Sys5_Control:
                 (direction, temp, distance)= self.vision.detect() # run vision check 
                 if (direction == DIRECTION.Ahead): # if ball ahead
                     print(distance)
-                    speed = 50
-                    pauseTime = 0.5
+                    speed = 30
+                    pauseTime = 2
                     if (distance <0.6):
                         speed = 20
                         #self.vision.tolerence = 100
@@ -305,8 +305,8 @@ class Sys5_Control:
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                 if (direction == DIRECTION.Ahead): # if ball ahead
                     print(distance)
-                    speed = 50
-                    pauseTime = 1
+                    speed = 30
+                    pauseTime = 2
                     if (distance <0.45):
                         speed = 20
                         #self.vision.tolerence = 50
@@ -368,6 +368,7 @@ class Sys5_Control:
     def Home(self)->None:
         try:
             speed = 30 # define the speed at which the robot will move
+            #self.y_pos = 1.07*self.y_pos
             print(f' at X {self.x_pos}, Y {self.y_pos}, rot {self.rot}\n')
 
             # calculate the angle at which the robot needs to turn 
@@ -473,13 +474,13 @@ class Sys5_Control:
 
 if __name__ == "__main__":
     robot = Sys5_Control() 
-    #robot.vision.tolerence = 25
-    # tell robot to do stuff between here 
-    #robot.SearchPattern()
-    #robot.hitBallBetter()
-    #robot.disEngage()
-    #robot.Home()
-    robot.GoTo(4,0,30)
+    robot.vision.tolerence = 25
+    #tell robot to do stuff between here 
+    robot.SearchPattern()
+    robot.hitBallBetter()
+    robot.disEngage()
+    robot.Home()
+    
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 
