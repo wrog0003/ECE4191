@@ -176,7 +176,7 @@ class Sys5_Control:
         dy = distanceAvg*sin(rot*pi/180)
         dtheta = distanceAvg*360/GLOBALSM1.wheelBaseCircumference
 
-        # determine direction that the robot have travelled in the previous timestep & update coordinates
+        # determine direction that the robot has travelled in the previous timestep & update coordinates
         if self.State == ACTION.FORWARD: 
             rot = rot_old
             y = y_old + dy 
@@ -296,7 +296,7 @@ class Sys5_Control:
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
     # calculates the number of pulses required to achieve the desired turn and forwards direction
-    def EncoderPulseCalulator(self, angle, forward_distance) -> list[int]:
+    def EncoderPulseCalulator(self, angle:float, forward_distance:float) -> list[int]:
         # INPUTS
         # self 
         # angle = desired angle rotation 
@@ -315,23 +315,39 @@ class Sys5_Control:
         forward_numPulses = (forward_distance/GLOBALSM1.distancePerPulse) + self.EncoderL.encoderCount
 
         return angle_numPulses, forward_numPulses
+
     
+    def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
+        try: 
+            # rotate to achieve the desired angle 
+            if (angle >-1 and angle <1): # no rotation required 
+                sleep(0.01)
 
-    def homeSettings(self) -> list[float]:
+            elif (angle>0):
+                self.State = self._turn(turn_speed,ANTICLOCKWISE) # rotate CCW
 
-        # calculate angle to return hom
-        angle = atan2(-self.y_pos,-self.x_pos)*180/pi
-        angle = angle - self.rot # make it relative to the current position of the robot
+            else: 
+                self.State = self._turn(turn_speed,CLOCKWISE) # rotate CW 
 
-        # calculate forward distance required to return home
-        forward_distance = sqrt(self.x_pos**2 + self.y_pos**2)
+            while (self.EncoderL.encoderCount < angle_numPulses):
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos, self.y_pos, self.rot)
+                sleep(0.02)
 
-        # calculate the number of pulses required to achieve the turn and the forward distance 
-        angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(self, angle, forward_distance)
+            self._stop()
 
-        forward_numPulses = forward_numPulses*1.1 # add an offset to account for accumualted inaccuracies
-        
-        return angle, angle_numPulses, forward_distance, forward_numPulses
+            # drive forwards until you reach desired forwards distance 
+
+            self.State = self._forwards(forward_speed)
+
+            while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+                sleep(0.02)
+
+            self._stop()
+            GPIO.cleanup()
+
+        except KeyboardInterrupt:
+            self._exemptExit()
     
 
     def Home(self) -> None:
@@ -339,37 +355,19 @@ class Sys5_Control:
             speed = 30 # speed at which robot will move on its journey home
             print(f' at X {self.x_pos}, Y {self.y_pos}, rot {self.rot}\n')
 
-            # determine the angle and forward distance required to return home and the associated 
-            # number of pulses required to achieve these movements
-            angle, angle_numPulses, forward_distance, forward_numPulses = self.homeSettings()
+            # calculate angle to return home
+            angle = atan2(-self.y_pos,-self.x_pos)*180/pi
+            angle = angle - self.rot # make it relative to the current position of the robot
 
-            # rotate to achieve the desired angle 
-            if (angle >-1 and angle <1): # no rotation required 
-                sleep(0.01)
+            # calculate forward distance required to return home
+            forward_distance = sqrt(self.x_pos**2 + self.y_pos**2)
 
-            elif (angle>0):
-                self.State = self._turn(speed,ANTICLOCKWISE) # rotate CCW
+            # calculate the number of pulses required to achieve the turn and the forward distance 
+            angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
 
-            else: 
-                self.State = self._turn(speed,CLOCKWISE) # rotate CW 
+            forward_numPulses = forward_numPulses*1.1 # add an offset to account for accumualted inaccuracies
 
-            while (self.EncoderL.encoderCount <angle_numPulses):
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos, self.y_pos, self.rot)
-                sleep(0.02)
-
-            self._stop()
-
-
-            # drive forwards until you hit home 
-
-            self.State = self._forwards(speed)
-
-            while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
-                sleep(0.02)
-
-            self._stop
-            GPIO.cleanup()
+            self.turnGoForwards(speed, speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance 
 
         except KeyboardInterrupt:
             self._exemptExit()
@@ -396,32 +394,9 @@ class Sys5_Control:
                     forward_distance = 2 
 
                     # call function that determines the number of pulses required to achieve desired movement 
-                    angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(self, angle, forward_distance)
-
-                    # rotate to achieve the desired angle 
-                    if (angle >-1 and angle <1): # no rotation required 
-                        sleep(0.01)
-
-                    elif (angle>0):
-                        self.State = self._turn(turn_speed,ANTICLOCKWISE) # rotate CCW
-
-                    else: 
-                        self.State = self._turn(turn_speed,CLOCKWISE) # rotate CW 
-
-                    while (self.EncoderL.encoderCount <angle_numPulses):
-                        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos, self.y_pos, self.rot)
-                        sleep(0.02)
-
-                    self._stop()
-
-                    # drive forwards until you hit desired position
-
-                    self.State = self._forwards(forward_speed)
-
-                    while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
-                        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
-                        sleep(0.02)
-                    self._stop()
+                    angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
+                    
+                    self.turnGoForwards(turn_speed, forward_speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance 
 
                     #Print out location reached based on encoders
                     print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
