@@ -65,3 +65,14 @@ class BetterEncoder(RotaryEncoder):
 #   CW  CCW     backward
 #   CCW CCW     right
 #   CW  CW      left
+
+# Emma's attempt at using the rotary encoder class 
+
+class Encoder:
+
+    # initalise encoder 
+    def _init_ (self,Apin:int,Bpin:int) -> None:
+        self.encoderCount = 0 
+        self.encoderOldCount = 0 
+        RotaryEncoder(self, Apin, Bpin) # inialise the rotatry encoder from gpio zero 
+        
