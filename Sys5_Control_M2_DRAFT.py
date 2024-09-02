@@ -410,8 +410,8 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    robot.SearchPattern()
-    robot.hitBallBetter()
+    robot.searchPattern()
+    robot.hitBall()
     robot.disEngage()
     robot.Home()
     
