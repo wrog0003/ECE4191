@@ -81,7 +81,7 @@ class LineDetection:
 
 if __name__ == "__main__":
     from time import sleep
-    Test = LineDetection(True)
+    Test = LineDetection(False)
     sleep(0.5) # wait for camera 
 
     while(True):
