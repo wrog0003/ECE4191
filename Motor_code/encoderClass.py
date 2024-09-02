@@ -13,7 +13,7 @@ class SimpleEncoder:
         #self.DirectionList = [self.clockWise]*3
         # set up interrupts (rising and falling)
         self.Apin.when_pressed = self.encoderCallA 
-        self.Bpin.when_pressed = self.encoderCallB
+        #self.Bpin.when_pressed = self.encoderCallB
 
         #self.Apin.when_released = self.encoderCall
         #self.Bpin.when_released = self.encoderCall
