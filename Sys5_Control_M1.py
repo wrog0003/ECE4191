@@ -32,7 +32,7 @@ motor2cha = 5
 motor2chb = 6
 
 #Wheel bias
-duty_cycle_bias = 0.963
+duty_cycle_bias = 0.9645
 
 
 '''
@@ -309,6 +309,7 @@ class Sys5_Control:
                     pauseTime = 5
                     if (distance <0.55):
                         speed = 20
+                        pauseTime = 0.3
                         #self.vision.tolerence = 50
                         self.State = self._forwards(speed)
                     if (distance <0.40): # if close to ball 
@@ -396,7 +397,7 @@ class Sys5_Control:
             distance = sqrt(self.x_pos**2 + self.y_pos**2)
             # update encoder count 
             encoderOldCount = self.EncoderL.encoderCount
-            numPulses = (distance*1.1/GLOBALSM1.distancePerPulse)+encoderOldCount
+            numPulses = (distance*1.07/GLOBALSM1.distancePerPulse)+encoderOldCount
             self.State = self._forwards(speed)
 
             while (self.EncoderL.encoderCount <numPulses):# keep going fowards until you reach the desired number of pulses 
@@ -529,6 +530,7 @@ if __name__ == "__main__":
     robot.hitBallBetter()
     robot.disEngage()
     robot.Home()
+    
     
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
