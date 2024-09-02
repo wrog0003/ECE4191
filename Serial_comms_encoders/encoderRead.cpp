@@ -1,27 +1,66 @@
-// Define pins for encoder channels
-#define encoder_ChA 7  // Channel A of the encoder connected to Digital Pin 7
-#define encoder_ChB 8  // Channel B of the encoder connected to Digital Pin 8
+// Pin definitions
+const int encoderA1 = 2;  // Encoder 1 Channel A (must be an interrupt pin)
+const int encoderB1 = 3;  // Encoder 1 Channel B (must be an interrupt pin)
+const int encoderA2 = 4;  // Encoder 2 Channel A (must be an interrupt pin)
+const int encoderB2 = 5;  // Encoder 2 Channel B (must be an interrupt pin)
 
-// Variables to store the current state of encoder channels
-int encoder_ChA_value;
-int encoder_ChB_value;
+// Variables to store the counts
+volatile long count1 = 0;
+volatile long count2 = 0;
+
+unsigned long lastMillis = 0;
 
 void setup() {
-   Serial.begin(9600); // Initialize serial communication at 9600 baud rate
+  // Initialize serial communication
+  Serial.begin(115200);
 
-   // Set encoder pins as inputs with internal pull-up resistors 
-   // to avoid floating states and provide stable readings
-   pinMode(encoder_ChA, INPUT_PULLUP); 
-   pinMode(encoder_ChB, INPUT_PULLUP);
+  // Set up interrupts for encoder 1
+  attachInterrupt(digitalPinToInterrupt(encoderA1), handleEncoder1A, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderB1), handleEncoder1B, CHANGE);
+
+  // Set up interrupts for encoder 2
+  attachInterrupt(digitalPinToInterrupt(encoderA2), handleEncoder2A, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderB2), handleEncoder2B, CHANGE);
 }
 
 void loop() {
-    // Read the current state of encoder channels
-   encoder_ChA_value = digitalRead(encoder_ChA); 
-   encoder_ChB_value = digitalRead(encoder_ChB); 
- 
-    // Print the encoder values to the serial monitor
-   Serial.print(encoder_ChA_value); 
-   Serial.print(" ");  // Separate the values with a space
-   Serial.println(encoder_ChB_value);  // Print the second value and move to a new line
+  // Send data to Raspberry Pi every 1 ms
+  if (millis() - lastMillis >= 1) {
+    lastMillis = millis();
+    Serial.print(count1);
+    Serial.print(",");
+    Serial.println(count2);
+  }
+}
+
+void handleEncoder1A() {
+  if (digitalRead(encoderA1) == digitalRead(encoderB1)) {
+    count1++;
+  } else {
+    count1--;
+  }
+}
+
+void handleEncoder1B() {
+  if (digitalRead(encoderA1) == digitalRead(encoderB1)) {
+    count1--;
+  } else {
+    count1++;
+  }
+}
+
+void handleEncoder2A() {
+  if (digitalRead(encoderA2) == digitalRead(encoderB2)) {
+    count2++;
+  } else {
+    count2--;
+  }
+}
+
+void handleEncoder2B() {
+  if (digitalRead(encoderA2) == digitalRead(encoderB2)) {
+    count2--;
+  } else {
+    count2++;
+  }
 }
