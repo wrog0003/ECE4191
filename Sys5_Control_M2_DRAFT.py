@@ -170,6 +170,9 @@ class Sys5_Control:
         delR = abs(newR-oldR)
         #print(delL-delR)
         self.error_count += (delL-delR)
+        #Call the encoder controller method
+        self.EncoderController(delL, delR)
+        print(self.duty_cycle_bias)
         # calculate the average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
     
@@ -215,17 +218,21 @@ class Sys5_Control:
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
     def EncoderController(self, delL:int, delR:int) -> float:
         # Controller Gains (Proportional, Integral, Derivative)
-        Kp = 0
+        Kp = 0.1
         Ki = 0
         #Kd = 0
-
+        
+        
         # Desired difference between the left and the right encoder counts when moving forwards. 
-        desired_difference = 0
-
-        # Calculates a duty cycle bias to apply 
-        self.duty_cycle_bias = min((Kp*(delL-delR) + Ki*self.error_count),1)
+        reference = 0
+        
+        # Calculates a duty cycle bias to apply (Limited between 0.5 and 1)
+        self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delL-delR)) + Ki*self.error_count),1))
+        self.error_count = self.error_count + (delL-delR)
+        print('duty cycle bias')
         print(self.duty_cycle_bias)
-
+        print('error count')
+        print(self.error_count)
         return 
 
     # fuction that calls the vision system and determines the direction that the robot needs to move 
@@ -439,8 +446,8 @@ if __name__ == "__main__":
     #robot.disEngage()
     #robot.Home()
 
-    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 3)
-    robot.turnGoForwards(90, 90, 0, angle_numPulses, forward_numPulses)
+    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 0.5)
+    robot.turnGoForwards(50, 50, 0, angle_numPulses, forward_numPulses)
             
     print(robot.error_count)
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
