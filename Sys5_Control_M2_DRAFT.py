@@ -62,7 +62,7 @@ class Sys5_Control:
         self._stop() # prevent random movements
         
         # initalise the vision system
-        self.vision = Sys4_Vision()
+        #self.vision = Sys4_Vision()
 
         #Position control
 
@@ -73,6 +73,9 @@ class Sys5_Control:
 
         self.State = None # State is the movement of the robot i.e. Left, Right, Forward, Backward
         # initalise to none bc robot is not moving
+
+        # Keeps track of difference in encoder pulse counts. 
+        self.error_count = 0
 
         self.EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
         self.EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
@@ -136,12 +139,12 @@ class Sys5_Control:
         GPIO.cleanup()
         self.EncoderL.end()
         self.EncoderR.end()
-        self.vision.disconnect() 
+        #self.vision.disconnect() 
     
     # Release all Pins
     def release(self)->None:
         self._stop()
-        self.vision.disconnect()
+        #self.vision.disconnect()
         GPIO.cleanup()
         sleep(0.1) # ensure that every peripheral is released 
 
@@ -162,7 +165,8 @@ class Sys5_Control:
         # calculate the difference in the number of encoder pulses in the time between the last call
         delL = abs(newL-oldL)
         delR = abs(newR-oldR)
-
+        #print(delL-delR)
+        self.error_count += (delL-delR)
         # calculate the average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
     
@@ -409,13 +413,17 @@ class Sys5_Control:
 
 if __name__ == "__main__":
     robot = Sys5_Control() 
-    robot.vision.tolerence = 25
+    #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    robot.searchPattern()
-    robot.hitBall()
-    robot.disEngage()
-    robot.Home()
-    
+    #robot.searchPattern()
+    #robot.hitBall()
+    #robot.disEngage()
+    #robot.Home()
+
+    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(45, 1)
+    robot.turnGoForwards(30, 30, 45, angle_numPulses, forward_numPulses)
+            
+    print(robot.error_count)
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 
