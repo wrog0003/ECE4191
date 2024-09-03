@@ -36,7 +36,7 @@ motor2cha = 5
 motor2chb = 6
 
 # Wheel bias (used to callibrate differences in wheel movement)
-duty_cycle_bias = 0.963
+#duty_cycle_bias = 0.963
 
 
 #Milestone 1 control top level class 
@@ -77,6 +77,9 @@ class Sys5_Control:
         # Keeps track of difference in encoder pulse counts. 
         self.error_count = 0
 
+        # Apllies a bias to the right motor to increase or decrease its output speed to ensure straight line motion.
+        self.duty_cycle_bias = 0.963
+
         self.EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
         self.EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
 
@@ -90,7 +93,7 @@ class Sys5_Control:
         self.pwm1a.start(0)
         self.pwm1b.start(duty_cycle)
         self.pwm2a.start(0)
-        self.pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
+        self.pwm2b.start(max(duty_cycle*self.duty_cycle_bias,5))
 
         return ACTION.FORWARD
 
@@ -103,7 +106,7 @@ class Sys5_Control:
         self.pwm1b.start(0)
         self.pwm1a.start(duty_cycle)
         self.pwm2b.start(0)
-        self.pwm2a.start(max(duty_cycle,5))
+        self.pwm2a.start(max(duty_cycle*self.duty_cycle_bias,5))
 
         return ACTION.BACKWARD 
 
@@ -117,14 +120,14 @@ class Sys5_Control:
         if clockWise: # turn clockwise 
             self.pwm1a.start(0)
             self.pwm1b.start(duty_cycle)
-            self.pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
+            self.pwm2a.start(max(duty_cycle*self.duty_cycle_bias,5))
             self.pwm2b.start(0)
             return ACTION.RIGHT
         else: # turn anti-clockwise
             self.pwm1a.start(duty_cycle)
             self.pwm1b.start(0)
             self.pwm2a.start(0)
-            self.pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
+            self.pwm2b.start(max(duty_cycle*self.duty_cycle_bias,5))
             return ACTION.LEFT
 
     def _stop(self)->None: # stop movement of robot 
@@ -208,6 +211,21 @@ class Sys5_Control:
             rot +=360 
 
         return x,y,rot
+    
+    # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
+    def EncoderController(self, delL:int, delR:int) -> float:
+        # Controller Gains (Proportional, Integral, Derivative)
+        Kp = 0
+        Ki = 0
+        #Kd = 0
+
+        # Desired difference between the left and the right encoder counts when moving forwards. 
+        desired_difference = 0
+
+        self.duty_cycle_bias = min(max(0,Kp*(delL-delR) + Ki*self.error_count),1)
+        
+
+        return 
 
     # fuction that calls the vision system and determines the direction that the robot needs to move 
     # the distance to the ball and if the robot will hit the ball in the next move 
