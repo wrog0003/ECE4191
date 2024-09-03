@@ -224,7 +224,7 @@ class Sys5_Control:
 
         # Calculates a duty cycle bias to apply 
         self.duty_cycle_bias = min((Kp*(delL-delR) + Ki*self.error_count),1)
-
+        print(self.duty_cycle_bias)
 
         return 
 
