@@ -420,8 +420,8 @@ if __name__ == "__main__":
     #robot.disEngage()
     #robot.Home()
 
-    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(45, 1)
-    robot.turnGoForwards(30, 30, 45, angle_numPulses, forward_numPulses)
+    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 3)
+    robot.turnGoForwards(90, 90, 0, angle_numPulses, forward_numPulses)
             
     print(robot.error_count)
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
