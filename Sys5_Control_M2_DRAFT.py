@@ -218,7 +218,7 @@ class Sys5_Control:
         # noHit = whether the ball will be hit by performing this movement 
 
         (direction, temp, distance)= self.vision.detect() # run vision check 
-
+        noHit = True
         if (direction == DIRECTION.Ahead):
 
             # settings if robot if more than 0.55m away from the ball 
@@ -275,6 +275,7 @@ class Sys5_Control:
                 self._stop() # stop movement of robot temporarily until next action is determined
             
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+
         
         except KeyboardInterrupt: 
             self._exemptExit()
