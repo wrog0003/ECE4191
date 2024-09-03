@@ -222,8 +222,9 @@ class Sys5_Control:
         # Desired difference between the left and the right encoder counts when moving forwards. 
         desired_difference = 0
 
-        self.duty_cycle_bias = min(max(0,Kp*(delL-delR) + Ki*self.error_count),1)
-        
+        # Calculates a duty cycle bias to apply 
+        self.duty_cycle_bias = min((Kp*(delL-delR) + Ki*self.error_count),1)
+
 
         return 
 
