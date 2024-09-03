@@ -82,7 +82,7 @@ class Sys5_Control:
         self._stop() # prevent random movements
         # create class instances 
         # Ball finding 
-        self.vision = Sys4_Vision()
+        #self.vision = Sys4_Vision()
 
         #Position control
         self.x_pos =0
@@ -148,7 +148,7 @@ class Sys5_Control:
         GPIO.cleanup()
         self.EncoderL.end()
         self.EncoderR.end()
-        self.vision.disconnect()
+        #self.vision.disconnect()
     
     #Position tracking 
     def _updatePos(self,x_old:float,y_old:float,rot_old:float)->list[float]:
@@ -525,13 +525,13 @@ class Sys5_Control:
 
 if __name__ == "__main__":
     robot = Sys5_Control() 
-    robot.vision.tolerence = 25
+    #robot.vision.tolerence = 25
     #tell robot to do stuff between here 
-    robot.SearchPattern()
-    robot.hitBallBetter()
-    robot.disEngage()
-    robot.Home()
-    
+    #robot.SearchPattern()
+    #robot.hitBallBetter()
+    #robot.disEngage()
+    #robot.Home()
+    robot.CalibrationTest()
     
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     

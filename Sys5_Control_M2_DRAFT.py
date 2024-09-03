@@ -36,7 +36,7 @@ motor2cha = 5
 motor2chb = 6
 
 # Wheel bias (used to callibrate differences in wheel movement)
-duty_cycle_bias = 0.963
+#duty_cycle_bias = 0.963
 
 
 #Milestone 1 control top level class 
@@ -62,7 +62,7 @@ class Sys5_Control:
         self._stop() # prevent random movements
         
         # initalise the vision system
-        self.vision = Sys4_Vision()
+        #self.vision = Sys4_Vision()
 
         #Position control
 
@@ -73,6 +73,12 @@ class Sys5_Control:
 
         self.State = None # State is the movement of the robot i.e. Left, Right, Forward, Backward
         # initalise to none bc robot is not moving
+
+        # Keeps track of difference in encoder pulse counts. 
+        self.error_count = 0
+
+        # Apllies a bias to the right motor to increase or decrease its output speed to ensure straight line motion.
+        self.duty_cycle_bias = 0.963
 
         self.EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
         self.EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
@@ -87,7 +93,7 @@ class Sys5_Control:
         self.pwm1a.start(0)
         self.pwm1b.start(duty_cycle)
         self.pwm2a.start(0)
-        self.pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
+        self.pwm2b.start(max(duty_cycle*self.duty_cycle_bias,5))
 
         return ACTION.FORWARD
 
@@ -100,7 +106,7 @@ class Sys5_Control:
         self.pwm1b.start(0)
         self.pwm1a.start(duty_cycle)
         self.pwm2b.start(0)
-        self.pwm2a.start(max(duty_cycle,5))
+        self.pwm2a.start(max(duty_cycle*self.duty_cycle_bias,5))
 
         return ACTION.BACKWARD 
 
@@ -114,14 +120,14 @@ class Sys5_Control:
         if clockWise: # turn clockwise 
             self.pwm1a.start(0)
             self.pwm1b.start(duty_cycle)
-            self.pwm2a.start(max(duty_cycle*duty_cycle_bias,5))
+            self.pwm2a.start(max(duty_cycle*self.duty_cycle_bias,5))
             self.pwm2b.start(0)
             return ACTION.RIGHT
         else: # turn anti-clockwise
             self.pwm1a.start(duty_cycle)
             self.pwm1b.start(0)
             self.pwm2a.start(0)
-            self.pwm2b.start(max(duty_cycle*duty_cycle_bias,5))
+            self.pwm2b.start(max(duty_cycle*self.duty_cycle_bias,5))
             return ACTION.LEFT
 
     def _stop(self)->None: # stop movement of robot 
@@ -136,12 +142,12 @@ class Sys5_Control:
         GPIO.cleanup()
         self.EncoderL.end()
         self.EncoderR.end()
-        self.vision.disconnect() 
+        #self.vision.disconnect() 
     
     # Release all Pins
     def release(self)->None:
         self._stop()
-        self.vision.disconnect()
+        #self.vision.disconnect()
         GPIO.cleanup()
         sleep(0.1) # ensure that every peripheral is released 
 
@@ -162,7 +168,11 @@ class Sys5_Control:
         # calculate the difference in the number of encoder pulses in the time between the last call
         delL = abs(newL-oldL)
         delR = abs(newR-oldR)
-
+        #print(delL-delR)
+        self.error_count += (delL-delR)
+        #Call the encoder controller method
+        self.EncoderController(delL, delR)
+        #print(self.duty_cycle_bias)
         # calculate the average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
     
@@ -204,6 +214,26 @@ class Sys5_Control:
             rot +=360 
 
         return x,y,rot
+    
+    # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
+    def EncoderController(self, delL:int, delR:int) -> float:
+        # Controller Gains (Proportional, Integral, Derivative)
+        Kp = 0.1
+        Ki = 0
+        #Kd = 0
+        
+        
+        # Desired difference between the left and the right encoder counts when moving forwards. 
+        reference = 0
+        
+        # Calculates a duty cycle bias to apply (Limited between 0.5 and 1)
+        self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delL-delR)) + Ki*self.error_count),1))
+        self.error_count = self.error_count + (delL-delR)
+        print('duty cycle bias')
+        print(self.duty_cycle_bias)
+        print('error count')
+        print(self.error_count)
+        return 
 
     # fuction that calls the vision system and determines the direction that the robot needs to move 
     # the distance to the ball and if the robot will hit the ball in the next move 
@@ -218,7 +248,7 @@ class Sys5_Control:
         # noHit = whether the ball will be hit by performing this movement 
 
         (direction, temp, distance)= self.vision.detect() # run vision check 
-
+        noHit = True
         if (direction == DIRECTION.Ahead):
 
             # settings if robot if more than 0.55m away from the ball 
@@ -275,6 +305,7 @@ class Sys5_Control:
                 self._stop() # stop movement of robot temporarily until next action is determined
             
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+
         
         except KeyboardInterrupt: 
             self._exemptExit()
@@ -408,13 +439,17 @@ class Sys5_Control:
 
 if __name__ == "__main__":
     robot = Sys5_Control() 
-    robot.vision.tolerence = 25
+    #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    robot.searchPattern()
-    robot.hitBall()
-    robot.disEngage()
-    robot.Home()
-    
+    #robot.searchPattern()
+    #robot.hitBall()
+    #robot.disEngage()
+    #robot.Home()
+
+    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 0.5)
+    robot.turnGoForwards(50, 50, 0, angle_numPulses, forward_numPulses)
+            
+    print(robot.error_count)
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 

@@ -42,7 +42,7 @@ class LineDetection:
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
 
         # define threshold values
-        threshold = 220 
+        threshold = 180 
         max_value = 255 
 
         _, binary_image = cv2.threshold(grey_image, threshold, max_value, cv2.THRESH_BINARY) # now the image is purely black and white
