@@ -172,7 +172,7 @@ class Sys5_Control:
         self.error_count += (delL-delR)
         #Call the encoder controller method
         self.EncoderController(delL, delR)
-        print(self.duty_cycle_bias)
+        #print(self.duty_cycle_bias)
         # calculate the average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
     
