@@ -83,6 +83,10 @@ class Sys5_Control:
         self.EncoderL = SimpleEncoder(motor1cha,motor1chb) # set up Left Motor
         self.EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
 
+        #PI controller access variables
+        self.dutyCycle = 0 
+        self.RActivePin = None
+
             
     def _forwards(self,duty_cycle:float)->ACTION:
     
@@ -91,9 +95,12 @@ class Sys5_Control:
 
         # drive the motor forwards 
         self.pwm1a.start(0)
-        self.pwm1b.start(duty_cycle)
         self.pwm2a.start(0)
+        self.pwm1b.start(duty_cycle)
         self.pwm2b.start(max(duty_cycle*self.duty_cycle_bias,5))
+        self.dutyCycle = duty_cycle
+        self.RActivePin = self.pwm2b
+
 
         return ACTION.FORWARD
 
@@ -104,9 +111,11 @@ class Sys5_Control:
 
         # drive the motor forwards 
         self.pwm1b.start(0)
-        self.pwm1a.start(duty_cycle)
         self.pwm2b.start(0)
+        self.pwm1a.start(duty_cycle)
         self.pwm2a.start(max(duty_cycle*self.duty_cycle_bias,5))
+        self.dutyCycle = duty_cycle
+        self.RActivePin = self.pwm2a
 
         return ACTION.BACKWARD 
 
@@ -119,15 +128,19 @@ class Sys5_Control:
 
         if clockWise: # turn clockwise 
             self.pwm1a.start(0)
+            self.pwm2b.start(0)
             self.pwm1b.start(duty_cycle)
             self.pwm2a.start(max(duty_cycle*self.duty_cycle_bias,5))
-            self.pwm2b.start(0)
+            self.dutyCycle = duty_cycle
+            self.RActivePin = self.pwm2a
             return ACTION.RIGHT
         else: # turn anti-clockwise
-            self.pwm1a.start(duty_cycle)
             self.pwm1b.start(0)
             self.pwm2a.start(0)
+            self.pwm1a.start(duty_cycle)
             self.pwm2b.start(max(duty_cycle*self.duty_cycle_bias,5))
+            self.dutyCycle = duty_cycle
+            self.RActivePin = self.pwm2b
             return ACTION.LEFT
 
     def _stop(self)->None: # stop movement of robot 
@@ -227,12 +240,13 @@ class Sys5_Control:
         reference = 0
         
         # Calculates a duty cycle bias to apply (Limited between 0.5 and 1)
-        self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delL-delR)) + Ki*self.error_count),1))
+        self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delL-delR)) + Ki*self.error_count),1.5))
         self.error_count = self.error_count + (delL-delR)
         print('duty cycle bias')
         print(self.duty_cycle_bias)
         print('error count')
         print(self.error_count)
+        self.RActivePin.start(max(self.duty_cycle*self.duty_cycle_bias,5))
         return 
 
     # fuction that calls the vision system and determines the direction that the robot needs to move 
