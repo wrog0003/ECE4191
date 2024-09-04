@@ -84,8 +84,8 @@ class Sys5_Control:
         self.EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
 
         #PI controller access variables
-        self.dutyCycle = 0 
-        self.RActivePin = None
+        self.dutyCycle = 0  # allows access for the PI controller 
+        self.RActivePin = None # allows correct motor access to the controller 
 
             
     def _forwards(self,duty_cycle:float)->ACTION:
@@ -148,6 +148,7 @@ class Sys5_Control:
         self.pwm1b.stop()
         self.pwm2a.stop()
         self.pwm2b.stop()
+        # does not include a state update as the robot may continue moving for a short period as it has interia
 
     # Manual exit function to prevent loss of pin control
     def _exemptExit(self)->None:
