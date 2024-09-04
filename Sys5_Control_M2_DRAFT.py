@@ -326,6 +326,22 @@ class Sys5_Control:
         sleep(0.5) 
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
+    # if Vision system detects a line, call this function
+    def lineFoundResponse (self):
+
+        # set angle of rotation 
+        angle = pi # 180 degree rotation CCW 
+
+        speed = 30 # set a speed for rotation
+
+        # find the number of pulses required to achieve this rotation 
+        angle_numPulses, _ = self.EncoderPulseCalulator(angle, 0)  # just rotating
+
+        # rotate 
+        self.turnGoForwards(speed, speed, angle, angle_numPulses, 0)
+
+        return 
+
     # calculates the number of pulses required to achieve the desired turn and forwards direction
     def EncoderPulseCalulator(self, angle:float, forward_distance:float) -> list[int]:
         # INPUTS
@@ -434,6 +450,11 @@ class Sys5_Control:
 
         except KeyboardInterrupt:
             self._exemptExit() 
+    
+
+
+
+        
 
 
 
