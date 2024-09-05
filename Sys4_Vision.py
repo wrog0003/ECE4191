@@ -6,6 +6,11 @@ import numpy as np
 
 
 class Sys4_Vision:
+    '''
+    This class encapsulates all the functionality related to use of the camera.
+
+    It uses OpenCV to access the camera and perform image operations. 
+    '''
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
@@ -13,21 +18,45 @@ class Sys4_Vision:
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
 
     #init
-    def __init__(self, rpi: bool = True, tolerence: int =50 )-> None:
-        self.tolerence = tolerence #tollerence of straight ahead in pixels
+    def __init__(self, rpi: bool = True, tolerance: int =50 )-> None:
+        '''
+        This function creates an instance of the vision class
+        
+        Inputs:
+            self: a class instance
+            rpi: whether or not this is running on the raspberry pi, use false for running on laptop, defaults to True
+            tolerance: the number of pixels to the left or right that should be considered ahead, defaults to 50
+            '''
+        self.tolerance = tolerance #tolerance of straight ahead in pixels
+        '''Number of pixels to the left or right of center that is considered ahead'''
         self.rpi = rpi # define which OS is running
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
             self.cap =cv2.VideoCapture(1) #cv2.VideoCapture(0, cv2.CAP_DSHOW)
         result, image = self.cap.read() # get the first image 
-        #cv2.imshow('test', image)    
+        
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
         self.image = None
         self.aspcectRatio = Sys4_Vision.known_radius*Sys4_Vision.focal_length
         
     #detect
     def detect(self)->tuple[DIRECTION,bool,float]:
+        ''' This function determines data about the location of a tennis ball and if a line s close
+        
+        Outputs:
+            The direction that the ball is located relative to the robot
+            If a line is detected close to the robot
+            the distance to the ball if ahead (m)
+            
+        This gets an image from the camera then does the following:
+            1. Creates a mask of the location of the tennis ball based on color filtering
+            2. Find the shapes in the mask
+            3. Checks that it detected some shapes
+            4. if shapes detected finds the center of mass of the largest shape
+            5. if running on a Laptop annotates the image and displays it
+            6. Determines where the ball is relative to the robot
+            7. If ahead also determines the distance to the ball'''
         result, self.image = self.cap.read() # get image 
         distance = -1 # define as a non possible value 
         if result:
@@ -58,7 +87,7 @@ class Sys4_Vision:
                     cv2.circle(self.image, center, 5, (0, 0, 255), -1) # marks centre 
                     cv2.imshow("Frame", self.image) # show the resulting image 
 
-                if abs(center[0]-self.midpoint)<self.tolerence:
+                if abs(center[0]-self.midpoint)<self.tolerance:
                     distance = self.aspcectRatio / radius #get the distance to the ball from the camera 
                     return (DIRECTION.Ahead,False,distance)
                 elif center[0] > self.midpoint:
@@ -77,6 +106,7 @@ class Sys4_Vision:
         cv2.imwrite('outputImage.jpg', self.image)
     #disconnect     
     def disconnect(self)->None:
+        '''Disconnects the camera and removes the image window if running on laptop'''
         self.cap.release() 
         if not self.rpi:
             cv2.destroyWindow("Frame") 

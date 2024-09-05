@@ -260,7 +260,7 @@ class Sys5_Control:
                     pauseTime = 0.5
                     if (distance <0.6):
                         speed = 20
-                        self.vision.tolerence = 100
+                        self.vision.tolerance = 100
                         self.State = self._forwards(speed)
                     if (distance <0.5): # if close to ball 
                         self.State = self._forwards(30)
@@ -307,7 +307,7 @@ class Sys5_Control:
                     pauseTime = 0.5
                     if (distance <0.55):
                         speed = 20
-                        self.vision.tolerence = 100
+                        self.vision.tolerance = 100
                         self.State = self._forwards(speed)
                     if (distance <0.45): # if close to ball 
                         self.State = self._forwards(30)

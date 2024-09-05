@@ -180,7 +180,7 @@ def hitBallTestBasic():
                 pauseTime = 0.5
                 if (distance <0.4):
                     speed = 20
-                    vision.tolerence = 100
+                    vision.tolerance = 100
                     State = forwards(speed)
                 if (distance <0.3): # if close to ball 
                     State = forwards(30)
@@ -239,7 +239,7 @@ def hitBallTestBetter():
                 pauseTime = 0.5
                 if (distance <0.35):
                     speed = 20
-                    vision.tolerence = 100
+                    vision.tolerance = 100
                     State = forwards(speed)
                 if (distance <0.25): # if close to ball 
                     State = forwards(30)
@@ -460,7 +460,7 @@ def hitBallGetHome():
                 pauseTime = 0.6
                 if (distance <0.35):
                     speed = 20
-                    vision.tolerence = 100
+                    vision.tolerance = 100
                     State = forwards(speed)
                 if (distance <0.25): # if close to ball 
                     State = forwards(30)
