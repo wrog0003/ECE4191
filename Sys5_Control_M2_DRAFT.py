@@ -36,7 +36,7 @@ motor2cha = 5
 motor2chb = 6
 
 # Wheel bias (used to callibrate differences in wheel movement)
-#duty_cycle_bias = 0.963
+#duty_cycle_bias = 0.963 
 
 
 #Milestone 1 control top level class 
@@ -102,6 +102,10 @@ class Sys5_Control:
         #PI controller access variables
         self.duty_cycle = 0  # allows access for the PI controller 
         self.RActivePin = None # allows correct motor access to the controller 
+
+        # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
+        self.capacity = 3 # Maximum number of tennis balls that can be stored in the conveyor system. 
+        self.numBalls = 0 # Number of balls collected by the robot on any given run.   
 
             
     def _forwards(self,duty_cycle:float)->ACTION:
@@ -643,7 +647,23 @@ class Sys5_Control:
         except KeyboardInterrupt:
             self._exemptExit() 
     
+    # Method to use the vision system to find the box and return to it. 
+    def toBox(self) -> None:
+        pass
 
+    # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
+    def ballsCollectedTracker(self) -> None:
+        # Called everytime a ball is collected and stored in the conveyor. 
+        # Could potentially be called from an interrupt on a sensor that detects a ball in the claw or just called in the sequential code logic. 
+        self.numBalls += 1 #increment number of balls collected. 
+
+        if self.numBalls < self.capacity: # Robot can continue searching for another ball.
+            self.searchPattern() # Locate a ball using a search pattern
+            self.hitBall() # MWill move to collect the ball 
+
+        else: # Robot is at capacity and must go to box to deposit the balls
+            self.toBox()
+            
 
 
         
