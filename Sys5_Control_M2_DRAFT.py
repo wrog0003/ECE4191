@@ -257,11 +257,23 @@ class Sys5_Control:
 
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
     def EncoderController(self, delL:int, delR:int) -> float:
+
+        '''
+        This function acts as a PI controller to ensure that the motor speeds are the same 
+
+        Inputs:
+            self: the class instance
+            delL: change in left encoder count 
+            delR: change in right encoder count 
+
+        Outputs:
+            duty_cycle_bias = biad applied to right encoder so that it matches speed of left motor 
+
+
+        '''
         # Controller Gains (Proportional, Integral, Derivative)
         Kp = 0.375 # 1.4 is good 
         Ki = 0.17
-        #Kd = 0
-        
         
         # Desired difference between the left and the right encoder counts when moving forwards. 
         reference = 0
@@ -269,29 +281,29 @@ class Sys5_Control:
         # Calculates a duty cycle bias to apply (Limited between 0.5 and 1)
         self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delR-delL)) - Ki*self.error_count),1.2))
         
-        fred = (delR-delL) 
+        countDifference = (delR-delL) 
         print(f'duty cycle {self.duty_cycle_bias}')
-        self.error_count +=fred
+        self.error_count += countDifference
         print(f'err accum = {self.error_count}')
 
-        #print('duty cycle bias')
-        # print(self.duty_cycle_bias)
-        # print('error count')
-        # print(self.error_count)
         self.RActivePin.start(max(self.duty_cycle*self.duty_cycle_bias,5))
         return 
 
-    # fuction that calls the vision system and determines the direction that the robot needs to move 
-    # the distance to the ball and if the robot will hit the ball in the next move 
     def hitBallSettings(self) -> Tuple[DIRECTION, float, float, bool]:
+        '''
+        Calls the vision system and determines the direction that the robot needs to move 
+        the distance to the ball and if the robot will hit the ball in the next move 
 
-        # INPUTS: self 
+        INPUTS
+            self: the class instance
 
-        # OUTPUTS
-        # direction = direction that the robot is relative to the ball
-        # speed = speed that the robot should travel at in the next time step
-        # pauseTime = how long the robot should travel at this speed for 
-        # noHit = whether the ball will be hit by performing this movement 
+        OUTPUTS
+            direction = direction that the robot is relative to the ball
+            speed = speed that the robot should travel at in the next time step
+            pauseTime = how long the robot should travel at this speed for 
+            noHit = whether the ball will be hit by performing this movement 
+
+        '''
 
         (direction, temp, distance)= self.vision.detect() # run vision check 
         noHit = True
@@ -319,8 +331,17 @@ class Sys5_Control:
         
         return direction, speed, pauseTime, noHit
     
-    # function that implements the movement to hit the ball
+    
     def hitBall(self) -> None: 
+        '''
+        gets the robot to hit the ball once it is close enough
+
+        Inputs: 
+            self: the class instance 
+        
+        Outputs:
+            none
+        '''
         noHit = True 
         try:
             while(noHit): # while not close enough to the ball
