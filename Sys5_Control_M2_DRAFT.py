@@ -300,8 +300,6 @@ class Sys5_Control:
         try:
             while(noHit): # while not close enough to the ball
 
-                
-                
                 # get the speed, pauseTime and if the robot will hit the ball in the next timestep
                 direction, speed, pauseTime, noHit = self.hitBallSettings() 
 
@@ -352,15 +350,12 @@ class Sys5_Control:
     def lineFoundResponse (self):
 
         # set angle of rotation 
-        angle = 120*(180/pi) # 180 degree rotation CCW radians 
+        angle = 120*(180/pi) # 120 degree rotation CCW radians 
 
         speed = 30 # set a speed for rotation
 
-        # find the number of pulses required to achieve this rotation 
-        angle_numPulses, _ = self.EncoderPulseCalulator(angle, 0)  # just rotating
-
-        # rotate 
-        self.turnGoForwards(speed, speed, angle, angle_numPulses, 0)
+        # make the robot turn this angle
+        self.turnAngle(speed, angle)
 
         return 
 
@@ -375,7 +370,6 @@ class Sys5_Control:
         # angle_numPulses = number of angle pulse required to achieve desired rotation
         # forward_numPulses = number of pulses required to achieve desired forwards distance
 
-    
         # calculate the number of pulses required to achieve the turn 
         angle_distance = GLOBALSM1.wheelBaseCircumference*abs(angle)/360
         angle_numPulses = (angle_distance/GLOBALSM1.distancePerPulse) + self.EncoderL.encoderCount
@@ -384,6 +378,59 @@ class Sys5_Control:
         forward_numPulses = (forward_distance/GLOBALSM1.distancePerPulse) + self.EncoderL.encoderCount
 
         return angle_numPulses, forward_numPulses
+
+    # takes in an angle and makes the robot turn that angle 
+    def turnAngle(self, speed:int, angle:float)-> None:
+        try: 
+            # set forward distance to zero as we are only rotating 
+            forward_distance = 0 
+            
+            # calculte the number of pulses need to achieve the angle turn 
+            angle_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
+
+            # rotate to achieve the desired angle 
+            if (angle >-1 and angle <1): # no rotation required 
+                sleep(0.01)
+
+            elif (angle>0):
+                self.State = self._turn(speed,ANTICLOCKWISE) # rotate CCW
+
+            else: 
+                self.State = self._turn(speed,CLOCKWISE) # rotate CW 
+
+            while (self.EncoderL.encoderCount < angle_numPulses):
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos, self.y_pos, self.rot)
+                sleep(0.02)
+
+            self._stop()
+            GPIO.cleanup()
+
+        except  KeyboardInterrupt: 
+            self._exemptExit()
+
+    # takes in a forward distance and the robot goes forwards for that distance 
+    def forwardsDistance(self, speed:int, forward_distance:float)-> None: 
+
+        try:
+            # set angle to zero as we are only driving forwards 
+            angle = 0 
+            
+            # calculte the number of pulses need to achieve the angle turn 
+            forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
+            # drive forwards until you reach desired forwards distance 
+
+            self.State = self._forwards(speed)
+
+            while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+                sleep(0.02)
+
+            self._stop()
+            GPIO.cleanup()
+
+        except KeyboardInterrupt:
+            self._exemptExit()
+
 
     
     def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
