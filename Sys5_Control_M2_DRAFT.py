@@ -47,6 +47,19 @@ class Sys5_Control:
     def __init__(self) -> None:
         '''
         This setups up the variables needed to make an instance of the class
+        It completes the following:
+
+            1. Set GPIO pinmode 
+            2. Set GPIO motor pin types
+            3. Sets motor pins as PWM instance variables
+            4. Creates instance variables
+                4.0. for Vision class instance
+                4.1. for position and rotation
+                4.2. for internal state
+                4.3. to keep track of encoder mismatch count
+                4.4. and defines to define starting motor bias
+                4.5. 2 instances of the encoder class
+                4.6. an active motor PWM pin and desired duty cycle copy
         '''
 
         GPIO.setmode(GPIO.BCM) # set pin types 
@@ -68,13 +81,13 @@ class Sys5_Control:
         self.vision = Sys4_Vision()
 
         #Position control
-
         # define the initial position of the robot as (0,0) with a rotation of 0 
         self.x_pos =0
         self.y_pos = 0
         self.rot = 0 
 
         self.State = None # State is the movement of the robot i.e. Left, Right, Forward, Backward
+        '''The current state of the robot, Forwards, Backward, Left, Right or None'''
         # initalise to none bc robot is not moving
 
         # Keeps track of difference in encoder pulse counts. 
@@ -92,7 +105,16 @@ class Sys5_Control:
 
             
     def _forwards(self,duty_cycle:float)->ACTION:
-    
+        '''
+        This private function sets the motors to move forwards at a desired speed. 
+
+        Inputs:
+            self: class instance
+            duty_cycle: the speed, from 0-100
+
+        Output:
+            the internal state of the robot, used for updating the position and rotation
+        '''
         # duty cycle = controls speed of robot (0 - 100)
         # output: return the state of the robot
 
@@ -108,11 +130,19 @@ class Sys5_Control:
         return ACTION.FORWARD
 
     def _backwards(self, duty_cycle:float)->ACTION:
-    
+        '''
+        This private function sets the motors to move backwards at a desired speed. 
+
+        Inputs:
+            self: class instance
+            duty_cycle: the speed, from 0-100
+
+        Output:
+            the internal state of the robot, used for updating the position and rotation
+        '''
         # duty cycle = controls speed of robot (0 - 100)
         # output: return the state of the robot
 
-        # drive the motor forwards 
         self.pwm1b.start(0)
         self.pwm2b.start(0)
         self.pwm1a.start(duty_cycle)
@@ -124,6 +154,20 @@ class Sys5_Control:
 
     def _turn(self,duty_cycle:float,clockWise:bool)->ACTION:
 
+        '''
+        This private function sets the motors to turn left or right at a desired speed
+
+        Inputs:
+            self: a class instance
+            duty_cycle: the speed, from 0-100
+            clockWise: if it should turn clockwise, use False if turing anticlockwise
+
+        Output:
+            the internal state of the robot, used for updating the position and rotation
+        
+        This function checks if it is clockwise or anticlockwise and turns on the correct motors to achieve this movement.
+        It also saves which pin of the right motor is active and the desired duty cycle for use in the PI controller.  
+        '''
         # input: 
         # duty cycle = controls speed of robot (0 - 100)
         # bool = dirction to turn, clockwise or anticlockwise 
@@ -146,7 +190,10 @@ class Sys5_Control:
             self.RActivePin = self.pwm2b
             return ACTION.LEFT
 
-    def _stop(self)->None: # stop movement of robot 
+    def _stop(self)->None: # stop movement of robot
+        '''
+        This private function stops all the motors to prevent unplanned movement.
+        ''' 
         self.pwm1a.stop()
         self.pwm1b.stop()
         self.pwm2a.stop()
@@ -155,6 +202,14 @@ class Sys5_Control:
 
     # Manual exit function to prevent loss of pin control
     def _exemptExit(self)->None:
+        '''
+        This private function is used to allow for manual exit of code if needed by disconnecting from peripherals.
+
+        Inputs: 
+            self: class instance
+
+        It stops the motors, disconnects the motor GPIO pins, disconnects the encoders pins, and disconnects the camera feed. 
+        '''
         self._stop()
         GPIO.cleanup()
         self.EncoderL.end()
@@ -163,6 +218,11 @@ class Sys5_Control:
     
     # Release all Pins
     def release(self)->None:
+        '''
+        This function disconnects from connected peripherals to prevent the devices from preventing reconnection.
+
+        It stops the motors, disconnects the camera and disconnects the GPIO
+        '''
         self._stop()
         self.vision.disconnect()
         GPIO.cleanup()
@@ -170,6 +230,25 @@ class Sys5_Control:
 
     # Position tracking 
     def _updatePos(self, x_old:float, y_old:float, rot_old:float)->list[float]:
+        '''
+        This private function updates the internal position of the robot and runs the PI controller
+
+        Inputs:
+            self: an instance of this class
+            x_old: the old x location (m)
+            y_old: the old y location (m)
+            rot_old: the old rotation (degrees)
+
+        Outputs:
+            new x: updated x location (m)
+            new y: updated y location (m)
+            new rot: updated rotation (degrees)
+
+        This uses the internal state of the robot and the change in encoder counts to update position. 
+        The internal state is defined based on direction calls that determines how the change in positions is updated.
+        For forwards and backwards it maintains the rotation, and then uses sin and cos to add to x and y
+        For turning it uses the track width to work out the angle change and adds it to the current angle. It maintains the x and y pos
+        '''
 
         # inputs 
         # self = direction that the robot is moving 
@@ -233,10 +312,10 @@ class Sys5_Control:
 
         return x,y,rot
     
-
+    #Improved sleep function to maintain localization and PI control 
     def _delay(self,time:float)->None:
         '''
-        This is a delay function that sleeps and runs localization
+        This private delay function sleeps and runs localization.
 
         Inputs: 
             self: the class instance
@@ -254,14 +333,12 @@ class Sys5_Control:
         return 
 
 
-
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
     def EncoderController(self, delL:int, delR:int) -> float:
         # Controller Gains (Proportional, Integral, Derivative)
         Kp = 0.375 # 1.4 is good 
         Ki = 0.17
         #Kd = 0
-        
         
         # Desired difference between the left and the right encoder counts when moving forwards. 
         reference = 0
@@ -274,11 +351,7 @@ class Sys5_Control:
         self.error_count +=fred
         print(f'err accum = {self.error_count}')
 
-        #print('duty cycle bias')
-        # print(self.duty_cycle_bias)
-        # print('error count')
-        # print(self.error_count)
-        self.RActivePin.start(max(self.duty_cycle*self.duty_cycle_bias,5))
+        self.RActivePin.start(max(self.duty_cycle*self.duty_cycle_bias,5)) # set the pin to the correct duty cycle
         return 
 
     # fuction that calls the vision system and determines the direction that the robot needs to move 
@@ -344,8 +417,7 @@ class Sys5_Control:
                 else:
                     self.State = self._turn(speed,CLOCKWISE)
                 
-                self._delay(pa)
-                sleep(pauseTime) # do that movement for the designated n.o sec defined in PauseTime
+                self._delay(pauseTime)# do that movement for the designated n.o sec defined in PauseTime
                 self._stop() # stop movement of robot temporarily until next action is determined
                 # get position of robot 
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
@@ -364,12 +436,12 @@ class Sys5_Control:
 
         # Backs away from the ball for 3 seconds
         self.State = self._backwards(speed)
-        sleep(3) 
+        self._delay(3) 
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
         # Re aligns the dolly wheel
         self.State = self._forwards(speed)
-        sleep(0.5) 
+        self._delay(0.5) 
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
     # if Vision system detects a line, call this function
@@ -426,10 +498,10 @@ class Sys5_Control:
 
             while (self.EncoderL.encoderCount < angle_numPulses):
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos, self.y_pos, self.rot)
-                sleep(0.02)
+                self._delay(0.02)
 
             self._stop()
-            GPIO.cleanup()
+            #GPIO.cleanup() shouldn't clean up at this point
 
         except  KeyboardInterrupt: 
             self._exemptExit()
@@ -449,7 +521,7 @@ class Sys5_Control:
 
             while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
-                sleep(0.02)
+                self._delay(0.02)
 
             self._stop()
             GPIO.cleanup()
@@ -472,7 +544,7 @@ class Sys5_Control:
 
             while (self.EncoderL.encoderCount < angle_numPulses):
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos, self.y_pos, self.rot)
-                sleep(0.02)
+                self._delay(0.02)
 
             self._stop()
 
@@ -482,10 +554,10 @@ class Sys5_Control:
 
             while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
-                sleep(0.02)
+                self._delay(0.02)
 
             self._stop()
-            GPIO.cleanup()
+            
 
         except KeyboardInterrupt:
             self._exemptExit()
