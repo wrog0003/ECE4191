@@ -45,6 +45,9 @@ class Sys5_Control:
 
     # initialisation of the class
     def __init__(self) -> None:
+        '''
+        This setups up the variables needed to make an instance of the class
+        '''
 
         GPIO.setmode(GPIO.BCM) # set pin types 
 
@@ -230,6 +233,28 @@ class Sys5_Control:
 
         return x,y,rot
     
+
+    def _delay(self,time:float)->None:
+        '''
+        This is a delay function that sleeps and runs localization
+
+        Inputs: 
+            self: the class instance
+            time: the time in seconds to delay, must be greater than 0.02
+        
+        Functionality:
+            This breaks the time up into 0.02 second chunks and runs localization after each chunk. 
+            This prevents error buildup. 
+        '''
+        internalTime = 0
+        while internalTime <time: # while waiting
+            sleep(0.02) #sleep
+            self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update pos and call controller 
+            internalTime+=0.02 # increment time 
+        return 
+
+
+
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
     def EncoderController(self, delL:int, delR:int) -> float:
         # Controller Gains (Proportional, Integral, Derivative)
@@ -319,6 +344,7 @@ class Sys5_Control:
                 else:
                     self.State = self._turn(speed,CLOCKWISE)
                 
+                self._delay(pa)
                 sleep(pauseTime) # do that movement for the designated n.o sec defined in PauseTime
                 self._stop() # stop movement of robot temporarily until next action is determined
                 # get position of robot 
@@ -430,7 +456,6 @@ class Sys5_Control:
 
         except KeyboardInterrupt:
             self._exemptExit()
-
 
     
     def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
