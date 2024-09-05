@@ -62,7 +62,7 @@ class Sys5_Control:
         self._stop() # prevent random movements
         
         # initalise the vision system
-        #self.vision = Sys4_Vision()
+        self.vision = Sys4_Vision()
 
         #Position control
 
@@ -156,12 +156,12 @@ class Sys5_Control:
         GPIO.cleanup()
         self.EncoderL.end()
         self.EncoderR.end()
-        #self.vision.disconnect() 
+        self.vision.disconnect() 
     
     # Release all Pins
     def release(self)->None:
         self._stop()
-        #self.vision.disconnect()
+        self.vision.disconnect()
         GPIO.cleanup()
         sleep(0.1) # ensure that every peripheral is released 
 
@@ -185,7 +185,8 @@ class Sys5_Control:
         #print(delL-delR)
         
         #Call the encoder controller method
-        self.EncoderController(delL, delR)
+        if self.State == ACTION.FORWARD or self.State ==ACTION.BACKWARD:
+            self.EncoderController(delL, delR)
         #print(self.duty_cycle_bias)
         # calculate the average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
@@ -272,23 +273,23 @@ class Sys5_Control:
         if (direction == DIRECTION.Ahead):
 
             # settings if robot if more than 0.55m away from the ball 
-            speed = 30 # set the drive speed 
-            pauseTime = 5 # how long in secs the robot should drive forwards for 
+            speed = 50 # set the drive speed 
+            pauseTime = 0.2 # how long in secs the robot should drive forwards for 
 
             if (distance <  0.55): # if robot is less than 0.55 m from ball 
-                speed = 20 # reduce speed of robot
+                speed = 50 # reduce speed of robot
             
             if (distance < 0.40): # close to ball, drive forwards until you hit it
-                speed = 30 
-                pauseTime = 5.5 
+                speed = 50 
+                pauseTime = 0.2 
                 noHit = False
 
         elif (direction == DIRECTION.CannotFind):
-            speed = 20
+            speed = 30
             pauseTime = 0.3
 
         else: # ball is in field of view but is either left or right
-            speed = 15
+            speed = 30
             pauseTime = 0.15 
         
         return direction, speed, pauseTime, noHit
@@ -299,8 +300,7 @@ class Sys5_Control:
         try:
             while(noHit): # while not close enough to the ball
 
-                # get position of robot 
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+                
                 
                 # get the speed, pauseTime and if the robot will hit the ball in the next timestep
                 direction, speed, pauseTime, noHit = self.hitBallSettings() 
@@ -323,6 +323,8 @@ class Sys5_Control:
                 
                 sleep(pauseTime) # do that movement for the designated n.o sec defined in PauseTime
                 self._stop() # stop movement of robot temporarily until next action is determined
+                # get position of robot 
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
             
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
@@ -445,7 +447,7 @@ class Sys5_Control:
         # define speed constants 
         turn_speed = 15
         forward_speed = 30
-        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position
+        #self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position
 
         try: 
             (direction, temp, distance)= self.vision.detect() # run vision check 
@@ -482,13 +484,13 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    #robot.searchPattern()
-    #robot.hitBall()
-    #robot.disEngage()
-    #robot.Home()
+    robot.searchPattern()
+    robot.hitBall()
+    robot.disEngage()
+    robot.Home()
 
-    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
-    robot.turnGoForwards(50, 50, 0, angle_numPulses, forward_numPulses)
+    # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
+    # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
             
     print(robot.error_count)
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
