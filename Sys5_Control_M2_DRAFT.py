@@ -345,7 +345,7 @@ class Sys5_Control:
     def lineFoundResponse (self):
 
         # set angle of rotation 
-        angle = pi # 180 degree rotation CCW 
+        angle = 120*(180/pi) # 180 degree rotation CCW radians 
 
         speed = 30 # set a speed for rotation
 
