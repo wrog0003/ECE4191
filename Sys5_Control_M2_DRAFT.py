@@ -84,7 +84,7 @@ class Sys5_Control:
         self.EncoderR = SimpleEncoder(motor2cha,motor2chb) # set up right Motor
 
         #PI controller access variables
-        self.dutyCycle = 0  # allows access for the PI controller 
+        self.duty_cycle = 0  # allows access for the PI controller 
         self.RActivePin = None # allows correct motor access to the controller 
 
             
@@ -98,7 +98,7 @@ class Sys5_Control:
         self.pwm2a.start(0)
         self.pwm1b.start(duty_cycle)
         self.pwm2b.start(max(duty_cycle*self.duty_cycle_bias,5))
-        self.dutyCycle = duty_cycle
+        self.duty_cycle = duty_cycle
         self.RActivePin = self.pwm2b
 
 
@@ -114,7 +114,7 @@ class Sys5_Control:
         self.pwm2b.start(0)
         self.pwm1a.start(duty_cycle)
         self.pwm2a.start(max(duty_cycle*self.duty_cycle_bias,5))
-        self.dutyCycle = duty_cycle
+        self.duty_cycle = duty_cycle
         self.RActivePin = self.pwm2a
 
         return ACTION.BACKWARD 
@@ -131,7 +131,7 @@ class Sys5_Control:
             self.pwm2b.start(0)
             self.pwm1b.start(duty_cycle)
             self.pwm2a.start(max(duty_cycle*self.duty_cycle_bias,5))
-            self.dutyCycle = duty_cycle
+            self.duty_cycle = duty_cycle
             self.RActivePin = self.pwm2a
             return ACTION.RIGHT
         else: # turn anti-clockwise
@@ -139,7 +139,7 @@ class Sys5_Control:
             self.pwm2a.start(0)
             self.pwm1a.start(duty_cycle)
             self.pwm2b.start(max(duty_cycle*self.duty_cycle_bias,5))
-            self.dutyCycle = duty_cycle
+            self.duty_cycle = duty_cycle
             self.RActivePin = self.pwm2b
             return ACTION.LEFT
 
@@ -183,7 +183,7 @@ class Sys5_Control:
         delL = abs(newL-oldL)
         delR = abs(newR-oldR)
         #print(delL-delR)
-        self.error_count += (delL-delR)
+        
         #Call the encoder controller method
         self.EncoderController(delL, delR)
         #print(self.duty_cycle_bias)
@@ -232,8 +232,8 @@ class Sys5_Control:
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
     def EncoderController(self, delL:int, delR:int) -> float:
         # Controller Gains (Proportional, Integral, Derivative)
-        Kp = 0.1
-        Ki = 0
+        Kp = 0.375 # 1.4 is good 
+        Ki = 0.17
         #Kd = 0
         
         
@@ -241,12 +241,17 @@ class Sys5_Control:
         reference = 0
         
         # Calculates a duty cycle bias to apply (Limited between 0.5 and 1)
-        self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delL-delR)) + Ki*self.error_count),1.5))
-        self.error_count = self.error_count + (delL-delR)
-        print('duty cycle bias')
-        print(self.duty_cycle_bias)
-        print('error count')
-        print(self.error_count)
+        self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delR-delL)) - Ki*self.error_count),1.2))
+        
+        fred = (delR-delL) 
+        print(f'duty cycle {self.duty_cycle_bias}')
+        self.error_count +=fred
+        print(f'err accum = {self.error_count}')
+
+        #print('duty cycle bias')
+        # print(self.duty_cycle_bias)
+        # print('error count')
+        # print(self.error_count)
         self.RActivePin.start(max(self.duty_cycle*self.duty_cycle_bias,5))
         return 
 
@@ -482,7 +487,7 @@ if __name__ == "__main__":
     #robot.disEngage()
     #robot.Home()
 
-    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 0.5)
+    [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
     robot.turnGoForwards(50, 50, 0, angle_numPulses, forward_numPulses)
             
     print(robot.error_count)
