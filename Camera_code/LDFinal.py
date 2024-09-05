@@ -31,8 +31,16 @@ class Vision_Lines:
         # convert the image to greyscale 
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
 
+        # define threshold values
+        threshold = 180 
+        max_value = 255 
+
+        _, binary_image = cv2.threshold(grey_image, threshold, max_value, cv2.THRESH_BINARY) # now the image is purely black and white
+        
+        #cv2.imshow("input", binary_image)
+
         # apply a Guassian Blur
-        blurred_image = cv2.GaussianBlur(grey_image, (5,5), 0)
+        blurred_image = cv2.GaussianBlur(binary_image, (5,5), 0)
 
         # use Canncy edge detecttion 
         edges = cv2.Canny(blurred_image, 50, 150) 
