@@ -458,8 +458,17 @@ class Sys5_Control:
         except KeyboardInterrupt: 
             self._exemptExit()
         
-    #disengages from the ball so that it doesn't hit the ball incorrectly during the return to home sequence
     def disEngage(self)->None:
+
+        '''
+        Disengages from the ball so that it doesn't hit the ball incorrectly during the return to home sequence
+
+        Inputs: 
+            self: the class instance 
+
+        Outputs:
+            none 
+        '''
         
         speed = 30 # set speed
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # determine OG pos
@@ -474,8 +483,16 @@ class Sys5_Control:
         self._delay(0.5) 
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
 
-    # if Vision system detects a line, call this function
     def lineFoundResponse (self):
+        
+        '''
+        Controls the respone if the Vision System detects a line/boundary 
+        Inputs:
+            self: the class instance 
+
+        Outputs:
+            none 
+        '''
 
         # set angle of rotation 
         angle = 120*(180/pi) # 120 degree rotation CCW radians 
@@ -489,14 +506,17 @@ class Sys5_Control:
 
     # calculates the number of pulses required to achieve the desired turn and forwards direction
     def EncoderPulseCalulator(self, angle:float, forward_distance:float) -> list[int]:
-        # INPUTS
-        # self 
-        # angle = desired angle rotation 
-        # forward_distance = required forward distance
+        '''
+        Calculates the number of pulses required to achieve the desired turn and forwards direction
+        INPUTS:
+            self: the class instance 
+            angle = desired angle rotation 
+            forward_distance = required forward distance
 
-        # OUTPUTS
-        # angle_numPulses = number of angle pulse required to achieve desired rotation
-        # forward_numPulses = number of pulses required to achieve desired forwards distance
+        OUTPUTS:
+            angle_numPulses = number of angle pulse required to achieve desired rotation
+            forward_numPulses = number of pulses required to achieve desired forwards distance
+        '''
 
         # calculate the number of pulses required to achieve the turn 
         angle_distance = GLOBALSM1.wheelBaseCircumference*abs(angle)/360
@@ -509,6 +529,18 @@ class Sys5_Control:
 
     # takes in an angle and makes the robot turn that angle 
     def turnAngle(self, speed:int, angle:float)-> None:
+        '''
+        takes in an angle and makes the robot turn that angle 
+        
+        INPUTS: 
+            self: the class instance
+            speed: speed at which the wheels turn (0-100)
+            angle: desired angle of rotatiion
+
+        OUTPUTS:
+            none 
+
+        '''
         try: 
             # set forward distance to zero as we are only rotating 
             forward_distance = 0 
@@ -538,6 +570,17 @@ class Sys5_Control:
 
     # takes in a forward distance and the robot goes forwards for that distance 
     def forwardsDistance(self, speed:int, forward_distance:float)-> None: 
+        '''
+        takes in a distance and makes the robot go forwards that distance
+        
+        INPUTS: 
+            self: the class instance
+            speed: speed at which the wheels turn (0-100)
+            angle: desired distance to travel forwards
+
+        OUTPUTS:
+            none 
+        '''
 
         try:
             # set angle to zero as we are only driving forwards 
@@ -559,7 +602,7 @@ class Sys5_Control:
         except KeyboardInterrupt:
             self._exemptExit()
 
-    
+    # LEGACY FUNTION DO NOT USE!!!
     def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
         try: 
             # rotate to achieve the desired angle 
@@ -594,6 +637,16 @@ class Sys5_Control:
     
 
     def Home(self) -> None:
+
+        '''
+        makes the robot return to its starting position (i.e. home)
+        
+        INPUTS: 
+            self: the class instance
+
+        OUTPUTS:
+            none 
+        '''
         try:
             speed = 30 # speed at which robot will move on its journey home
             print(f' at X {self.x_pos}, Y {self.y_pos}, rot {self.rot}\n')
@@ -606,17 +659,33 @@ class Sys5_Control:
             forward_distance = sqrt(self.x_pos**2 + self.y_pos**2)
 
             # calculate the number of pulses required to achieve the turn and the forward distance 
-            angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
+            #angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
 
-            forward_numPulses = forward_numPulses*1.1 # add an offset to account for accumualted inaccuracies
+            #forward_numPulses = forward_numPulses*1.1 # add an offset to account for accumualted inaccuracies
 
-            self.turnGoForwards(speed, speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance 
+            #self.turnGoForwards(speed, speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance
+            
+            # turn 
+            self.turnAngle(speed, angle)
+
+            # go forwards
+            self.forwardsDistance(speed, forward_distance)
 
         except KeyboardInterrupt:
             self._exemptExit()
         
 
     def searchPattern(self)-> None:
+        '''
+        if the robot cannot find the ball after having turned 90 degrees, it will being a search 
+        pattern so that it gets in its field of view
+        
+        INPUTS: 
+            self: the class instance
+
+        OUTPUTS:
+            none 
+        '''
 
         # define speed constants 
         turn_speed = 15
@@ -637,10 +706,12 @@ class Sys5_Control:
                     forward_distance = 2 
 
                     # call function that determines the number of pulses required to achieve desired movement 
-                    angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
+                    #angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
                     
-                    self.turnGoForwards(turn_speed, forward_speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance 
+                    #self.turnGoForwards(turn_speed, forward_speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance 
 
+                    self.turnAngle(turn_speed, angle)
+                    self.forwardsDistance(forward_speed,forward_distance)
                     #Print out location reached based on encoders
                     print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
