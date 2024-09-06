@@ -271,8 +271,8 @@ class Sys5_Control:
         #print(delL-delR)
         
         #Call the encoder controller method
-        if self.State == ACTION.FORWARD or self.State ==ACTION.BACKWARD:
-            self.EncoderController(delL, delR)
+        #if self.State == ACTION.FORWARD or self.State ==ACTION.BACKWARD:
+        self.EncoderController(delL, delR)
         #print(self.duty_cycle_bias)
         # calculate the average travelled distance 
         distanceAvg = ((delL*GLOBALSM1.distancePerPulse)+(delR*GLOBALSM1.distancePerPulse))/2 
@@ -283,10 +283,9 @@ class Sys5_Control:
         rot = 0 
 
         # calculate the change in x, y and angle positions
-        dx = distanceAvg*cos(rot*pi/180)
-        dy = distanceAvg*sin(rot*pi/180)
+        dx = distanceAvg*cos(rot_old*pi/180)
+        dy = distanceAvg*sin(rot_old*pi/180)
         dtheta = distanceAvg*360/GLOBALSM1.wheelBaseCircumference
-
         # determine direction that the robot has travelled in the previous timestep & update coordinates
         if self.State == ACTION.FORWARD: 
             rot = rot_old
@@ -313,7 +312,7 @@ class Sys5_Control:
             rot -=360 
         elif rot <-180:
             rot +=360 
-
+        #print(f'x{x},y{y},rot{rot}')
         return x,y,rot
     
     #Improved sleep function to maintain localization and PI control 
@@ -364,9 +363,9 @@ class Sys5_Control:
         self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delR-delL)) - Ki*self.error_count),1.2))
         
         countDifference = (delR-delL) 
-        print(f'duty cycle {self.duty_cycle_bias}')
+        #print(f'duty cycle {self.duty_cycle_bias}')
         self.error_count += countDifference
-        print(f'err accum = {self.error_count}')
+        #print(f'err accum = {self.error_count}')
 
         self.RActivePin.start(max(self.duty_cycle*self.duty_cycle_bias,5))
         return 
@@ -392,24 +391,24 @@ class Sys5_Control:
         if (direction == DIRECTION.Ahead):
 
             # settings if robot if more than 0.55m away from the ball 
-            speed = 50 # set the drive speed 
-            pauseTime = 0.2 # how long in secs the robot should drive forwards for 
+            speed = 70 # set the drive speed 
+            pauseTime = 0.5 # how long in secs the robot should drive forwards for 
 
             if (distance <  0.55): # if robot is less than 0.55 m from ball 
                 speed = 50 # reduce speed of robot
             
             if (distance < 0.40): # close to ball, drive forwards until you hit it
                 speed = 50 
-                pauseTime = 0.2 
+                pauseTime = 4
                 noHit = False
 
         elif (direction == DIRECTION.CannotFind):
             speed = 30
-            pauseTime = 0.3
+            pauseTime = 0.1
 
         else: # ball is in field of view but is either left or right
-            speed = 30
-            pauseTime = 0.15 
+            speed = 15
+            pauseTime = 0.1
         
         return direction, speed, pauseTime, noHit
     
@@ -437,14 +436,17 @@ class Sys5_Control:
                 
                 # Ball CANNOT FIND 
                 elif (direction == DIRECTION.CannotFind):
+                    self._stop()
                     self.State = self._turn(speed, ANTICLOCKWISE)
                 
                 # Ball LEFT 
                 elif (direction == DIRECTION.Left):
+                    self._stop()
                     self.State = self._turn(speed,ANTICLOCKWISE)
                 
                 # Ball RIGHT
                 else:
+                    self._stop()
                     self.State = self._turn(speed,CLOCKWISE)
                 
                 self._delay(pauseTime)# do that movement for the designated n.o sec defined in PauseTime
@@ -476,12 +478,12 @@ class Sys5_Control:
         # Backs away from the ball for 3 seconds
         self.State = self._backwards(speed)
         self._delay(3) 
-        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+        
 
         # Re aligns the dolly wheel
         self.State = self._forwards(speed)
         self._delay(0.5) 
-        self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+        
 
     def lineFoundResponse (self):
         
@@ -546,7 +548,7 @@ class Sys5_Control:
             forward_distance = 0 
             
             # calculte the number of pulses need to achieve the angle turn 
-            angle_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
+            angle_numPulses, _ = self.EncoderPulseCalulator(angle, forward_distance)
 
             # rotate to achieve the desired angle 
             if (angle >-1 and angle <1): # no rotation required 
@@ -559,7 +561,6 @@ class Sys5_Control:
                 self.State = self._turn(speed,CLOCKWISE) # rotate CW 
 
             while (self.EncoderL.encoderCount < angle_numPulses):
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos, self.y_pos, self.rot)
                 self._delay(0.02)
 
             self._stop()
@@ -587,13 +588,12 @@ class Sys5_Control:
             angle = 0 
             
             # calculte the number of pulses need to achieve the angle turn 
-            forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
+            _,forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
             # drive forwards until you reach desired forwards distance 
 
             self.State = self._forwards(speed)
 
             while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                 self._delay(0.02)
 
             self._stop()
@@ -616,7 +616,6 @@ class Sys5_Control:
                 self.State = self._turn(turn_speed,CLOCKWISE) # rotate CW 
 
             while (self.EncoderL.encoderCount < angle_numPulses):
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos, self.y_pos, self.rot)
                 self._delay(0.02)
 
             self._stop()
@@ -626,7 +625,6 @@ class Sys5_Control:
             self.State = self._forwards(forward_speed)
 
             while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
                 self._delay(0.02)
 
             self._stop()
@@ -665,11 +663,14 @@ class Sys5_Control:
 
             #self.turnGoForwards(speed, speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance
             
+            print(f'State:{self.State.name} ')
             # turn 
             self.turnAngle(speed, angle)
+            print(f'State:{self.State.name} ')
 
             # go forwards
             self.forwardsDistance(speed, forward_distance)
+            print(f'State:{self.State.name} ')
 
         except KeyboardInterrupt:
             self._exemptExit()
@@ -747,8 +748,8 @@ if __name__ == "__main__":
     # tell robot to do stuff between here 
     robot.searchPattern()
     robot.hitBall()
-    robot.disEngage()
-    robot.Home()
+    # robot.disEngage()
+    # robot.Home()
 
     # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
     # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)

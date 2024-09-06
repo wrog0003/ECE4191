@@ -69,7 +69,7 @@ class SimpleEncoder:
         '''
         This function releases control of the button instances to prevent lockup of the GPIO pins'''
         self.Apin.close()
-        self.Bpin.close() 
+        #self.Bpin.close() 
 
 class BetterEncoder(RotaryEncoder):
     def __init__(self,Apin:int,Bpin:int)->None:
