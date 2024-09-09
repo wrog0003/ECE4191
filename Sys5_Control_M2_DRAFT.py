@@ -35,6 +35,8 @@ motor1chb = 19
 motor2cha = 5
 motor2chb = 6
 
+
+
 # Wheel bias (used to callibrate differences in wheel movement)
 #duty_cycle_bias = 0.963 
 
@@ -76,6 +78,11 @@ class Sys5_Control:
         self.pwm2a = GPIO.PWM(motor2a,1000)
         self.pwm2b = GPIO.PWM(motor2b,1000)
         self._stop() # prevent random movements
+
+        # Pin to receive interrupts from limit switch whenever a ball is collected
+        self.ballDetected = 4
+
+        self.ballDetected.when_pressed = self.ballCollectedTracker() 
         
         # initalise the vision system
         self.vision = Sys4_Vision()
@@ -334,7 +341,6 @@ class Sys5_Control:
             self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update pos and call controller 
             internalTime+=0.02 # increment time 
         return 
-
 
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
     def EncoderController(self, delL:int, delR:int) -> float:
@@ -734,8 +740,7 @@ class Sys5_Control:
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
-        # Called everytime a ball is collected and stored in the conveyor. 
-        # Could potentially be called from an interrupt on a sensor that detects a ball in the claw or just called in the sequential code logic. 
+        # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
         self.numBalls += 1 #increment number of balls collected. 
 
         if self.numBalls < self.capacity: # Robot can continue searching for another ball.
