@@ -386,7 +386,7 @@ class Sys5_Control:
 
         '''
 
-        (direction, temp, distance)= self.vision.detect() # run vision check 
+        (direction, line_detected, distance)= self.vision.detect() # run vision check 
 
         noHit = True
         if (direction == DIRECTION.Ahead):
@@ -411,7 +411,7 @@ class Sys5_Control:
             speed = 15
             pauseTime = 0.1
         
-        return direction, speed, pauseTime, noHit
+        return direction, speed, pauseTime, noHit, line_detected
     
     
     def hitBall(self) -> None: 
@@ -429,26 +429,31 @@ class Sys5_Control:
             while(noHit): # while not close enough to the ball
 
                 # get the speed, pauseTime and if the robot will hit the ball in the next timestep
-                direction, speed, pauseTime, noHit = self.hitBallSettings() 
+                direction, speed, pauseTime, noHit, line_detected = self.hitBallSettings() # inside this function, the vision check is run
 
-                # Ball AHEAD
-                if (direction == DIRECTION.Ahead):
-                    self.State = self._forwards(speed)
+                if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
+                    self.lineDetectedResponse
                 
-                # Ball CANNOT FIND 
-                elif (direction == DIRECTION.CannotFind):
-                    self._stop()
-                    self.State = self._turn(speed, ANTICLOCKWISE)
-                
-                # Ball LEFT 
-                elif (direction == DIRECTION.Left):
-                    self._stop()
-                    self.State = self._turn(speed,ANTICLOCKWISE)
-                
-                # Ball RIGHT
-                else:
-                    self._stop()
-                    self.State = self._turn(speed,CLOCKWISE)
+                else: # move to the ball 
+
+                    # Ball AHEAD
+                    if (direction == DIRECTION.Ahead):
+                        self.State = self._forwards(speed)
+                    
+                    # Ball CANNOT FIND 
+                    elif (direction == DIRECTION.CannotFind):
+                        self._stop()
+                        self.State = self._turn(speed, ANTICLOCKWISE)
+                    
+                    # Ball LEFT 
+                    elif (direction == DIRECTION.Left):
+                        self._stop()
+                        self.State = self._turn(speed,ANTICLOCKWISE)
+                    
+                    # Ball RIGHT
+                    else:
+                        self._stop()
+                        self.State = self._turn(speed,CLOCKWISE)
                 
                 self._delay(pauseTime)# do that movement for the designated n.o sec defined in PauseTime
                 self._stop() # stop movement of robot temporarily until next action is determined
@@ -486,7 +491,7 @@ class Sys5_Control:
         self._delay(0.5) 
         
 
-    def lineFoundResponse (self)-> None:
+    def lineDetectedResponse (self)-> None:
         '''
         Controls the respone if the Vision System detects a line/boundary 
         Inputs:
@@ -696,7 +701,9 @@ class Sys5_Control:
         #self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position
 
         try: 
-            (direction, temp, distance)= self.vision.detect() # run vision check 
+            (direction, line_detected, distance)= self.vision.detect() # run vision check 
+            
+            
 
             while(direction == DIRECTION.CannotFind):
                 # turn anticlocwise, +ve in our coordinate system for 0.2 seconds 

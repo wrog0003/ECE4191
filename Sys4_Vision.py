@@ -42,7 +42,7 @@ class Sys4_Vision:
         
     #detect
     def detect(self)->tuple[DIRECTION,bool,float]:
-        ''' This function determines data about the location of a tennis ball and if a line s close
+        ''' This function determines data about the location of a tennis ball and if a line is close
         
         Outputs:
             The direction that the ball is located relative to the robot
@@ -75,6 +75,11 @@ class Sys4_Vision:
             # init center 
             center = None
             run = cnts != None and len(cnts)>0 # check if contour exists and is not empty
+
+            # run line detection check 
+            #line_present = self.lineDetection # COMMENT OUT THIS LINE IF  TESTIING LINE DETECTION!!
+            # AND CHANGE RETURN FROM FALSE TO VARIABLE line_detection
+
             if run:
                 #get biggest shape
                 c = max(cnts, key=cv2.contourArea) 
@@ -86,12 +91,12 @@ class Sys4_Vision:
                     cv2.circle(self.image, (int(x), int(y)), int(radius),(0, 255, 255), 2) # track perimeter of ball 
                     cv2.circle(self.image, center, 5, (0, 0, 255), -1) # marks centre 
                     cv2.imshow("Frame", self.image) # show the resulting image 
-
+                
                 if abs(center[0]-self.midpoint)<self.tolerance:
                     distance = self.aspcectRatio / radius #get the distance to the ball from the camera 
-                    return (DIRECTION.Ahead,False,distance)
+                    return (DIRECTION.Ahead, False ,distance)
                 elif center[0] > self.midpoint:
-                    return (DIRECTION.Left, False, distance)
+                    return (DIRECTION.Left, False , distance)
                 else:
                     return (DIRECTION.Right, False, distance) 
             else:
@@ -100,6 +105,76 @@ class Sys4_Vision:
 
         else:
             return (DIRECTION.CannotFind, False, distance) 
+
+    def lineDetection(self)-> bool:
+
+        # STEP 0: SETUP 
+
+        Line = False # initially no line is detected
+        original_image= self.image # get image from camera
+
+        # STEP 1: CONVERT IMAGE TO GRAYSCALE AND KEEP WHITE OBJECTS
+
+        # convert the image to greyscale 
+        grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
+
+        # define threshold values
+        threshold = 180 
+        max_value = 255 
+
+        _, binary_image = cv2.threshold(grey_image, threshold, max_value, cv2.THRESH_BINARY) # now the image is purely black and white
+        
+        #cv2.imshow("input", binary_image)
+
+        # STEP 2: PROCESS IMAGE 
+
+        # retrieve the height and width of the image 
+        height, width = binary_image.shape[: 2]
+
+        # crop image so that only bottom third is being analysed
+        crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
+        height_min = int(height*crop_amount) # minimum pixel height 
+
+        # crop the image
+        cropped_image = binary_image[height_min:height, 0:width] 
+        #cv2.imwrite('cropped_image.jpg', cropped_image)
+
+        # apply a Guassian Blur
+        blurred_image = cv2.GaussianBlur(cropped_image, (5,5), 0)
+
+        # use Canncy edge detecttion 
+        edges = cv2.Canny(blurred_image, 50, 150) # last two values are the lower and upper thresholds of pixel intensity
+
+        contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            
+            # calcualte the area of the contour 
+            area = cv2.contourArea(contour)
+
+            print(area)
+
+            threshold = 5
+            
+            if area > threshold:
+
+                # line has been found 
+
+                # approimate the contour to a polygon
+                epsilon = 0.02*cv2.arcLength(contour, True)
+
+                approx = cv2.approxPolyDP(contour, epsilon, True)
+
+                # Draw the contours on the original frame
+                cv2.drawContours(original_image, [approx], -1, (0, 255, 0), 3)
+                
+                cv2.imshow("input", original_image)
+
+                # set a signal that says that line has been found 
+
+                Line = True
+
+        return Line 
 
 
     def saveImage(self):

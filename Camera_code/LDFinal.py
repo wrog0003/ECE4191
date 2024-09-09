@@ -22,11 +22,12 @@ class Vision_Lines:
 
     def lineDetection(self)-> bool:
 
-        # initially, set line = False  as we have not found a line 
+        # STEP 0: SETUP 
 
-        Line = False 
+        Line = False # initially no line is detected
+        original_image= self.image # get image from camera
 
-        _, original_image = self.cap.read() # the _ at the start means the variable is not used 
+        # STEP 1: CONVERT IMAGE TO GRAYSCALE AND KEEP WHITE OBJECTS
 
         # convert the image to greyscale 
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -39,12 +40,24 @@ class Vision_Lines:
         
         #cv2.imshow("input", binary_image)
 
+        # STEP 2: PROCESS IMAGE 
+
+        # retrieve the height and width of the image 
+        height, width = binary_image.shape[: 2]
+
+        # crop image so that only bottom third is being analysed
+        crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
+        height_min = int(height*crop_amount) # minimum pixel height 
+
+        # crop the image
+        cropped_image = binary_image[height_min:height, 0:width] 
+        #cv2.imwrite('cropped_image.jpg', cropped_image)
+
         # apply a Guassian Blur
-        blurred_image = cv2.GaussianBlur(binary_image, (5,5), 0)
+        blurred_image = cv2.GaussianBlur(cropped_image, (5,5), 0)
 
         # use Canncy edge detecttion 
-        edges = cv2.Canny(blurred_image, 50, 150) 
-        # last two values are the lower and upper thresholds of pixel intensity
+        edges = cv2.Canny(blurred_image, 50, 150) # last two values are the lower and upper thresholds of pixel intensity
 
         contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
