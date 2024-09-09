@@ -387,6 +387,7 @@ class Sys5_Control:
         '''
 
         (direction, temp, distance)= self.vision.detect() # run vision check 
+
         noHit = True
         if (direction == DIRECTION.Ahead):
 
@@ -485,8 +486,7 @@ class Sys5_Control:
         self._delay(0.5) 
         
 
-    def lineFoundResponse (self):
-        
+    def lineFoundResponse (self)-> None:
         '''
         Controls the respone if the Vision System detects a line/boundary 
         Inputs:
@@ -503,8 +503,7 @@ class Sys5_Control:
 
         # make the robot turn this angle
         self.turnAngle(speed, angle)
-
-        return 
+ 
 
     # calculates the number of pulses required to achieve the desired turn and forwards direction
     def EncoderPulseCalulator(self, angle:float, forward_distance:float) -> list[int]:
@@ -604,6 +603,9 @@ class Sys5_Control:
 
     # LEGACY FUNTION DO NOT USE!!!
     def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
+        '''
+        DO NOT USE LEGACY FUNCTIONNNNNN
+        '''
         try: 
             # rotate to achieve the desired angle 
             if (angle >-1 and angle <1): # no rotation required 
