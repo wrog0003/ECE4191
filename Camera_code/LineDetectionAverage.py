@@ -31,12 +31,11 @@ class LineDetection:
         # capture first frame 
         result, colour_image = self.cap.read()
 
-    def WhiteAverager(self):
+    def LineDetection(self)-> bool:
 
         # read the image 
         _, original_image = self.cap.read() # the _ at the start means the variable is not used 
         cv2.imshow("input", original_image)
-
 
         # convert the image to greyscale 
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -51,28 +50,31 @@ class LineDetection:
         height, width = binary_image.shape[: 2]
 
         # crop image so that only bottom third is being analysed
-        crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
-        height_min = int(height*crop_amount) # minimum pixel height 
+        crop_amount = 0.33 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
+        height_max = int(height*crop_amount) # minimum pixel height 
 
         # crop the image
-        cropped_image = binary_image[height_min:height, 0:width] 
-        cv2.imwrite('cropped_image.jpg', cropped_image)
+        cropped_image = binary_image[0:height_max, 0:width] 
+
+        cv2.imshow("cropped_image", cropped_image)
 
         # calculate the number of white pixels 
         white_pixels = np.sum(cropped_image == 255)
 
         # calculate total number of pixels 
-        total_pixels = (height-height_min)*width
+        total_pixels = (height_max)*width
 
         # calculate average of white pixels 
         white_average = white_pixels/total_pixels
 
-        print("The average n.o white pixels is %.2f" % white_average)
-
-
         # if the average of white pixels is inbetween 8-12% then there is a boundary ahead 
-        if 0.08 < white_average < 0.15:
-            print("BOUNDAY LINE FOUND")
+        if 0.10 < white_average < 0.35:
+            LineFound = True 
+        else:
+            LineFound = False 
+        
+        return LineFound
+            
         
 
         

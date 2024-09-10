@@ -106,14 +106,11 @@ class Sys4_Vision:
         else:
             return (DIRECTION.CannotFind, False, distance) 
 
-    def lineDetection(self)-> bool:
+    def LineDetection(self)-> bool:
 
-        # STEP 0: SETUP 
-
-        Line = False # initially no line is detected
-        original_image= self.image # get image from camera
-
-        # STEP 1: CONVERT IMAGE TO GRAYSCALE AND KEEP WHITE OBJECTS
+        # read the image 
+        _, original_image = self.cap.read() # the _ at the start means the variable is not used 
+        cv2.imshow("input", original_image)
 
         # convert the image to greyscale 
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -123,58 +120,35 @@ class Sys4_Vision:
         max_value = 255 
 
         _, binary_image = cv2.threshold(grey_image, threshold, max_value, cv2.THRESH_BINARY) # now the image is purely black and white
-        
-        #cv2.imshow("input", binary_image)
-
-        # STEP 2: PROCESS IMAGE 
 
         # retrieve the height and width of the image 
         height, width = binary_image.shape[: 2]
 
         # crop image so that only bottom third is being analysed
-        crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
-        height_min = int(height*crop_amount) # minimum pixel height 
+        crop_amount = 0.33 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
+        height_max = int(height*crop_amount) # minimum pixel height 
 
         # crop the image
-        cropped_image = binary_image[height_min:height, 0:width] 
-        #cv2.imwrite('cropped_image.jpg', cropped_image)
+        cropped_image = binary_image[0:height_max, 0:width] 
 
-        # apply a Guassian Blur
-        blurred_image = cv2.GaussianBlur(cropped_image, (5,5), 0)
+        cv2.imshow("cropped_image", cropped_image)
 
-        # use Canncy edge detecttion 
-        edges = cv2.Canny(blurred_image, 50, 150) # last two values are the lower and upper thresholds of pixel intensity
+        # calculate the number of white pixels 
+        white_pixels = np.sum(cropped_image == 255)
 
-        contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # calculate total number of pixels 
+        total_pixels = (height_max)*width
 
-        for contour in contours:
-            
-            # calcualte the area of the contour 
-            area = cv2.contourArea(contour)
+        # calculate average of white pixels 
+        white_average = white_pixels/total_pixels
 
-            print(area)
-
-            threshold = 5
-            
-            if area > threshold:
-
-                # line has been found 
-
-                # approimate the contour to a polygon
-                epsilon = 0.02*cv2.arcLength(contour, True)
-
-                approx = cv2.approxPolyDP(contour, epsilon, True)
-
-                # Draw the contours on the original frame
-                cv2.drawContours(original_image, [approx], -1, (0, 255, 0), 3)
-                
-                cv2.imshow("input", original_image)
-
-                # set a signal that says that line has been found 
-
-                Line = True
-
-        return Line 
+        # if the average of white pixels is inbetween 8-12% then there is a boundary ahead 
+        if 0.10 < white_average < 0.35:
+            LineFound = True 
+        else:
+            LineFound = False 
+        
+        return LineFound
 
 
     def saveImage(self):
