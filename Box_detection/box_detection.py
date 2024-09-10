@@ -5,12 +5,14 @@ import numpy as np
 from ECE4191enums import STATE, DIRECTION, ACTION  # Importing Enums
 import time
 
+
+
 # GPIO Setup for limit switch
 LIMIT_SWITCH_PIN = 17  # Adjust according to your setup
 #limit_switch = Button(LIMIT_SWITCH_PIN)
 
 # Setup camera
-cap = cv2.VideoCapture(0)  # Assuming you're using the default camera
+cap = cv2.VideoCapture(1,cv2.CAP_DSHOW)  # Assuming you're using the default camera
 
 # Known width of the box in real world (in cm)
 KNOWN_WIDTH = 30.0  # Adjust to the actual width of the box
@@ -30,8 +32,8 @@ def find_box(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Define the brown color range
-    lower_brown = np.array([25, 40, 60])  # Lower bound in HSV
-    upper_brown = np.array([45, 160, 200])  # Upper bound in HSV
+    lower_brown = np.array([15, 40, 100])  # Lower bound in HSV
+    upper_brown = np.array([50, 180, 255])  # Upper bound in HSV
 
     # Mask for the brown color
     mask = cv2.inRange(hsv, lower_brown, upper_brown)
@@ -43,7 +45,7 @@ def find_box(frame):
 
     # Find contours
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+    cv2.imshow("Mask", mask)
     if contours:
         # Find the largest contour (which is likely the box)
         largest_contour = max(contours, key=cv2.contourArea)
@@ -139,7 +141,7 @@ def find_and_goto_box():
 
         # Display the result
         cv2.imshow("Box Detection", output_frame)
-
+        
         # Exit on 'q' key
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -147,4 +149,6 @@ def find_and_goto_box():
     cap.release()
     cv2.destroyAllWindows()
 
-
+if __name__ == "__main__":
+    find_and_goto_box()
+    

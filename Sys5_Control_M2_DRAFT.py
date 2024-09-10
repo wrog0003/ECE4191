@@ -774,7 +774,8 @@ if __name__ == "__main__":
     #robot.hitBall()
     # robot.disEngage()
     # robot.Home()
-    robot.retrieveBalls()
+    #robot.retrieveBalls()
+    robot.toBox()
 
     # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
     # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
