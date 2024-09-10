@@ -30,8 +30,8 @@ def find_box(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Define the brown color range
-    lower_brown = np.array([10, 100, 20])
-    upper_brown = np.array([20, 255, 200])
+    lower_brown = np.array([25, 40, 60])  # Lower bound in HSV
+    upper_brown = np.array([45, 160, 200])  # Upper bound in HSV
 
     # Mask for the brown color
     mask = cv2.inRange(hsv, lower_brown, upper_brown)
