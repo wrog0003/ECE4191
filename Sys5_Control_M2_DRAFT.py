@@ -112,7 +112,11 @@ class Sys5_Control:
 
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
         self.capacity = 3 # Maximum number of tennis balls that can be stored in the conveyor system. 
-        self.numBalls = 0 # Number of balls collected by the robot on any given run.   
+        self.numBalls = 0 # Number of balls collected by the robot on any given run.  
+
+
+        # Timeout flag to tell the robot when to return to home and how long it should collect and deposit balls for 
+        self.timeout = False 
 
             
     def _forwards(self,duty_cycle:float)->ACTION:
@@ -744,14 +748,19 @@ class Sys5_Control:
         self.numBalls += 1 #increment number of balls collected. 
 
         if self.numBalls < self.capacity: # Robot can continue searching for another ball.
-            self.searchPattern() # Locate a ball using a search pattern
-            self.hitBall() # MWill move to collect the ball 
+            return 
 
         else: # Robot is at capacity and must go to box to deposit the balls
             self.toBox()
             
 
+    # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
+    def retrieveBalls(self) -> None:
+        while self.timeout == False:
+            self.searchPattern()
+            self.hitBall()
 
+        self.Home()
         
 
 
@@ -760,10 +769,11 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    robot.searchPattern()
-    robot.hitBall()
+    #robot.searchPattern()
+    #robot.hitBall()
     # robot.disEngage()
     # robot.Home()
+    robot.retrieveBalls()
 
     # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
     # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
