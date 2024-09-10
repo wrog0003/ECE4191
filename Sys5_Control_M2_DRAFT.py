@@ -3,6 +3,7 @@
 from ECE4191enums import STATE, DIRECTION, ACTION
 from Motor_code.encoderClass import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
+from Box_detection.box_detection import find_and_goto_box
 
 from time import sleep
 from math import pi, atan2, sqrt, sin, cos
@@ -34,6 +35,8 @@ motor1chb = 19
 # Encoder Right (to recieve data from encoders)
 motor2cha = 5
 motor2chb = 6
+
+
 
 # Wheel bias (used to callibrate differences in wheel movement)
 #duty_cycle_bias = 0.963 
@@ -76,6 +79,11 @@ class Sys5_Control:
         self.pwm2a = GPIO.PWM(motor2a,1000)
         self.pwm2b = GPIO.PWM(motor2b,1000)
         self._stop() # prevent random movements
+
+        # Pin to receive interrupts from limit switch whenever a ball is collected
+        self.ballDetected = 4
+
+        self.ballDetected.when_pressed = self.ballCollectedTracker() 
         
         # initalise the vision system
         self.vision = Sys4_Vision()
@@ -105,7 +113,11 @@ class Sys5_Control:
 
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
         self.capacity = 3 # Maximum number of tennis balls that can be stored in the conveyor system. 
-        self.numBalls = 0 # Number of balls collected by the robot on any given run.   
+        self.numBalls = 0 # Number of balls collected by the robot on any given run.  
+
+
+        # Timeout flag to tell the robot when to return to home and how long it should collect and deposit balls for 
+        self.timeout = False 
 
             
     def _forwards(self,duty_cycle:float)->ACTION:
@@ -334,7 +346,6 @@ class Sys5_Control:
             self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update pos and call controller 
             internalTime+=0.02 # increment time 
         return 
-
 
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
     def EncoderController(self, delL:int, delR:int) -> float:
@@ -730,23 +741,27 @@ class Sys5_Control:
     
     # Method to use the vision system to find the box and return to it. 
     def toBox(self) -> None:
-        pass
+       find_and_goto_box() 
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
-        # Called everytime a ball is collected and stored in the conveyor. 
-        # Could potentially be called from an interrupt on a sensor that detects a ball in the claw or just called in the sequential code logic. 
+        # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
         self.numBalls += 1 #increment number of balls collected. 
 
         if self.numBalls < self.capacity: # Robot can continue searching for another ball.
-            self.searchPattern() # Locate a ball using a search pattern
-            self.hitBall() # MWill move to collect the ball 
+            return 
 
         else: # Robot is at capacity and must go to box to deposit the balls
             self.toBox()
             
 
+    # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
+    def retrieveBalls(self) -> None:
+        while self.timeout == False:
+            self.searchPattern()
+            self.hitBall()
 
+        self.Home()
         
 
 
@@ -755,10 +770,11 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    robot.searchPattern()
-    robot.hitBall()
+    #robot.searchPattern()
+    #robot.hitBall()
     # robot.disEngage()
     # robot.Home()
+    robot.retrieveBalls()
 
     # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
     # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
