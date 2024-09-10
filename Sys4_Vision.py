@@ -77,8 +77,7 @@ class Sys4_Vision:
             run = cnts != None and len(cnts)>0 # check if contour exists and is not empty
 
             # run line detection check 
-            #line_present = self.lineDetection # COMMENT OUT THIS LINE IF  TESTIING LINE DETECTION!!
-            # AND CHANGE RETURN FROM FALSE TO VARIABLE line_detection
+            line_present = self.lineDetection 
 
             if run:
                 #get biggest shape
@@ -94,28 +93,29 @@ class Sys4_Vision:
                 
                 if abs(center[0]-self.midpoint)<self.tolerance:
                     distance = self.aspcectRatio / radius #get the distance to the ball from the camera 
-                    return (DIRECTION.Ahead, False ,distance)
+                    return (DIRECTION.Ahead, line_present ,distance)
                 elif center[0] > self.midpoint:
-                    return (DIRECTION.Left, False , distance)
+                    return (DIRECTION.Left, line_present , distance)
                 else:
-                    return (DIRECTION.Right, False, distance) 
+                    return (DIRECTION.Right, line_present, distance) 
             else:
-                return (DIRECTION.CannotFind, False, distance) # allow for the case that there is no tennis ball in the frame 
+                return (DIRECTION.CannotFind, line_present, distance) # allow for the case that there is no tennis ball in the frame 
 
 
         else:
             return (DIRECTION.CannotFind, False, distance) 
 
-    def LineDetection(self)-> bool:
+    def lineDetection(self)-> bool:
 
-        # read the image 
-        _, original_image = self.cap.read() # the _ at the start means the variable is not used 
-        cv2.imshow("input", original_image)
+        # get  the image 
+        original_image = self.image
+
+        # cv2.imshow("input", original_image) display image ONLY for debugging
 
         # convert the image to greyscale 
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
 
-        # define threshold values
+        # define threshold values for white 
         threshold = 180 
         max_value = 255 
 
@@ -131,7 +131,7 @@ class Sys4_Vision:
         # crop the image
         cropped_image = binary_image[0:height_max, 0:width] 
 
-        cv2.imshow("cropped_image", cropped_image)
+        # cv2.imshow("cropped_image", cropped_image) onlly 
 
         # calculate the number of white pixels 
         white_pixels = np.sum(cropped_image == 255)
@@ -142,7 +142,7 @@ class Sys4_Vision:
         # calculate average of white pixels 
         white_average = white_pixels/total_pixels
 
-        # if the average of white pixels is inbetween 8-12% then there is a boundary ahead 
+        # if the average of white pixels is inbetween 10-35% then there is a boundary ahead 
         if 0.10 < white_average < 0.35:
             LineFound = True 
         else:
