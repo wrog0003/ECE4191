@@ -119,7 +119,7 @@ def robot_logic(box):
         current_action = ACTION.RIGHT  # Rotate to search for the box
     return False
 
-def main():
+def find_and_goto_box():
     global robot_state
 
     robot_state = STATE.turn2Ball  # Start in this state
@@ -147,5 +147,4 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    main()
+

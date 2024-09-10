@@ -3,6 +3,7 @@
 from ECE4191enums import STATE, DIRECTION, ACTION
 from Motor_code.encoderClass import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
+from Box_detection.box_detection import find_and_goto_box
 
 from time import sleep
 from math import pi, atan2, sqrt, sin, cos
@@ -740,7 +741,7 @@ class Sys5_Control:
     
     # Method to use the vision system to find the box and return to it. 
     def toBox(self) -> None:
-        pass
+       find_and_goto_box() 
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
