@@ -25,7 +25,7 @@ class Vision_Lines:
         # STEP 0: SETUP 
 
         Line = False # initially no line is detected
-        original_image= self.image # get image from camera
+        _, original_image = self.cap.read()
 
         # STEP 1: CONVERT IMAGE TO GRAYSCALE AND KEEP WHITE OBJECTS
 
@@ -33,7 +33,7 @@ class Vision_Lines:
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
 
         # define threshold values
-        threshold = 180 
+        threshold = 170 
         max_value = 255 
 
         _, binary_image = cv2.threshold(grey_image, threshold, max_value, cv2.THRESH_BINARY) # now the image is purely black and white
@@ -43,50 +43,65 @@ class Vision_Lines:
         # STEP 2: PROCESS IMAGE 
 
         # retrieve the height and width of the image 
-        height, width = binary_image.shape[: 2]
+        #height, width = binary_image.shape[: 2]
 
         # crop image so that only bottom third is being analysed
-        crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
-        height_min = int(height*crop_amount) # minimum pixel height 
+        #crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
+        #height_min = int(height*crop_amount) # minimum pixel height 
 
         # crop the image
-        cropped_image = binary_image[height_min:height, 0:width] 
-        #cv2.imwrite('cropped_image.jpg', cropped_image)
+        #cropped_image = binary_image[height_min:height, 0:width] 
+        
+        #cv2.imshow("input", cropped_image)
 
         # apply a Guassian Blur
-        blurred_image = cv2.GaussianBlur(cropped_image, (5,5), 0)
+        blurred_image = cv2.GaussianBlur(binary_image, (7,7), 0)
+        
+        #cv2.imshow("input", blurred_image)
 
         # use Canncy edge detecttion 
         edges = cv2.Canny(blurred_image, 50, 150) # last two values are the lower and upper thresholds of pixel intensity
 
         contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        largest_contour = max(contours, key = cv2.contourArea)
+        area = cv2.contourArea(largest_contour)
 
-        for contour in contours:
+        # approximate the ontour to a polygon
+        epsilon = 0.02*cv2.arcLength(largest_contour, True)
+
+        approx = cv2.approxPolyDP(largest_contour, epsilon, True)
+
+        # Draw the contours on the original frame
+        cv2.drawContours(original_image, [approx], -1, (0, 255, 0), 3)
             
-            # calcualte the area of the contour 
-            area = cv2.contourArea(contour)
-
-            print(area)
-
-            threshold = 5
+        cv2.imshow("input", original_image)
+        Line = True
+        # for contour in contours:
             
-            if area > threshold:
+        #     # calcualte the area of the contour 
+        #     area = cv2.contourArea(contour)
 
-                # line has been found 
+        #     print(area)
 
-                # approimate the contour to a polygon
-                epsilon = 0.02*cv2.arcLength(contour, True)
+        #     #threshold = 0
+            
+        #     #if area > threshold:
 
-                approx = cv2.approxPolyDP(contour, epsilon, True)
+        #         # line has been found 
 
-                # Draw the contours on the original frame
-                cv2.drawContours(original_image, [approx], -1, (0, 255, 0), 3)
-                
-                cv2.imshow("input", original_image)
+        #     # approimate the contour to a polygon
+        #     epsilon = 0.02*cv2.arcLength(contour, True)
 
-                # set a signal that says that line has been found 
+        #     approx = cv2.approxPolyDP(contour, epsilon, True)
 
-                Line = True
+        #     # Draw the contours on the original frame
+        #     cv2.drawContours(original_image, [approx], -1, (0, 255, 0), 3)
+            
+        #     cv2.imshow("input", original_image)
+
+        #     # set a signal that says that line has been found 
+
+        #     Line = True
 
         return Line 
         
