@@ -39,6 +39,10 @@ class Sys4_Vision:
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
         self.image = None
         self.aspcectRatio = Sys4_Vision.known_radius*Sys4_Vision.focal_length
+
+        # Parameters for the box 
+        self.boxLength = 10
+        self.boxWidth = 20
         
     #detect
     def detect(self)->tuple[DIRECTION,bool,float]:
@@ -142,6 +146,10 @@ class Sys4_Vision:
             # Find contours
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cv2.imshow("Mask", mask)
+
+            # run line detection check 
+            line_present = self.lineDetection
+
             if contours:
                 # Find the largest contour (which is likely the box)
                 largest_contour = max(contours, key=cv2.contourArea)
@@ -163,14 +171,21 @@ class Sys4_Vision:
 
                     # Determine the direction of the box relative to the robot
                     frame_center_x = frame.shape[1] // 2
-                    if center_x < frame_center_x - 50:
-                        current_direction = DIRECTION.Left
-                    elif center_x > frame_center_x + 50:
-                        current_direction = DIRECTION.Right
-                    else:
-                        current_direction = DIRECTION.Ahead
 
-                    return (center_x, center_y, box_width), frame
+                    # Determine the distance to the Box 
+                    distance = self.aspcectRatio / self.boxLength #get the distance to the box from the camera
+
+                    # Determine the direction to the box and return the direction, if there is a line present and the distance to the box 
+                    if center_x < frame_center_x - 50:
+                        return (DIRECTION.Left, line_present, distance)
+                    elif center_x > frame_center_x + 50:
+                        return (DIRECTION.Right, line_present, distance)
+                    else:
+                        return (DIRECTION.Ahead, line_present, distance)
+
+            else: 
+                distance = -1 # Box could not be found 
+                return (DIRECTION.CannotFind, line_present, distance)
 
 
     def lineDetection(self)-> bool:
