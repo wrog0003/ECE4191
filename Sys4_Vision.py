@@ -187,7 +187,6 @@ class Sys4_Vision:
                 distance = -1 # Box could not be found 
                 return (DIRECTION.CannotFind, line_present, distance)
 
-
     def lineDetection(self)-> bool:
 
         # get  the image 
@@ -232,7 +231,6 @@ class Sys4_Vision:
             LineFound = False 
         
         return LineFound
-
 
     def saveImage(self):
         cv2.imwrite('outputImage.jpg', self.image)
