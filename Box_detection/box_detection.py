@@ -83,10 +83,23 @@ def calculate_distance(box_width):
     """ Estimate distance to the box using the perceived width in pixels """
     return (KNOWN_WIDTH * FOCAL_LENGTH) / box_width
 
-def robot_logic(box):
-    """ Handle the robot's state transitions and actions """
+def gotoBoxSettings(box):
+    '''
+        Calls the vision system and determines the direction that the robot needs to move, 
+        the distance to the box and if the robot will hit the box in the next move 
+
+        INPUTS
+            self: the box image captured from the camera
+
+        OUTPUTS
+            direction = direction that the robot is relative to the box
+            speed = speed that the robot should travel at in the next time step
+            pauseTime = how long the robot should travel at this speed for 
+            noHit = whether the box will be hit by performing this movement 
+
+        '''
     global robot_state, current_action
-    
+
     if box is not None:
         center_x, center_y, box_width = box
 
@@ -107,14 +120,12 @@ def robot_logic(box):
             distance = calculate_distance(box_width)
             print(f"Distance to box: {distance:.2f} cm")
 
-            # If distance is small enough, check the limit switch
-            if distance < 20:  # Example threshold for stopping
-                print("Moving forward towards the box...")
-                #if limit_switch.is_pressed:
-                    #print("Limit switch pressed! Stopping the robot.")
-                    #robot_state = STATE.unloading
-                    #current_action = ACTION.FORWARD
-                    #return True
+            # When the robot reaches the box do a 180 degree rotation so it can deposit the balls.
+            if distance < 5:  # Example threshold for stopping
+                print("Box Reached: Performing rotation")
+                robot_state = STATE.unloading
+                current_action = ACTION.FORWARD
+            return True
 
     else:
         print("Box not found. Rotating to find the box...")
@@ -137,7 +148,7 @@ def find_and_goto_box():
 
         # Robot's decision logic based on current state
         if robot_logic(box):
-            break
+            return
 
         # Display the result
         cv2.imshow("Box Detection", output_frame)
@@ -149,6 +160,3 @@ def find_and_goto_box():
     cap.release()
     cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    find_and_goto_box()
-    

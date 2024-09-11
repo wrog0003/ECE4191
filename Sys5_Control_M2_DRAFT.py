@@ -424,7 +424,6 @@ class Sys5_Control:
         
         return direction, speed, pauseTime, noHit, line_detected
     
-    
     def hitBall(self) -> None: 
         '''
         gets the robot to hit the ball once it is close enough
@@ -477,6 +476,32 @@ class Sys5_Control:
         except KeyboardInterrupt: 
             self._exemptExit()
         
+    def goToBoxSettings(self) -> Tuple[DIRECTION, float, float, bool]:
+        '''
+        Calls the vision system and determines the direction that the robot needs to move, 
+        the distance to the box and if the robot will be in range of the box to start the deposit sequence.  
+
+        INPUTS
+            self: the class instance
+
+        OUTPUTS
+            direction = direction that the robot is relative to the box
+            speed = speed that the robot should travel at in the next time step
+            pauseTime = how long the robot should travel at this speed for 
+            noHit = whether the box will be in range by performing this movement 
+
+        '''
+        #******TO_DO********* Change this to detect a box not a ball
+        (direction, line_detected, distance)= self.vision.detect() # run vision check 
+
+        
+
+
+
+    def goToBox(self) -> None:
+        pass
+
+
     def disEngage(self)->None:
 
         '''
@@ -501,7 +526,6 @@ class Sys5_Control:
         self.State = self._forwards(speed)
         self._delay(0.5) 
         
-
     def lineDetectedResponse (self)-> None:
         '''
         Controls the respone if the Vision System detects a line/boundary 
@@ -520,7 +544,6 @@ class Sys5_Control:
         # make the robot turn this angle
         self.turnAngle(speed, angle)
  
-
     # calculates the number of pulses required to achieve the desired turn and forwards direction
     def EncoderPulseCalulator(self, angle:float, forward_distance:float) -> list[int]:
         '''
@@ -651,7 +674,6 @@ class Sys5_Control:
         except KeyboardInterrupt:
             self._exemptExit()
     
-
     def Home(self) -> None:
 
         '''
@@ -691,8 +713,7 @@ class Sys5_Control:
             print(f'State:{self.State.name} ')
 
         except KeyboardInterrupt:
-            self._exemptExit()
-        
+            self._exemptExit()    
 
     def searchPattern(self)-> None:
         '''
@@ -739,6 +760,10 @@ class Sys5_Control:
         except KeyboardInterrupt:
             self._exemptExit() 
     
+
+
+
+
     # Method to use the vision system to find the box and return to it. 
     def toBox(self) -> None:
        find_and_goto_box() 
@@ -754,7 +779,6 @@ class Sys5_Control:
         else: # Robot is at capacity and must go to box to deposit the balls
             self.toBox()
             
-
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
         while self.timeout == False:
