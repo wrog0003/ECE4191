@@ -83,7 +83,7 @@ def calculate_distance(box_width):
     """ Estimate distance to the box using the perceived width in pixels """
     return (KNOWN_WIDTH * FOCAL_LENGTH) / box_width
 
-def gotoBoxSettings(box):
+def robot_logic(box):
     '''
         Calls the vision system and determines the direction that the robot needs to move, 
         the distance to the box and if the robot will hit the box in the next move 
