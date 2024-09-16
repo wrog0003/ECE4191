@@ -33,9 +33,9 @@ class Sys4_Vision:
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
-            self.cap =cv2.VideoCapture(1) #cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self.cap =cv2.VideoCapture(1, cv2.CAP_DSHOW) #cv2.VideoCapture(0, cv2.CAP_DSHOW)
         result, image = self.cap.read() # get the first image 
-        
+        print(type(image))
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
         self.image = None
         self.aspcectRatio = Sys4_Vision.known_radius*Sys4_Vision.focal_length
@@ -125,7 +125,7 @@ class Sys4_Vision:
             5. if running on a Laptop annotates the image and displays it
             6. Determines where the box is relative to the robot
             7. If ahead also determines the distance to the box'''
-        
+        '''
         result, frame = self.cap.read() # Captures the image
         distance = -1 # define as a non possible value 
         if result:
@@ -186,6 +186,8 @@ class Sys4_Vision:
             else: 
                 distance = -1 # Box could not be found 
                 return (DIRECTION.CannotFind, line_present, distance)
+                '''
+
 
     def lineDetection(self)-> bool:
 
@@ -243,9 +245,11 @@ class Sys4_Vision:
 
 
 # simple script for testing, do not use on rpi 
+
+
 if __name__ == "__main__":
     from time import sleep
-    looker = Sys4_Vision(True)
+    looker = Sys4_Vision(False)
     sleep(0.5) # wait for camera
     
     while True:

@@ -4,6 +4,7 @@ from ECE4191enums import STATE, DIRECTION, ACTION
 from Motor_code.encoderClass import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
 from Box_detection.box_detection import find_and_goto_box
+from gpiozero import Button
 
 from time import sleep
 from math import pi, atan2, sqrt, sin, cos
@@ -83,7 +84,7 @@ class Sys5_Control:
         # Pin to receive interrupts from limit switch whenever a ball is collected
         self.ballDetected = 4
 
-        self.ballDetected.when_pressed = self.ballCollectedTracker() 
+        self.ballDetected.when_pressed = self.ballsCollectedTracker() 
         
         # initalise the vision system
         self.vision = Sys4_Vision()
@@ -438,6 +439,8 @@ class Sys5_Control:
         try:
             while(noHit): # while not close enough to the ball
 
+                print("no ball")
+
                 # get the speed, pauseTime and if the robot will hit the ball in the next timestep
                 direction, speed, pauseTime, noHit, line_detected = self.hitBallSettings() # inside this function, the vision check is run
 
@@ -445,6 +448,8 @@ class Sys5_Control:
                     self.lineDetectedResponse
                 
                 else: # move to the ball 
+
+                    print("FOUND")
 
                     # Ball AHEAD
                     if (direction == DIRECTION.Ahead):
@@ -842,6 +847,7 @@ class Sys5_Control:
     
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
+        '''
         # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
         self.numBalls += 1 #increment number of balls collected. 
 
@@ -849,7 +855,8 @@ class Sys5_Control:
             return 
 
         else: # Robot is at capacity and must go to box to deposit the balls
-            self.toBoxandDeposit()
+            self.toBoxandDeposit()'''
+        pass 
             
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
@@ -858,26 +865,26 @@ class Sys5_Control:
             self.hitBall()
 
         self.Home()
-        
+
 
 
 
 if __name__ == "__main__":
     robot = Sys5_Control() 
-    #robot.vision.tolerence = 25
+    # robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    #robot.searchPattern()
-    #robot.hitBall()
-    # robot.disEngage()
-    # robot.Home()
+    robot.searchPattern()
+    robot.hitBall()
+    #robot.disEngage()
+    #robot.Home()
     #robot.retrieveBalls()
-    robot.toBox()
+    #robot.toBox()
 
     # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
     # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
             
-    print(robot.error_count)
-    print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
+    #print(robot.error_count)
+    #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 
     robot.release() #release motor pins 

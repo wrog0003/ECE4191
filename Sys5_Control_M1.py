@@ -82,7 +82,7 @@ class Sys5_Control:
         self._stop() # prevent random movements
         # create class instances 
         # Ball finding 
-        #self.vision = Sys4_Vision()
+        self.vision = Sys4_Vision()
 
         #Position control
         self.x_pos =0
@@ -527,10 +527,10 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     #robot.vision.tolerence = 25
     #tell robot to do stuff between here 
-    #robot.SearchPattern()
-    #robot.hitBallBetter()
-    #robot.disEngage()
-    #robot.Home()
+    robot.SearchPattern()
+    robot.hitBallBetter()
+    robot.disEngage()
+    robot.Home()
     #robot.CalibrationTest()
 
 
