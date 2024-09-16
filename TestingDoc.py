@@ -604,5 +604,5 @@ def calibrateDegrees(angle:float):
 
 #got2andHome(0.5,0.2)
 # add 10ms delay between camera and location
-hitBallGetHome()
+calibrationTest()
 
