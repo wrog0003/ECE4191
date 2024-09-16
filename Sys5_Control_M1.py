@@ -531,7 +531,9 @@ if __name__ == "__main__":
     #robot.hitBallBetter()
     #robot.disEngage()
     #robot.Home()
-    robot.CalibrationTest()
+    #robot.CalibrationTest()
+
+
     
     print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
