@@ -837,7 +837,8 @@ class Sys5_Control:
     
     def Deposit(self) -> None:
         self.turnAngle(30, 180) # Performs a rotation of 180 degrees so the robot can unload the balls from the rear. 
-
+        
+        return
         # TBC once we know conveyor driving hardware eg. pins #
 
     # Method to use the vision system to find the box and return to it. 
@@ -845,9 +846,11 @@ class Sys5_Control:
         self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
         self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
     
+        return
+
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
-        '''
+        
         # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
         self.numBalls += 1 #increment number of balls collected. 
 
@@ -855,7 +858,7 @@ class Sys5_Control:
             return 
 
         else: # Robot is at capacity and must go to box to deposit the balls
-            self.toBoxandDeposit()'''
+            self.toBoxandDeposit()
         pass 
             
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
