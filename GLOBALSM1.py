@@ -3,11 +3,11 @@
 
 from math import pi
 # Useful data units: meters
-wheelDiameter = 0.054 # diameter of the wheel
+wheelDiameter = 0.1 # diameter of the wheel
 '''
 The diameter of the wheels (m)
 '''
-wheelBase = 0.22 # distance between the centre of both wheels 
+wheelBase = 0.265 # distance between the centre of both wheels 
 '''
 The distance between the center of the two drive wheels (m)
 '''
