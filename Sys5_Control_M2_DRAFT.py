@@ -82,9 +82,9 @@ class Sys5_Control:
         self._stop() # prevent random movements
 
         # Pin to receive interrupts from limit switch whenever a ball is collected
-        self.ballDetected = 4
+        self.ballDetected = Button(4,pull_up=False)
 
-        self.ballDetected.when_pressed = self.ballsCollectedTracker() 
+        self.ballDetected.when_pressed = self.ballsCollectedTracker
         
         # initalise the vision system
         self.vision = Sys4_Vision()
