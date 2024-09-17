@@ -439,7 +439,7 @@ class Sys5_Control:
         try:
             while(noHit): # while not close enough to the ball
 
-                print("no ball")
+                #print("no ball")
 
                 # get the speed, pauseTime and if the robot will hit the ball in the next timestep
                 direction, speed, pauseTime, noHit, line_detected = self.hitBallSettings() # inside this function, the vision check is run
@@ -449,7 +449,7 @@ class Sys5_Control:
                 
                 else: # move to the ball 
 
-                    print("FOUND")
+                    #print("FOUND")
 
                     # Ball AHEAD
                     if (direction == DIRECTION.Ahead):
@@ -836,36 +836,50 @@ class Sys5_Control:
             self._exemptExit() 
     
     def Deposit(self) -> None:
-        self.turnAngle(30, 180) # Performs a rotation of 180 degrees so the robot can unload the balls from the rear. 
+        try:
+            self.turnAngle(30, 180) # Performs a rotation of 180 degrees so the robot can unload the balls from the rear. 
+        
+            # TBC once we know conveyor driving hardware eg. pins #
 
-        # TBC once we know conveyor driving hardware eg. pins #
+        except KeyboardInterrupt:
+            self._exemptExit() 
 
     # Method to use the vision system to find the box and return to it. 
     def toBoxandDeposit(self) -> None:
-        self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
-        self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
+        try:
+            self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
+            self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
     
+        except KeyboardInterrupt:
+            self._exemptExit() 
+
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
-        '''
-        # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
-        self.numBalls += 1 #increment number of balls collected. 
+        try:
+            # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
+            self.numBalls += 1 #increment number of balls collected. 
 
-        if self.numBalls < self.capacity: # Robot can continue searching for another ball.
-            return 
+            if self.numBalls < self.capacity: # Robot can continue searching for another ball.
+                return 
 
-        else: # Robot is at capacity and must go to box to deposit the balls
-            self.toBoxandDeposit()'''
-        pass 
+            else: # Robot is at capacity and must go to box to deposit the balls
+                self.toBoxandDeposit()
+
+        except KeyboardInterrupt:
+            self._exemptExit()  
             
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
-        while self.timeout == False:
-            self.searchPattern()
-            self.hitBall()
+        try:
+            while self.timeout == False:
+                self.searchPattern()
+                print('Search Pattern Complete')
+                self.hitBall()
 
-        self.Home()
+            self.Home()
 
+        except KeyboardInterrupt:
+            self._exemptExit() 
 
 
 
@@ -873,11 +887,11 @@ if __name__ == "__main__":
     robot = Sys5_Control() 
     # robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    robot.searchPattern()
-    robot.hitBall()
+    #robot.searchPattern()
+    #robot.hitBall()
     #robot.disEngage()
     #robot.Home()
-    #robot.retrieveBalls()
+    robot.retrieveBalls()
     #robot.toBox()
 
     # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
