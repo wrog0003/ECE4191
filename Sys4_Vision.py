@@ -190,7 +190,7 @@ class Sys4_Vision:
 
 
     def lineDetection(self)-> bool:
-
+        '''Returns if a line was detected'''
         # get  the image 
         original_image = self.image
 
@@ -235,6 +235,7 @@ class Sys4_Vision:
         return LineFound
 
     def saveImage(self):
+        '''Saves the image as outputImage.jpg so that you can look at the camera feed'''
         cv2.imwrite('outputImage.jpg', self.image)
     #disconnect     
     def disconnect(self)->None:
