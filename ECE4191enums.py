@@ -1,5 +1,8 @@
 # Enums for readibility by Warren Rogan
 
+'''
+### The collection of enums that define the state, ball detected direction and current action of the ECE4191 Robot
+'''
 from enum import Enum
 
 class STATE (Enum):
