@@ -3,6 +3,7 @@
 from ECE4191enums import STATE, DIRECTION, ACTION
 from Motor_code.encoderClass import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
+from gpiozero import Button
 
 from time import sleep
 from math import pi, atan2, sqrt, sin, cos
@@ -76,6 +77,11 @@ class Sys5_Control:
         self.pwm2a = GPIO.PWM(motor2a,1000)
         self.pwm2b = GPIO.PWM(motor2b,1000)
         self._stop() # prevent random movements
+
+        # Pin to receive interrupts from limit switch whenever a ball is collected
+        self.ballDetected = Button(22,pull_up=True, bounce_time= 0.02)
+
+        self.ballDetected.when_pressed = self.ballsCollectedTracker
         
         # initalise the vision system
         self.vision = Sys4_Vision()
