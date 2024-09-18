@@ -82,7 +82,7 @@ class Sys5_Control:
         self._stop() # prevent random movements
 
         # Pin to receive interrupts from limit switch whenever a ball is collected
-        self.ballDetected = Button(4,pull_up=False)
+        self.ballDetected = Button(22,pull_up=True, bounce_time= 0.02)
 
         self.ballDetected.when_pressed = self.ballsCollectedTracker
         
@@ -858,12 +858,17 @@ class Sys5_Control:
         try:
             # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
             self.numBalls += 1 #increment number of balls collected. 
+            print('ball collected')
+            print(self.numBalls)
 
-            if self.numBalls < self.capacity: # Robot can continue searching for another ball.
+
+            '''if self.numBalls < self.capacity: # Robot can continue searching for another ball.
                 return 
 
             else: # Robot is at capacity and must go to box to deposit the balls
-                self.toBoxandDeposit()
+                self.toBoxandDeposit()'''
+
+            return
 
         except KeyboardInterrupt:
             self._exemptExit()  
@@ -883,16 +888,24 @@ class Sys5_Control:
 
 
 
-if __name__ == "__main__":
-    robot = Sys5_Control() 
+if __name__ == "__main__": 
     # robot.vision.tolerence = 25
     # tell robot to do stuff between here 
     #robot.searchPattern()
     #robot.hitBall()
     #robot.disEngage()
     #robot.Home()
-    robot.retrieveBalls()
+    #robot.retrieveBalls()
     #robot.toBox()
+    try:
+        robot = Sys5_Control()
+        while (robot.numBalls < robot.capacity):
+            robot.ballDetected.when_pressed = robot.ballsCollectedTracker
+    except KeyboardInterrupt:
+
+
+
+
 
     # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
     # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
@@ -901,7 +914,7 @@ if __name__ == "__main__":
     #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 
-    robot.release() #release motor pins 
+        robot.release() #release motor pins 
 
 
 
