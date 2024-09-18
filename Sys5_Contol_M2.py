@@ -3,8 +3,6 @@
 from ECE4191enums import STATE, DIRECTION, ACTION
 from Motor_code.encoderClass import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
-from Box_detection.box_detection import find_and_goto_box
-from gpiozero import Button
 
 from time import sleep
 from math import pi, atan2, sqrt, sin, cos
@@ -36,8 +34,6 @@ motor1chb = 19
 # Encoder Right (to recieve data from encoders)
 motor2cha = 5
 motor2chb = 6
-
-
 
 # Wheel bias (used to callibrate differences in wheel movement)
 #duty_cycle_bias = 0.963 
@@ -80,11 +76,6 @@ class Sys5_Control:
         self.pwm2a = GPIO.PWM(motor2a,1000)
         self.pwm2b = GPIO.PWM(motor2b,1000)
         self._stop() # prevent random movements
-
-        # Pin to receive interrupts from limit switch whenever a ball is collected
-        self.ballDetected = Button(4,pull_up=False)
-
-        self.ballDetected.when_pressed = self.ballsCollectedTracker
         
         # initalise the vision system
         self.vision = Sys4_Vision()
@@ -114,11 +105,7 @@ class Sys5_Control:
 
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
         self.capacity = 3 # Maximum number of tennis balls that can be stored in the conveyor system. 
-        self.numBalls = 0 # Number of balls collected by the robot on any given run.  
-
-
-        # Timeout flag to tell the robot when to return to home and how long it should collect and deposit balls for 
-        self.timeout = False 
+        self.numBalls = 0 # Number of balls collected by the robot on any given run.   
 
             
     def _forwards(self,duty_cycle:float)->ACTION:
@@ -348,6 +335,7 @@ class Sys5_Control:
             internalTime+=0.02 # increment time 
         return 
 
+
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
     def EncoderController(self, delL:int, delR:int) -> float:
 
@@ -398,8 +386,7 @@ class Sys5_Control:
 
         '''
 
-        (direction, line_detected, distance)= self.vision.detect() # run vision check 
-
+        (direction, temp, distance)= self.vision.detect() # run vision check 
         noHit = True
         if (direction == DIRECTION.Ahead):
 
@@ -423,7 +410,8 @@ class Sys5_Control:
             speed = 15
             pauseTime = 0.1
         
-        return direction, speed, pauseTime, noHit, line_detected
+        return direction, speed, pauseTime, noHit
+    
     
     def hitBall(self) -> None: 
         '''
@@ -439,36 +427,27 @@ class Sys5_Control:
         try:
             while(noHit): # while not close enough to the ball
 
-                #print("no ball")
-
                 # get the speed, pauseTime and if the robot will hit the ball in the next timestep
-                direction, speed, pauseTime, noHit, line_detected = self.hitBallSettings() # inside this function, the vision check is run
+                direction, speed, pauseTime, noHit = self.hitBallSettings() 
 
-                if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
-                    self.lineDetectedResponse
+                # Ball AHEAD
+                if (direction == DIRECTION.Ahead):
+                    self.State = self._forwards(speed)
                 
-                else: # move to the ball 
-
-                    #print("FOUND")
-
-                    # Ball AHEAD
-                    if (direction == DIRECTION.Ahead):
-                        self.State = self._forwards(speed)
-                    
-                    # Ball CANNOT FIND 
-                    elif (direction == DIRECTION.CannotFind):
-                        self._stop()
-                        self.State = self._turn(speed, ANTICLOCKWISE)
-                    
-                    # Ball LEFT 
-                    elif (direction == DIRECTION.Left):
-                        self._stop()
-                        self.State = self._turn(speed,ANTICLOCKWISE)
-                    
-                    # Ball RIGHT
-                    else:
-                        self._stop()
-                        self.State = self._turn(speed,CLOCKWISE)
+                # Ball CANNOT FIND 
+                elif (direction == DIRECTION.CannotFind):
+                    self._stop()
+                    self.State = self._turn(speed, ANTICLOCKWISE)
+                
+                # Ball LEFT 
+                elif (direction == DIRECTION.Left):
+                    self._stop()
+                    self.State = self._turn(speed,ANTICLOCKWISE)
+                
+                # Ball RIGHT
+                else:
+                    self._stop()
+                    self.State = self._turn(speed,CLOCKWISE)
                 
                 self._delay(pauseTime)# do that movement for the designated n.o sec defined in PauseTime
                 self._stop() # stop movement of robot temporarily until next action is determined
@@ -481,102 +460,6 @@ class Sys5_Control:
         except KeyboardInterrupt: 
             self._exemptExit()
         
-    def goToBoxSettings(self) -> Tuple[DIRECTION, float, float, bool]:
-        '''
-        Calls the vision system and determines the direction that the robot needs to move, 
-        the distance to the box and if the robot will be in range of the box to start the deposit sequence.  
-
-        INPUTS
-            self: the class instance
-
-        OUTPUTS
-            direction = direction that the robot is relative to the box
-            speed = speed that the robot should travel at in the next time step
-            pauseTime = how long the robot should travel at this speed for 
-            noHit = whether the box will be in range by performing this movement 
-
-        '''
-    
-        (direction, line_detected, distance)= self.vision.detectBox() # run vision check 
-
-        noHit = True
-        if (direction == DIRECTION.Ahead):
-
-            # settings if robot if more than 0.55m away from the box 
-            speed = 70 # set the drive speed 
-            pauseTime = 0.5 # how long in secs the robot should drive forwards for 
-
-            if (distance <  0.55): # if robot is less than 0.55 m from box 
-                speed = 50 # reduce speed of robot
-            
-            if (distance < 0.20): # close to box, drive forwards until in range to deposit the ball 
-                speed = 50 
-                pauseTime = 2
-                noHit = False
-
-        elif (direction == DIRECTION.CannotFind):
-            speed = 30
-            pauseTime = 0.1
-
-        else: # ball is in field of view but is either left or right
-            speed = 15
-            pauseTime = 0.1
-        
-        return direction, speed, pauseTime, noHit, line_detected
-
-    def goToBox(self) -> None:
-        '''
-        gets the robot to approach the box once it is close enough
-
-        Inputs: 
-            self: the class instance 
-        
-        Outputs:
-            none
-        '''
-
-        noHit = True 
-        try:
-            while(noHit): # while not close enough to the box
-
-                # get the speed, pauseTime and if the robot will be in range of the box in the next timestep
-                direction, speed, pauseTime, noHit, line_detected = self.goToBoxSettings() # inside this function, the vision check is run
-
-                if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
-                    self.lineDetectedResponse
-                
-                else: # move to the ball 
-
-                    # Ball AHEAD
-                    if (direction == DIRECTION.Ahead):
-                        self.State = self._forwards(speed)
-                    
-                    # Ball CANNOT FIND 
-                    elif (direction == DIRECTION.CannotFind):
-                        self._stop()
-                        self.State = self._turn(speed, ANTICLOCKWISE)
-                    
-                    # Ball LEFT 
-                    elif (direction == DIRECTION.Left):
-                        self._stop()
-                        self.State = self._turn(speed,ANTICLOCKWISE)
-                    
-                    # Ball RIGHT
-                    else:
-                        self._stop()
-                        self.State = self._turn(speed,CLOCKWISE)
-                
-                self._delay(pauseTime)# do that movement for the designated n.o sec defined in PauseTime
-                self._stop() # stop movement of robot temporarily until next action is determined
-                # get position of robot 
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
-            
-            print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
-
-        
-        except KeyboardInterrupt: 
-            self._exemptExit()
-
     def disEngage(self)->None:
 
         '''
@@ -601,7 +484,9 @@ class Sys5_Control:
         self.State = self._forwards(speed)
         self._delay(0.5) 
         
-    def lineDetectedResponse (self)-> None:
+
+    def lineFoundResponse (self):
+        
         '''
         Controls the respone if the Vision System detects a line/boundary 
         Inputs:
@@ -618,7 +503,9 @@ class Sys5_Control:
 
         # make the robot turn this angle
         self.turnAngle(speed, angle)
- 
+
+        return 
+
     # calculates the number of pulses required to achieve the desired turn and forwards direction
     def EncoderPulseCalulator(self, angle:float, forward_distance:float) -> list[int]:
         '''
@@ -717,9 +604,6 @@ class Sys5_Control:
 
     # LEGACY FUNTION DO NOT USE!!!
     def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
-        '''
-        DO NOT USE LEGACY FUNCTIONNNNNN
-        '''
         try: 
             # rotate to achieve the desired angle 
             if (angle >-1 and angle <1): # no rotation required 
@@ -749,6 +633,7 @@ class Sys5_Control:
         except KeyboardInterrupt:
             self._exemptExit()
     
+
     def Home(self) -> None:
 
         '''
@@ -788,7 +673,8 @@ class Sys5_Control:
             print(f'State:{self.State.name} ')
 
         except KeyboardInterrupt:
-            self._exemptExit()    
+            self._exemptExit()
+        
 
     def searchPattern(self)-> None:
         '''
@@ -808,9 +694,7 @@ class Sys5_Control:
         #self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position
 
         try: 
-            (direction, line_detected, distance)= self.vision.detect() # run vision check 
-            
-            
+            (direction, temp, distance)= self.vision.detect() # run vision check 
 
             while(direction == DIRECTION.CannotFind):
                 # turn anticlocwise, +ve in our coordinate system for 0.2 seconds 
@@ -835,77 +719,43 @@ class Sys5_Control:
         except KeyboardInterrupt:
             self._exemptExit() 
     
-    def Deposit(self) -> None:
-        try:
-            self.turnAngle(30, 180) # Performs a rotation of 180 degrees so the robot can unload the balls from the rear. 
-        
-            # TBC once we know conveyor driving hardware eg. pins #
-
-        except KeyboardInterrupt:
-            self._exemptExit() 
-
     # Method to use the vision system to find the box and return to it. 
-    def toBoxandDeposit(self) -> None:
-        try:
-            self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
-            self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
-    
-        except KeyboardInterrupt:
-            self._exemptExit() 
+    def toBox(self) -> None:
+        pass
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
-        try:
-            # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
-            self.numBalls += 1 #increment number of balls collected. 
+        # Called everytime a ball is collected and stored in the conveyor. 
+        # Could potentially be called from an interrupt on a sensor that detects a ball in the claw or just called in the sequential code logic. 
+        self.numBalls += 1 #increment number of balls collected. 
 
-            if self.numBalls < self.capacity: # Robot can continue searching for another ball.
-                return 
+        if self.numBalls < self.capacity: # Robot can continue searching for another ball.
+            self.searchPattern() # Locate a ball using a search pattern
+            self.hitBall() # MWill move to collect the ball 
 
-            else: # Robot is at capacity and must go to box to deposit the balls
-                self.toBoxandDeposit()
-
-        except KeyboardInterrupt:
-            self._exemptExit()  
+        else: # Robot is at capacity and must go to box to deposit the balls
+            self.toBox()
             
-    # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
-    def retrieveBalls(self) -> None:
-        try:
-            while self.timeout == False:
-                self.searchPattern()
-                print('Search Pattern Complete')
-                self.hitBall()
 
-            self.Home()
 
-        except KeyboardInterrupt:
-            self._exemptExit() 
+        
 
 
 
 if __name__ == "__main__":
     robot = Sys5_Control() 
-    # robot.vision.tolerence = 25
+    #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-    #robot.searchPattern()
-    #robot.hitBall()
-    #robot.disEngage()
-    #robot.Home()
-    robot.retrieveBalls()
-    #robot.toBox()
+    robot.searchPattern()
+    robot.hitBall()
+    # robot.disEngage()
+    # robot.Home()
 
     # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
     # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
             
-    #print(robot.error_count)
-    #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
+    print(robot.error_count)
+    print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 
     robot.release() #release motor pins 
-
-
-
-
-
-
-
