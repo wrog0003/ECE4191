@@ -884,28 +884,25 @@ class Sys5_Control:
 
 
 if __name__ == "__main__":
-    robot = Sys5_Control()
-    try:
-        # robot.vision.tolerence = 25
-        # tell robot to do stuff between here 
-        #robot._forwards(30)
-        #robot.hitBall()
-        #robot.disEngage()
-        #robot.Home()
-        robot.retrieveBalls()
-        #robot.toBox()
+    robot = Sys5_Control() 
+    # robot.vision.tolerence = 25
+    # tell robot to do stuff between here 
+    #robot.searchPattern()
+    #robot.hitBall()
+    #robot.disEngage()
+    #robot.Home()
+    robot.retrieveBalls()
+    #robot.toBox()
 
-        # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
-        # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
+    # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
+    # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
             
-        #print(robot.error_count)
-        #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
+    #print(robot.error_count)
+    #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
     #and here 
-        robot.release() #release motor pins 
-    except KeyboardInterrupt:
-        robot.release() 
-        sleep(0.1)
+    robot.release() #release motor pins 
+
 
 
 
