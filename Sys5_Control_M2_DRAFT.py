@@ -875,13 +875,18 @@ class Sys5_Control:
             
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
+        '''this function attempts to find balls, gather balls, and once the defined max number of balls is found it will return home '''
         try:
             while self.timeout == False:
-                self.searchPattern()
-                print('Search Pattern Complete')
-                self.hitBall()
+            # while the timeout flag has NOT been set 
+                while (self.numBalls < self.capacity): # while we still have capacity to collect balls
+                    self.searchPattern() # search for the ball
+                    print('Search Pattern Complete')
+                    self.hitBall() # collect the ball 
+                self.toBoxandDeposit() # go to the box and deposit the balls 
+                self.numBalls = 0 # reset the number of balls collected to zero 
 
-            self.Home()
+            self.Home() # once timeout had occurred return home 
 
         except KeyboardInterrupt:
             self._exemptExit() 
@@ -899,8 +904,7 @@ if __name__ == "__main__":
     #robot.toBox()
     try:
         robot = Sys5_Control()
-        while (robot.numBalls < robot.capacity):
-            robot.ballDetected.when_pressed = robot.ballsCollectedTracker
+        robot.retrieveBalls()
     except KeyboardInterrupt:
 
 
