@@ -14,6 +14,8 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
+    lower_brown =(15, 40, 100)
+    upper_brown = (50, 180, 255)
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
 
@@ -125,18 +127,14 @@ class Sys4_Vision:
             5. if running on a Laptop annotates the image and displays it
             6. Determines where the box is relative to the robot
             7. If ahead also determines the distance to the box'''
-        '''
+        
         result, frame = self.cap.read() # Captures the image
         distance = -1 # define as a non possible value 
         if result:
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-            # Define the brown color range
-            lower_brown = np.array([15, 40, 100])  # Lower bound in HSV
-            upper_brown = np.array([50, 180, 255])  # Upper bound in HSV
-
             # Mask for the brown color
-            mask = cv2.inRange(hsv, lower_brown, upper_brown)
+            mask = cv2.inRange(hsv, Sys4_Vision.lower_brown, Sys4_Vision.upper_brown)
 
             # Apply some morphological operations to reduce noise
             kernel = np.ones((5, 5), np.uint8)
@@ -145,11 +143,12 @@ class Sys4_Vision:
 
             # Find contours
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            cv2.imshow("Mask", mask)
+            if not self.rpi: # show image if running on laptop 
+                cv2.imshow("Mask", mask)
 
             # run line detection check 
-            line_present = self.lineDetection
-
+            #line_present = self.lineDetection()
+            line_present = 0
             if contours:
                 # Find the largest contour (which is likely the box)
                 largest_contour = max(contours, key=cv2.contourArea)
@@ -158,8 +157,9 @@ class Sys4_Vision:
                 epsilon = 0.02 * cv2.arcLength(largest_contour, True)
                 approx = cv2.approxPolyDP(largest_contour, epsilon, True)
 
-                # Check if the approximated contour has 4 points (likely a rectangle)
-                if len(approx) == 4:
+                # Check if the approximated contour has 4 points (likely a rectangle) 
+                #TODO consider that a box may not be 4 if vied from any other angle that head on 
+                if len(approx) >=4 or len(approx) <=8:
                     # Draw the contour and bounding box on the frame
                     x, y, w, h = cv2.boundingRect(approx)
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -174,7 +174,8 @@ class Sys4_Vision:
 
                     # Determine the distance to the Box 
                     distance = self.aspcectRatio / self.boxLength #get the distance to the box from the camera
-
+                    if not self.rpi: # show image if running on laptop 
+                        cv2.imshow("Image", frame)
                     # Determine the direction to the box and return the direction, if there is a line present and the distance to the box 
                     if center_x < frame_center_x - 50:
                         return (DIRECTION.Left, line_present, distance)
@@ -186,7 +187,7 @@ class Sys4_Vision:
             else: 
                 distance = -1 # Box could not be found 
                 return (DIRECTION.CannotFind, line_present, distance)
-                '''
+            
 
 
     def lineDetection(self)-> bool:
@@ -258,7 +259,7 @@ if __name__ == "__main__":
         key = cv2.waitKey(1)
         if key == 27: #ESC Key to exit
             break
-        result = looker.detect()
+        result = looker.detectBox()
         
         print(result)
         sleep(0.2)
