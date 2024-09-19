@@ -81,7 +81,7 @@ class Sys4_Vision:
             run = cnts != None and len(cnts)>0 # check if contour exists and is not empty
 
             # run line detection check 
-            line_present = self.lineDetection 
+            line_present = False #self.lineDetection 
 
             if run:
                 #get biggest shape

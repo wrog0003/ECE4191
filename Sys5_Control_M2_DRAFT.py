@@ -445,7 +445,8 @@ class Sys5_Control:
                 direction, speed, pauseTime, noHit, line_detected = self.hitBallSettings() # inside this function, the vision check is run
 
                 if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
-                    self.lineDetectedResponse
+                    print("line detected")
+                    self.lineDetectedResponse()
                 
                 else: # move to the ball 
 
@@ -843,15 +844,7 @@ class Sys5_Control:
 
         except KeyboardInterrupt:
             self._exemptExit() 
-
-    # Method to use the vision system to find the box and return to it. 
-    def toBoxandDeposit(self) -> None:
-        try:
-            self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
-            self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
     
-        except KeyboardInterrupt:
-            self._exemptExit() 
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
@@ -876,49 +869,36 @@ class Sys5_Control:
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
         '''this function attempts to find balls, gather balls, and once the defined max number of balls is found it will return home '''
-        try:
-            while self.timeout == False:
-            # while the timeout flag has NOT been set 
-                while (self.numBalls < self.capacity): # while we still have capacity to collect balls
-                    self.searchPattern() # search for the ball
-                    print('Search Pattern Complete')
-                    self.hitBall() # collect the ball 
-                self.toBoxandDeposit() # go to the box and deposit the balls 
-                self.numBalls = 0 # reset the number of balls collected to zero 
+        
+        while self.timeout == False:
+        # while the timeout flag has NOT been set 
+            while (self.numBalls < self.capacity): # while we still have capacity to collect balls
+                self.searchPattern() # search for the ball
+                print('Search Pattern Complete')
+                self.hitBall() # collect the ball 
+            self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
+            self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
+            self.numBalls = 0 # reset the number of balls collected to zero 
 
-            self.Home() # once timeout had occurred return home 
+        self.Home() # once timeout had occurred return home 
 
-        except KeyboardInterrupt:
-            self._exemptExit() 
 
 
 
 if __name__ == "__main__": 
-    # robot.vision.tolerence = 25
-    # tell robot to do stuff between here 
-    #robot.searchPattern()
-    #robot.hitBall()
-    #robot.disEngage()
-    #robot.Home()
-    #robot.retrieveBalls()
-    #robot.toBox()
-    try:
-        robot = Sys5_Control()
-        robot.retrieveBalls()
-    except KeyboardInterrupt:
+   
+   
+    robot = Sys5_Control()
+
+    # actions to do, do not use anything starting with _ 
+    robot.goToBox()
 
 
+    #release the pins and buttons 
+    robot.release()
 
-
-
-    # [angle_numPulses, forward_numPulses] = robot.EncoderPulseCalulator(0, 5)
-    # robot.turnGoForwards(70, 70, 0, angle_numPulses, forward_numPulses)
-            
-    #print(robot.error_count)
-    #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
-    
-    #and here 
-        robot.release() #release motor pins 
+        
+ 
 
 
 

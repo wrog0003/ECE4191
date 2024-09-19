@@ -525,13 +525,8 @@ class Sys5_Control:
 
 if __name__ == "__main__":
     robot = Sys5_Control() 
-    #robot.vision.tolerence = 25
-    #tell robot to do stuff between here 
-    robot.SearchPattern()
-    robot.hitBallBetter()
-    robot.disEngage()
-    robot.Home()
-    #robot.CalibrationTest()
+   
+    robot.CalibrationTest()
 
 
     
