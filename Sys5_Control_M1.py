@@ -526,7 +526,7 @@ class Sys5_Control:
 if __name__ == "__main__":
     robot = Sys5_Control() 
    
-    robot.CalibrationTest()
+    #robot.CalibrationTest()
 
 
     
