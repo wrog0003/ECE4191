@@ -210,11 +210,11 @@ class Sys4_Vision:
         height, width = binary_image.shape[: 2]
 
         # crop image so that only bottom third is being analysed
-        crop_amount = 0.33 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
-        height_max = int(height*crop_amount) # minimum pixel height 
+        crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
+        height_min = int(height*crop_amount) # minimum pixel height 
 
         # crop the image
-        cropped_image = binary_image[0:height_max, 0:width] 
+        cropped_image = binary_image[height_min:height, 0:width] 
 
         # cv2.imshow("cropped_image", cropped_image) onlly 
 
