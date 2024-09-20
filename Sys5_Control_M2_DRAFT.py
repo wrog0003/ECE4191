@@ -499,7 +499,7 @@ class Sys5_Control:
         '''
     
         (direction, line_detected, distance)= self.vision.detectBox() # run vision check 
-
+        print(distance)
         noHit = True
         if (direction == DIRECTION.Ahead):
 
@@ -542,7 +542,7 @@ class Sys5_Control:
 
                 # get the speed, pauseTime and if the robot will be in range of the box in the next timestep
                 direction, speed, pauseTime, noHit, line_detected = self.goToBoxSettings() # inside this function, the vision check is run
-
+                
                 if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
                     self.lineDetectedResponse
                 

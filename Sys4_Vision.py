@@ -18,6 +18,11 @@ class Sys4_Vision:
     upper_brown = (50, 180, 255)
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
+    
+    # Parameters for the box 
+    # /TODO NEED TO AJUST FOR ACTUAL BOX DIMENSIONS
+    boxLength = 0.10
+    boxWidth = 0.20
 
     #init
     def __init__(self, rpi: bool = True, tolerance: int =50 )-> None:
@@ -40,11 +45,8 @@ class Sys4_Vision:
         print(type(image))
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
         self.image = None
-        self.aspcectRatio = Sys4_Vision.known_radius*Sys4_Vision.focal_length
-
-        # Parameters for the box 
-        self.boxLength = 10
-        self.boxWidth = 20
+        self.aspcectRatioBall = Sys4_Vision.known_radius*Sys4_Vision.focal_length
+        self.aspcectRatioBox = Sys4_Vision.boxLength*Sys4_Vision.focal_length
         
     #detect
     def detect(self)->tuple[DIRECTION,bool,float]:
@@ -98,7 +100,7 @@ class Sys4_Vision:
                     cv2.imshow("Frame", self.image) # show the resulting image 
                 
                 if abs(center[0]-self.midpoint)<self.tolerance:
-                    distance = self.aspcectRatio / radius #get the distance to the ball from the camera 
+                    distance = self.aspcectRatioBall / radius #get the distance to the ball from the camera 
                     return (DIRECTION.Ahead, line_present ,distance)
                 elif center[0] < self.midpoint:
                     return (DIRECTION.Left, line_present , distance)
@@ -173,7 +175,7 @@ class Sys4_Vision:
                     frame_center_x = frame.shape[1] // 2
 
                     # Determine the distance to the Box 
-                    distance = self.aspcectRatio / self.boxLength #get the distance to the box from the camera
+                    distance = self.aspcectRatioBox / w #get the distance to the box from the camera
                     if not self.rpi: # show image if running on laptop 
                         cv2.imshow("Image", frame)
                     # Determine the direction to the box and return the direction, if there is a line present and the distance to the box 

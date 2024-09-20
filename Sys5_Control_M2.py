@@ -719,13 +719,9 @@ class Sys5_Control:
                     angle = - self.rot 
                     forward_distance = 0.5
 
-                    # call function that determines the number of pulses required to achieve desired movement 
-                    #angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
-                    
-                    #self.turnGoForwards(turn_speed, forward_speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance 
-
                     self.turnAngle(turn_speed, angle)
                     self.forwardsDistance(forward_speed,forward_distance)
+                    
                     #Print out location reached based on encoders
                     print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
@@ -741,26 +737,35 @@ class Sys5_Control:
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
-        # Called everytime a ball is collected and stored in the conveyor. 
-        # Could potentially be called from an interrupt on a sensor that detects a ball in the claw or just called in the sequential code logic. 
-        self.numBalls += 1 #increment number of balls collected. 
+        try:
+            # Called everytime a ball is collected and stored in the conveyor. 
+            # Could potentially be called from an interrupt on a sensor that detects a ball in the claw or just called in the sequential code logic. 
+            self.numBalls += 1 #increment number of balls collected. 
 
-        if self.numBalls < self.capacity: # Robot can continue searching for another ball.
-            self.searchPattern() # Locate a ball using a search pattern
-            self.hitBall() # MWill move to collect the ball 
+            print('interrupt triggered!')
 
-        else: # Robot is at capacity and must go to box to deposit the balls
-            self.toBox()
-            
+            if self.numBalls < self.capacity: # Robot can continue searching for another ball.
+                self.searchPattern() # Locate a ball using a search pattern
+                self.hitBall() # MWill move to collect the ball 
+
+            else: # Robot is at capacity and must go to box to deposit the balls
+                self.toBox()
+        except KeyboardInterrupt:
+            self._exemptExit()
+
 
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
-        numballs = 0
-        while self.stopflag == False and numballs <2:
+
+        ballscollected = 0
+        
+        while self.stopflag == False and ballscollected < 2:
             self.searchPattern()
             #print('Search Pattern Complete')
             self.hitBall()
-            numballs +=1
+            ballscollected += 1
+            print(ballscollected)
+            print(self.stopflag == False and ballscollected < 3)
 
         print("oging homd")
         self.Home()
@@ -776,11 +781,15 @@ if __name__ == "__main__":
     
     #robot.vision.tolerence = 25
     # tell robot to do stuff between here 
-        #
-    robot.retrieveBalls()
+                
+    #robot.retrieveBalls()
 
-    print(robot.error_count)
-    print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
+    #robot.searchPattern()
+    #robot.hitBall()
+
+    #robot.retrieveBalls()
+
+    #print(robot.error_count)
+    #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
-    #and here 
     robot.release() #release motor pins 
