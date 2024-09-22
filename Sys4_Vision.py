@@ -20,7 +20,7 @@ class Sys4_Vision:
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
     # Parameters for the box 
-    # /TODO NEED TO AJUST FOR ACTUAL BOX DIMENSIONS
+    # /TODO NEED TO ADJUST FOR ACTUAL BOX DIMENSIONS
     boxLength = 0.10
     boxWidth = 0.20
 
