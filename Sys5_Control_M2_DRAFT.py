@@ -82,7 +82,7 @@ class Sys5_Control:
         self._stop() # prevent random movements
 
         # Pin to receive interrupts from limit switch whenever a ball is collected
-        self.ballDetected = Button(22,pull_up=True, bounce_time= 0.02)
+        self.ballDetected = Button(22, pull_up=True, bounce_time = 0.02)
 
         self.ballDetected.when_pressed = self.ballsCollectedTracker
         
@@ -891,7 +891,7 @@ if __name__ == "__main__":
     robot = Sys5_Control()
 
     # actions to do, do not use anything starting with _ 
-    robot.goToBox()
+    robot.retrieveBalls()
 
 
     #release the pins and buttons 

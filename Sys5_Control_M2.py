@@ -744,12 +744,12 @@ class Sys5_Control:
 
             print('interrupt triggered!')
 
-            if self.numBalls < self.capacity: # Robot can continue searching for another ball.
+            '''if self.numBalls < self.capacity: # Robot can continue searching for another ball.
                 self.searchPattern() # Locate a ball using a search pattern
                 self.hitBall() # MWill move to collect the ball 
 
             else: # Robot is at capacity and must go to box to deposit the balls
-                self.toBox()
+                self.toBox()'''
         except KeyboardInterrupt:
             self._exemptExit()
 
@@ -787,7 +787,7 @@ if __name__ == "__main__":
     #robot.searchPattern()
     #robot.hitBall()
 
-    #robot.retrieveBalls()
+    robot.retrieveBalls()
 
     #print(robot.error_count)
     #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
