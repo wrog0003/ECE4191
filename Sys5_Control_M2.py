@@ -216,7 +216,7 @@ class Sys5_Control:
         # does not include a state update as the robot may continue moving for a short period as it has interia
 
     # Manual exit function to prevent loss of pin control
-    def _exemptExit(self)->None:
+    def __del__(self)->None:
         '''
         This private function is used to allow for manual exit of code if needed by disconnecting from peripherals.
 
@@ -227,9 +227,9 @@ class Sys5_Control:
         '''
         self._stop()
         GPIO.cleanup()
-        self.EncoderL.end()
-        self.EncoderR.end()
-        self.vision.disconnect() 
+        del self.EncoderL
+        del self.EncoderR
+        del self.vision
     
     # Release all Pins
     def release(self)->None:
@@ -795,4 +795,4 @@ if __name__ == "__main__":
     #print(robot.error_count)
     #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
-    robot.release() #release motor pins 
+    del robot 
