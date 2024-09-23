@@ -221,7 +221,7 @@ class Sys5_Control:
         # does not include a state update as the robot may continue moving for a short period as it has interia
 
     # Manual exit function to prevent loss of pin control
-    def _exemptExit(self)->None:
+    def __del__(self)->None:
         '''
         This private function is used to allow for manual exit of code if needed by disconnecting from peripherals.
 
@@ -232,9 +232,9 @@ class Sys5_Control:
         '''
         self._stop()
         GPIO.cleanup()
-        self.EncoderL.end()
-        self.EncoderR.end()
-        self.vision.disconnect() 
+        del self.EncoderL
+        del self.EncoderR
+        del self.vision  
     
     # Release all Pins
     def release(self)->None:
@@ -483,7 +483,7 @@ class Sys5_Control:
 
         
         except KeyboardInterrupt: 
-            self._exemptExit()
+            self.__del__()
         
     def goToBoxSettings(self) -> Tuple[DIRECTION, float, float, bool]:
         '''
@@ -579,7 +579,7 @@ class Sys5_Control:
 
         
         except KeyboardInterrupt: 
-            self._exemptExit()
+            self.__del__()
 
     def disEngage(self)->None:
 
@@ -684,7 +684,7 @@ class Sys5_Control:
             #GPIO.cleanup() shouldn't clean up at this point
 
         except  KeyboardInterrupt: 
-            self._exemptExit()
+            self.__del__()
 
     # takes in a forward distance and the robot goes forwards for that distance 
     def forwardsDistance(self, speed:int, forward_distance:float)-> None: 
@@ -717,7 +717,7 @@ class Sys5_Control:
             GPIO.cleanup()
 
         except KeyboardInterrupt:
-            self._exemptExit()
+            self.__del__()
 
     # LEGACY FUNTION DO NOT USE!!!
     def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
@@ -751,7 +751,7 @@ class Sys5_Control:
             
 
         except KeyboardInterrupt:
-            self._exemptExit()
+            self.__del__()
     
     def Home(self) -> None:
 
@@ -792,7 +792,7 @@ class Sys5_Control:
             print(f'State:{self.State.name} ')
 
         except KeyboardInterrupt:
-            self._exemptExit()    
+            self.__del__()    
 
     def searchPattern(self)-> None:
         '''
@@ -837,7 +837,7 @@ class Sys5_Control:
                     print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
         except KeyboardInterrupt:
-            self._exemptExit() 
+            self.__del__() 
     
     def Deposit(self) -> None:
         try:
@@ -846,7 +846,7 @@ class Sys5_Control:
             # TBC once we know conveyor driving hardware eg. pins #
 
         except KeyboardInterrupt:
-            self._exemptExit() 
+            self.__del__() 
     
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
@@ -867,7 +867,7 @@ class Sys5_Control:
             return
 
         except KeyboardInterrupt:
-            self._exemptExit()  
+            self.__del__() 
             
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
@@ -898,7 +898,7 @@ if __name__ == "__main__":
 
 
     #release the pins and buttons 
-    robot.release()
+    del robot 
 
         
  
