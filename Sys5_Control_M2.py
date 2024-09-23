@@ -5,7 +5,7 @@ from Motor_code.encoderClass import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
 from gpiozero import Button
 
-from time import sleep
+from time import sleep, time
 from math import pi, atan2, sqrt, sin, cos
 
 from typing import Tuple
@@ -117,6 +117,9 @@ class Sys5_Control:
         self.numBalls = 0 # Number of balls collected by the robot on any given run.
 
         self.stopflag = False # Flag to tell robot when to stop trying to collect balls.    
+
+        self.endtime = time() + 60 
+        ''' sets the time at which the robot will stop search for balls and depoit them'''
 
             
     def _forwards(self,duty_cycle:float)->ACTION:
@@ -327,7 +330,7 @@ class Sys5_Control:
         return x,y,rot
     
     #Improved sleep function to maintain localization and PI control 
-    def _delay(self,time:float)->None:
+    def _delay(self,delay_time:float)->None:
         '''
         This private delay function sleeps and runs localization.
 
@@ -339,8 +342,12 @@ class Sys5_Control:
             This breaks the time up into 0.02 second chunks and runs localization after each chunk. 
             This prevents error buildup. 
         '''
+
+        if time() >= self.endtime:
+            self.stopflag = True 
+        
         internalTime = 0
-        while internalTime <time: # while waiting
+        while internalTime <delay_time: # while waiting
             sleep(0.02) #sleep
             self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update pos and call controller 
             internalTime+=0.02 # increment time 
@@ -469,7 +476,7 @@ class Sys5_Control:
 
         
         except KeyboardInterrupt: 
-            self._exemptExit()
+            self.__del__()
         
     def disEngage(self)->None:
 
@@ -579,7 +586,7 @@ class Sys5_Control:
             
 
         except  KeyboardInterrupt: 
-            self._exemptExit()
+            self.__del__()
 
     # takes in a forward distance and the robot goes forwards for that distance 
     def forwardsDistance(self, speed:int, forward_distance:float)-> None: 
@@ -612,38 +619,7 @@ class Sys5_Control:
             
 
         except KeyboardInterrupt:
-            self._exemptExit()
-
-    # LEGACY FUNTION DO NOT USE!!!
-    def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
-        try: 
-            # rotate to achieve the desired angle 
-            if (angle >-1 and angle <1): # no rotation required 
-                sleep(0.01)
-
-            elif (angle>0):
-                self.State = self._turn(turn_speed,ANTICLOCKWISE) # rotate CCW
-
-            else: 
-                self.State = self._turn(turn_speed,CLOCKWISE) # rotate CW 
-
-            while (self.EncoderL.encoderCount < angle_numPulses):
-                self._delay(0.02)
-
-            self._stop()
-
-            # drive forwards until you reach desired forwards distance 
-
-            self.State = self._forwards(forward_speed)
-
-            while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
-                self._delay(0.02)
-
-            self._stop()
-            
-
-        except KeyboardInterrupt:
-            self._exemptExit()
+            self.__del__()
     
 
     def Home(self) -> None:
@@ -658,7 +634,7 @@ class Sys5_Control:
             none 
         '''
         try:
-            speed = 30 # speed at which robot will move on its journey home
+            speed = 70 # speed at which robot will move on its journey home
             print(f' at X {self.x_pos}, Y {self.y_pos}, rot {self.rot}\n')
 
             # calculate angle to return home
@@ -669,11 +645,6 @@ class Sys5_Control:
             forward_distance = sqrt(self.x_pos**2 + self.y_pos**2)
 
             # calculate the number of pulses required to achieve the turn and the forward distance 
-            #angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
-
-            #forward_numPulses = forward_numPulses*1.1 # add an offset to account for accumualted inaccuracies
-
-            #self.turnGoForwards(speed, speed, angle, angle_numPulses,forward_numPulses) # make the robot turn and drive forward this distance
             
             print(f'State:{self.State.name} ')
             # turn 
@@ -685,7 +656,7 @@ class Sys5_Control:
             print(f'State:{self.State.name} ')
 
         except KeyboardInterrupt:
-            self._exemptExit()
+            self.__del__()
         
 
     def searchPattern(self)-> None:
@@ -732,20 +703,20 @@ class Sys5_Control:
                     
 
         except KeyboardInterrupt:
-            self._exemptExit() 
+            self.__del__()
+
     
     # Method to use the vision system to find the box and return to it. 
     def toBox(self) -> None:
         pass
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
-    def ballsCollectedTracker(self) -> None:
-        try:
+    def ballsCollectedTracker(self,channel) -> None:
             # Called everytime a ball is collected and stored in the conveyor. 
             # Could potentially be called from an interrupt on a sensor that detects a ball in the claw or just called in the sequential code logic. 
             self.numBalls += 1 #increment number of balls collected. 
 
-            print('interrupt triggered!')
+            print(f'interrupt triggered!{self.numBalls} balls\n')
 
             '''if self.numBalls < self.capacity: # Robot can continue searching for another ball.
                 self.searchPattern() # Locate a ball using a search pattern
@@ -753,24 +724,19 @@ class Sys5_Control:
 
             else: # Robot is at capacity and must go to box to deposit the balls
                 self.toBox()'''
-        except KeyboardInterrupt:
-            self._exemptExit()
 
 
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
 
-        ballscollected = 0
         
-        while self.stopflag == False and ballscollected < 2:
+        while self.stopflag == False and self.numBalls < 2:
             self.searchPattern()
             #print('Search Pattern Complete')
             self.hitBall()
-            ballscollected += 1
-            print(ballscollected)
-            print(self.stopflag == False and ballscollected < 3)
+            print(self.stopflag == False and self.numBalls< 2)
 
-        print("oging homd")
+        print("going home")
         self.Home()
 
         
