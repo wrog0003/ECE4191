@@ -79,7 +79,10 @@ class Sys5_Control:
         self.pwm1b = GPIO.PWM(motor1b,1000)
         self.pwm2a = GPIO.PWM(motor2a,1000)
         self.pwm2b = GPIO.PWM(motor2b,1000)
-        self._stop() # prevent random movements
+        self.pwm1a.stop()
+        self.pwm1b.stop()
+        self.pwm2a.stop()
+        self.pwm2b.stop()
 
         # Pin to receive interrupts from limit switch whenever a ball is collected
         self.ballDetected = Button(22, pull_up=True, bounce_time = 0.02)

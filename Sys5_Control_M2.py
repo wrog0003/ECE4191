@@ -76,7 +76,10 @@ class Sys5_Control:
         self.pwm1b = GPIO.PWM(motor1b,1000)
         self.pwm2a = GPIO.PWM(motor2a,1000)
         self.pwm2b = GPIO.PWM(motor2b,1000)
-        self._stop() # prevent random movements
+        self.pwm1a.stop()
+        self.pwm1b.stop()
+        self.pwm2a.stop()
+        self.pwm2b.stop()
 
         # Pin to receive interrupts from limit switch whenever a ball is collected
         self.ballDetected = Button(22,pull_up=True, bounce_time= 0.02)
@@ -213,7 +216,7 @@ class Sys5_Control:
         # does not include a state update as the robot may continue moving for a short period as it has interia
 
     # Manual exit function to prevent loss of pin control
-    def _exemptExit(self)->None:
+    def __del__(self)->None:
         '''
         This private function is used to allow for manual exit of code if needed by disconnecting from peripherals.
 
@@ -224,9 +227,9 @@ class Sys5_Control:
         '''
         self._stop()
         GPIO.cleanup()
-        self.EncoderL.end()
-        self.EncoderR.end()
-        self.vision.disconnect() 
+        del self.EncoderL
+        del self.EncoderR
+        del self.vision
     
     # Release all Pins
     def release(self)->None:
@@ -792,4 +795,4 @@ if __name__ == "__main__":
     #print(robot.error_count)
     #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
     
-    robot.release() #release motor pins 
+    del robot 

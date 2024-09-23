@@ -20,7 +20,7 @@ class Sys4_Vision:
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
     # Parameters for the box 
-    # /TODO NEED TO AJUST FOR ACTUAL BOX DIMENSIONS
+    # /TODO NEED TO ADJUST FOR ACTUAL BOX DIMENSIONS
     boxLength = 0.10
     boxWidth = 0.20
 
@@ -241,7 +241,7 @@ class Sys4_Vision:
         '''Saves the image as outputImage.jpg so that you can look at the camera feed'''
         cv2.imwrite('outputImage.jpg', self.image)
     #disconnect     
-    def disconnect(self)->None:
+    def __del__(self)->None:
         '''Disconnects the camera and removes the image window if running on laptop'''
         self.cap.release() 
         if not self.rpi:

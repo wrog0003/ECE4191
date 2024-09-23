@@ -65,7 +65,7 @@ class SimpleEncoder:
         return [self.encoderCount,self.clockWise,temp]
     
     #function call to relase pins
-    def end(self)->None:
+    def __del__(self)->None:
         '''
         This function releases control of the button instances to prevent lockup of the GPIO pins'''
         self.Apin.close()
