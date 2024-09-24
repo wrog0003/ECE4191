@@ -34,17 +34,18 @@ class Sys4_Vision:
             rpi: whether or not this is running on the raspberry pi, use false for running on laptop, defaults to True
             tolerance: the number of pixels to the left or right that should be considered ahead, defaults to 50
             '''
-        self.tolerance = tolerance #tolerance of straight ahead in pixels
+        self.tolerance = tolerance 
         '''Number of pixels to the left or right of center that is considered ahead'''
         self.rpi = rpi # define which OS is running
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
-            self.cap =cv2.VideoCapture(1, cv2.CAP_DSHOW) #cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self.cap =cv2.VideoCapture(1, cv2.CAP_DSHOW) 
         result, image = self.cap.read() # get the first image 
-        print(type(image))
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
-        self.image = None
+        '''the halfway point of the image'''
+        self.image = None 
+        '''Variable to store the image captured '''
         self.aspcectRatioBall = Sys4_Vision.known_radius*Sys4_Vision.focal_length
         self.aspcectRatioBox = Sys4_Vision.boxLength*Sys4_Vision.focal_length
         
@@ -76,20 +77,20 @@ class Sys4_Vision:
             mask = cv2.erode(mask, None, iterations=2)
             mask = cv2.dilate(mask, None, iterations=2)
 
-            # get contors 
-            cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-            cnts = cnts[0]
+            # get contours 
+            contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+            contours = contours[0]
 
             # init center 
             center = None
-            run = cnts != None and len(cnts)>0 # check if contour exists and is not empty
+            run = contours != None and len(contours)>0 # check if contour exists and is not empty
 
             # run line detection check 
             line_present = self.lineDetection() #self.lineDetection 
 
             if run:
                 #get biggest shape
-                c = max(cnts, key=cv2.contourArea) 
+                c = max(contours, key=cv2.contourArea) 
                 M = cv2.moments(c) # get the moments
                 center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])) # save the moments in terms of center of area
                 ((x, y), radius) = cv2.minEnclosingCircle(c) # get the radius of the contour 
@@ -193,13 +194,20 @@ class Sys4_Vision:
 
 
     def lineDetection(self)-> bool:
-        '''Returns if a line was detected'''
+        '''Returns if a line was detected
+        it follows the following method 
+            1. converts the image to grey scale
+            2. thresholds the image to check if the section is whiteish
+            3. crops the image to reduce the amount of data
+            4. gets the number of white pixels (blob stats)
+            5. calculates the fraction of white pixels
+            6. if more than 10% is white, then consider that is is close to a boundary '''
 
-        print('running line detection')
         # get  the image 
         original_image = self.image
 
-        #cv2.imshow("input", original_image) #display image ONLY for debugging
+        if not self.rpi:
+            cv2.imshow("input", original_image) #display image ONLY for debugging
 
         # convert the image to greyscale 
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -232,8 +240,8 @@ class Sys4_Vision:
         # calculate average of white pixels 
         white_average = white_pixels/total_pixels
 
-        # if the average of white pixels is inbetween 10-35% then there is a boundary ahead 
-        if 0.10 < white_average < 0.35:
+        # if the average of white pixels is inbetween 10% or greater then there is a boundary ahead 
+        if 0.10 < white_average : # <0.35
             LineFound = True 
         else:
             LineFound = False 

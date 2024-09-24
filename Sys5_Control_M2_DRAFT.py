@@ -664,7 +664,7 @@ class Sys5_Control:
             # set forward distance to zero as we are only rotating 
             forward_distance = 0 
             
-            # calculte the number of pulses need to achieve the angle turn 
+            # calculate the number of pulses need to achieve the angle turn 
             angle_numPulses, _ = self.EncoderPulseCalulator(angle, forward_distance)
 
             # rotate to achieve the desired angle 
@@ -722,7 +722,7 @@ class Sys5_Control:
     # LEGACY FUNTION DO NOT USE!!!
     def turnGoForwards(self, turn_speed:int, forward_speed:int, angle:float, angle_numPulses:float, forward_numPulses:float)-> None:
         '''
-        DO NOT USE LEGACY FUNCTIONNNNNN
+        ## DO NOT USE LEGACY FUNCTIONNNNNN
         '''
         try: 
             # rotate to achieve the desired angle 
@@ -843,7 +843,7 @@ class Sys5_Control:
         try:
             self.turnAngle(30, 180) # Performs a rotation of 180 degrees so the robot can unload the balls from the rear. 
         
-            # TBC once we know conveyor driving hardware eg. pins #
+            # TODO once we know conveyor driving hardware eg. pins #
 
         except KeyboardInterrupt:
             self.__del__() 

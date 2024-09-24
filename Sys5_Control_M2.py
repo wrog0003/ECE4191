@@ -120,8 +120,7 @@ class Sys5_Control:
 
         self.endtime = time() + 60 
         ''' sets the time at which the robot will stop search for balls and depoit them'''
-
-            
+ 
     def _forwards(self,duty_cycle:float)->ACTION:
         '''
         This private function sets the motors to move forwards at a desired speed. 
@@ -237,6 +236,7 @@ class Sys5_Control:
     # Release all Pins
     def release(self)->None:
         '''
+        ## LEGACY function do not use 
         This function disconnects from connected peripherals to prevent the devices from preventing reconnection.
 
         It stops the motors, disconnects the camera and disconnects the GPIO
@@ -508,7 +508,7 @@ class Sys5_Control:
     def lineFoundResponse (self):
         
         '''
-        Controls the respone if the Vision System detects a line/boundary 
+        Controls the response if the Vision System detects a line/boundary 
         Inputs:
             self: the class instance 
 
@@ -517,7 +517,7 @@ class Sys5_Control:
         '''
 
         # set angle of rotation 
-        angle = 120*(180/pi) # 120 degree rotation CCW radians 
+        angle = 120 # 120 degree rotation 
 
         speed = 30 # set a speed for rotation
 
@@ -557,7 +557,7 @@ class Sys5_Control:
         INPUTS: 
             self: the class instance
             speed: speed at which the wheels turn (0-100)
-            angle: desired angle of rotatiion
+            angle: desired angle of rotation
 
         OUTPUTS:
             none 
@@ -567,7 +567,7 @@ class Sys5_Control:
             # set forward distance to zero as we are only rotating 
             forward_distance = 0 
             
-            # calculte the number of pulses need to achieve the angle turn 
+            # calculate the number of pulses need to achieve the angle turn 
             angle_numPulses, _ = self.EncoderPulseCalulator(angle, forward_distance)
 
             # rotate to achieve the desired angle 
@@ -726,7 +726,6 @@ class Sys5_Control:
 
             else: # Robot is at capacity and must go to box to deposit the balls
                 self.toBox()'''
-
 
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
