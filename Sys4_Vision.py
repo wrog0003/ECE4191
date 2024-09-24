@@ -85,7 +85,7 @@ class Sys4_Vision:
             run = cnts != None and len(cnts)>0 # check if contour exists and is not empty
 
             # run line detection check 
-            line_present = False #self.lineDetection 
+            line_present = self.lineDetection() #self.lineDetection 
 
             if run:
                 #get biggest shape
@@ -149,8 +149,8 @@ class Sys4_Vision:
                 cv2.imshow("Mask", mask)
 
             # run line detection check 
-            #line_present = self.lineDetection()
-            line_present = 0
+            line_present = self.lineDetection()
+            #line_present = 0
             if contours:
                 # Find the largest contour (which is likely the box)
                 largest_contour = max(contours, key=cv2.contourArea)
@@ -194,10 +194,12 @@ class Sys4_Vision:
 
     def lineDetection(self)-> bool:
         '''Returns if a line was detected'''
+
+        print('running line detection')
         # get  the image 
         original_image = self.image
 
-        # cv2.imshow("input", original_image) display image ONLY for debugging
+        cv2.imshow("input", original_image) #display image ONLY for debugging
 
         # convert the image to greyscale 
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -218,13 +220,14 @@ class Sys4_Vision:
         # crop the image
         cropped_image = binary_image[height_min:height, 0:width] 
 
-        # cv2.imshow("cropped_image", cropped_image) onlly 
+        cv2.imshow("cropped_image", cropped_image) # only white and black cropped image 
 
         # calculate the number of white pixels 
         white_pixels = np.sum(cropped_image == 255)
 
+        height_new = height - height_min
         # calculate total number of pixels 
-        total_pixels = (height_max)*width
+        total_pixels = (height_new)*width
 
         # calculate average of white pixels 
         white_average = white_pixels/total_pixels
