@@ -483,6 +483,7 @@ class Sys5_Control:
     def disEngage(self)->None:
 
         '''
+        ## LEGACY FUNCTION DO NO USE!
         Disengages from the ball so that it doesn't hit the ball incorrectly during the return to home sequence
 
         Inputs: 
@@ -707,10 +708,101 @@ class Sys5_Control:
         except KeyboardInterrupt:
             self.__del__()
 
+    def toBoxSettings(self) -> Tuple[DIRECTION, float, float, bool]:
+        '''
+        Calls the vision system and determines the direction that the robot needs to move, 
+        the distance to the box and if the robot will be in range of the box to start the deposit sequence.  
+
+        INPUTS
+            self: the class instance
+
+        OUTPUTS
+            direction = direction that the robot is relative to the box
+            speed = speed that the robot should travel at in the next time step
+            pauseTime = how long the robot should travel at this speed for 
+            noHit = whether the box will be in range by performing this movement 
+
+        '''
     
-    # Method to use the vision system to find the box and return to it. 
+        (direction, line_detected, distance)= self.vision.detectBox() # run vision check 
+        print(distance)
+        noHit = True
+        if (direction == DIRECTION.Ahead):
+
+            # settings if robot if more than 0.55m away from the box 
+            speed = 70 # set the drive speed 
+            pauseTime = 0.5 # how long in secs the robot should drive forwards for 
+
+            if (distance <  0.55): # if robot is less than 0.55 m from box 
+                speed = 50 # reduce speed of robot
+            
+            if (distance < 0.20): # close to box, drive forwards until in range to deposit the ball 
+                speed = 50 
+                pauseTime = 2
+                noHit = False
+
+        elif (direction == DIRECTION.CannotFind):
+            speed = 30
+            pauseTime = 0.1
+
+        else: # ball is in field of view but is either left or right
+            speed = 15
+            pauseTime = 0.1
+        
+        return direction, speed, pauseTime, noHit, line_detected
+
     def toBox(self) -> None:
-        pass
+        '''
+        gets the robot to approach the box once it is close enough
+
+        Inputs: 
+            self: the class instance 
+        
+        Outputs:
+            none
+        '''
+
+        noHit = True 
+        try:
+            while(noHit): # while not close enough to the box
+
+                # get the speed, pauseTime and if the robot will be in range of the box in the next timestep
+                direction, speed, pauseTime, noHit, line_detected = self.goToBoxSettings() # inside this function, the vision check is run
+                
+                if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
+                    self.lineDetectedResponse
+                
+                else: # move to the ball 
+
+                    # Ball AHEAD
+                    if (direction == DIRECTION.Ahead):
+                        self.State = self._forwards(speed)
+                    
+                    # Ball CANNOT FIND 
+                    elif (direction == DIRECTION.CannotFind):
+                        self._stop()
+                        self.State = self._turn(speed, ANTICLOCKWISE)
+                    
+                    # Ball LEFT 
+                    elif (direction == DIRECTION.Left):
+                        self._stop()
+                        self.State = self._turn(speed,ANTICLOCKWISE)
+                    
+                    # Ball RIGHT
+                    else:
+                        self._stop()
+                        self.State = self._turn(speed,CLOCKWISE)
+                
+                self._delay(pauseTime)# do that movement for the designated n.o sec defined in PauseTime
+                self._stop() # stop movement of robot temporarily until next action is determined
+                # get position of robot 
+                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+            
+            print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+
+        
+        except KeyboardInterrupt: 
+            self.__del__()
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self,channel) -> None:
