@@ -199,7 +199,7 @@ class Sys4_Vision:
         # get  the image 
         original_image = self.image
 
-        cv2.imshow("input", original_image) #display image ONLY for debugging
+        #cv2.imshow("input", original_image) #display image ONLY for debugging
 
         # convert the image to greyscale 
         grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
@@ -220,7 +220,7 @@ class Sys4_Vision:
         # crop the image
         cropped_image = binary_image[height_min:height, 0:width] 
 
-        cv2.imshow("cropped_image", cropped_image) # only white and black cropped image 
+        #cv2.imshow("cropped_image", cropped_image) # only white and black cropped image 
 
         # calculate the number of white pixels 
         white_pixels = np.sum(cropped_image == 255)
