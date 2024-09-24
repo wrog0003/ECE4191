@@ -404,9 +404,11 @@ class Sys5_Control:
 
         '''
 
-        (direction, temp, distance)= self.vision.detect() # run vision check 
+        (direction, LinePresent, distance)= self.vision.detect() # run vision check 
         noHit = True
-        if (direction == DIRECTION.Ahead):
+        if LinePresent:
+            self.lineFoundResponse()
+        elif (direction == DIRECTION.Ahead):
 
             # settings if robot if more than 0.55m away from the ball 
             speed = 70 # set the drive speed 
