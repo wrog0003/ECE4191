@@ -354,8 +354,8 @@ class Sys5_Control:
             internalTime+=0.02 # increment time 
             cameraTime +=0.02
 
-            # every second stuff here 
-            if cameraTime >1:
+            # every second check if line has been detected
+            if cameraTime > 1:
                 (direction, LinePresent, distance)= self.vision.detect() # run vision check
                 cameraTime =0
                 if LinePresent:
