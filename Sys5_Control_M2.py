@@ -347,10 +347,20 @@ class Sys5_Control:
             self.stopflag = True 
         
         internalTime = 0
+        cameraTime = 0
         while internalTime <delay_time: # while waiting
             sleep(0.02) #sleep
             self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update pos and call controller 
             internalTime+=0.02 # increment time 
+            cameraTime +=0.02
+
+            # every second stuff here 
+            if cameraTime >1:
+                (direction, LinePresent, distance)= self.vision.detect() # run vision check
+                cameraTime =0
+                if LinePresent:
+                    self.lineFoundResponse() #roate
+                    break #exit delay as it hasn't found the ball
         return 
 
 
@@ -408,6 +418,10 @@ class Sys5_Control:
         noHit = True
         if LinePresent:
             self.lineFoundResponse()
+            direction = DIRECTION.CannotFind
+            speed = 30
+            pauseTime =0.1
+            
         elif (direction == DIRECTION.Ahead):
 
             # settings if robot if more than 0.55m away from the ball 
@@ -699,7 +713,7 @@ class Sys5_Control:
                     self.forwardsDistance(forward_speed,forward_distance)
                     
                     #Print out location reached based on encoders
-                    print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+                    print(f'Search Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
                     (direction, temp, distance)= self.vision.detect() # update the vision check 
                     
@@ -797,7 +811,7 @@ class Sys5_Control:
                 # get position of robot 
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
             
-            print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+            print(f'Box Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
         
         except KeyboardInterrupt: 

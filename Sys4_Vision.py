@@ -243,9 +243,11 @@ class Sys4_Vision:
         # if the average of white pixels is inbetween 10% or greater then there is a boundary ahead 
         if 0.10 < white_average : # <0.35
             LineFound = True 
+            print("Line detected")
         else:
             LineFound = False 
-        
+        if white_average >0.01:
+            print(f'Line average ={white_average}\n')
         return LineFound
 
     def saveImage(self):
