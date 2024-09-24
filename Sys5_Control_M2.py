@@ -504,8 +504,7 @@ class Sys5_Control:
         # Re aligns the dolly wheel
         self.State = self._forwards(speed)
         self._delay(0.5) 
-        
-
+     
     def lineFoundResponse (self):
         
         '''
@@ -615,7 +614,7 @@ class Sys5_Control:
 
             self.State = self._forwards(speed)
 
-            while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
+            while (self.EncoderL.encoderCount <forward_numPulses):# keep going forwards until you reach the desired number of pulses 
                 self._delay(0.02)
 
             self._stop()
