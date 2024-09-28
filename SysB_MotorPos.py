@@ -273,11 +273,13 @@ class SysB_MotorPos:
             internalTime+=0.02 # increment time 
         return 
     
+    def GetEncoderLCount(self)->int:
+        ''' this function gets the encoder count of the left encoder and returns it'''
+        return self.EncoderLeft.encoderCount
+
     def __del__(self)->None:
         '''the function that deletes this class and releases pins'''
         self.stop() 
         GPIO.cleanup() # release motor pins
         del self.EncoderLeft
         del self.EncoderRight
-
-    
