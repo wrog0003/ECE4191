@@ -58,8 +58,9 @@ class SysB_MotorPos:
         '''save the desired duty cycle to for later access'''
         self.right_active_pin = None 
         '''Which pin to change the duty cycle of with the PI controller'''
+        print("ininted")
     
-    def forwards(self,duty_cycle:float)->ACTION:
+    def forwards(self,duty_cycle:float)->None:
         '''
         This function sets the motors to move forwards at a desired speed. 
 
@@ -73,15 +74,15 @@ class SysB_MotorPos:
 
         # drive the motor forwards 
         self.motorLa.start(0)
-        self.motorLb.start(0)
-        self.motorRa.start(duty_cycle)
+        self.motorLb.start(duty_cycle)
+        self.motorRa.start(0)
         self.motorRb.start(max(duty_cycle*self.duty_cycle_bias,SysB_MotorPos.MINIMUM_SPEED))
         self.duty_cycle = duty_cycle
-        self.RActivePin = self.motorRb
+        self.right_active_pin = self.motorRb
 
-        return ACTION.FORWARD 
+        self.state= ACTION.FORWARD 
     
-    def backwards(self, duty_cycle:float)->ACTION:
+    def backwards(self, duty_cycle:float)->None:
         '''
         This private function sets the motors to move backwards at a desired speed. 
 
@@ -95,16 +96,16 @@ class SysB_MotorPos:
         # duty cycle = controls speed of robot (0 - 100)
         # output: return the state of the robot
 
-        self.motorLa.start(0)
+        self.motorLa.start(duty_cycle)
         self.motorLb.start(0)
-        self.motorRa.start(duty_cycle)
-        self.motorRb.start(max(duty_cycle*self.duty_cycle_bias,SysB_MotorPos.MINIMUM_SPEED))
+        self.motorRa.start(max(duty_cycle*self.duty_cycle_bias,SysB_MotorPos.MINIMUM_SPEED))
+        self.motorRb.start(0)
         self.duty_cycle = duty_cycle
-        self.RActivePin = self.motorRa
+        self.right_active_pin = self.motorRa
 
-        return ACTION.BACKWARD 
+        self.state= ACTION.BACKWARD 
 
-    def turn(self,duty_cycle:float,clockWise:bool)->ACTION:
+    def turn(self,duty_cycle:float,clockWise:bool)->None:
 
         '''
         This function sets the motors to turn left or right at a desired speed
@@ -126,21 +127,22 @@ class SysB_MotorPos:
         # output: return the state of the robot
 
         if clockWise: # turn clockwise 
+            print("right")
             self.motorLa.start(0)
-            self.motorLb.start(0)
-            self.motorRa.start(duty_cycle)
-            self.motorRb.start(max(duty_cycle*self.duty_cycle_bias,SysB_MotorPos.MINIMUM_SPEED))
+            self.motorLb.start(duty_cycle)
+            self.motorRa.start(max(duty_cycle*self.duty_cycle_bias,SysB_MotorPos.MINIMUM_SPEED))
+            self.motorRb.start(0)
             self.duty_cycle = duty_cycle
-            self.RActivePin = self.motorLa
-            return ACTION.RIGHT
+            self.right_active_pin = self.motorRa
+            self.state= ACTION.RIGHT
         else: # turn anti-clockwise
-            self.motorLa.start(0)
+            self.motorLa.start(duty_cycle)
             self.motorLb.start(0)
-            self.motorRa.start(duty_cycle)
-            self.motorRb.start(max(duty_cycle*self.duty_cycle_bias,SysB_MotorPos.MINIMUM_SPEED))
+            self.motorRa.start(0)
+            #self.motorRb.start(max(duty_cycle*self.duty_cycle_bias,SysB_MotorPos.MINIMUM_SPEED))
             self.duty_cycle = duty_cycle
-            self.RActivePin = self.motorRb
-            return ACTION.LEFT
+            self.right_active_pin = self.motorRb
+            self.state= ACTION.LEFT
         
     def stop(self)->None:
         '''Stops the motors'''
@@ -269,13 +271,35 @@ class SysB_MotorPos:
         internalTime = 0
         while internalTime <time: # while waiting
             sleep(0.02) #sleep
-            self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update pos and call controller 
+            self.x_pos, self.y_pos, self.rot = self.updatePos(self.x_pos,self.y_pos,self.rot) # update pos and call controller 
             internalTime+=0.02 # increment time 
         return 
     
     def GetEncoderLCount(self)->int:
         ''' this function gets the encoder count of the left encoder and returns it'''
         return self.EncoderLeft.encoderCount
+    
+    
+    def testing(self)->None:
+        robot.forwards(30)
+        robot.delay(1)
+        robot.stop()
+        print(robot)
+        robot.backwards(30)
+        robot.delay(1)
+        robot.stop()
+        print(robot)
+        robot.turn(30,ANTICLOCKWISE)
+        robot.delay(1)
+        robot.stop()
+        print(robot)
+        robot.turn(60,CLOCKWISE)
+        robot.delay(1)
+        robot.stop()
+        print(robot)
+
+    def __str__(self)->str:
+        return f'robot at {self.x_pos}X, {self.y_pos}Y with rotation {robot.rot} degrees'
 
     def __del__(self)->None:
         '''the function that deletes this class and releases pins'''
@@ -283,3 +307,13 @@ class SysB_MotorPos:
         GPIO.cleanup() # release motor pins
         del self.EncoderLeft
         del self.EncoderRight
+
+
+if __name__ == "__main__":
+    GPIO.setmode(GPIO.BCM) # set pin types 
+    robot = SysB_MotorPos()
+   
+    robot.motorLb.start(50)
+    sleep(0.5)
+    robot.stop()
+    del robot

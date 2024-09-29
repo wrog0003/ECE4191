@@ -21,15 +21,15 @@ The distance that the robot should travel for each pulse of the encoder (m)'''
 
 #PINS
 # Motor Left 
-motorLa = 17
+motorLa = 23
 '''Left motor pin enable A'''
-motorLb = 27
+motorLb = 24
 '''Left motor pin enable B'''
 
 # Motor Right 
-motorRa = 23
+motorRa = 17
 '''Right motor pin enable A'''
-motorRb = 24
+motorRb = 27
 '''Right motor pin enable B'''
 
 # Encoder Left 

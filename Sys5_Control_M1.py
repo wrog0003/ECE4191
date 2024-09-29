@@ -16,12 +16,12 @@ CLOCKWISE = True
 
 #PINS
 # Motor Left 
-motor1a = 17
-motor1b = 27
+motor2a = 17
+motor2b = 27
 
 # Motor Right 
-motor2a = 23
-motor2b = 24
+motor1a = 23
+motor1b = 24
 
 # Encoder Left 
 motor1cha = 13
@@ -519,6 +519,7 @@ class Sys5_Control:
 
         except KeyboardInterrupt:
             self._exemptExit() 
+            
 
 
 
@@ -526,7 +527,7 @@ class Sys5_Control:
 if __name__ == "__main__":
     robot = Sys5_Control() 
    
-    #robot.CalibrationTest()
+    robot.CalibrationTest()
 
 
     
