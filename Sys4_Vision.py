@@ -41,6 +41,7 @@ class Sys4_Vision:
             self.cap = cv2.VideoCapture(0) 
         else:
             self.cap =cv2.VideoCapture(1, cv2.CAP_DSHOW) 
+            print("accesed")
         result, image = self.cap.read() # get the first image 
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
         '''the halfway point of the image'''
@@ -274,7 +275,7 @@ if __name__ == "__main__":
         key = cv2.waitKey(1)
         if key == 27: #ESC Key to exit
             break
-        result = looker.detectBox()
+        result = looker.lineDetection()
         
         print(result)
         sleep(0.2)

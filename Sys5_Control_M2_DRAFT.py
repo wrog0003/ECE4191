@@ -6,7 +6,7 @@ from Sys4_Vision import Sys4_Vision
 from Box_detection.box_detection import find_and_goto_box
 from gpiozero import Button
 
-from time import sleep
+from time import sleep, time 
 from math import pi, atan2, sqrt, sin, cos
 
 from typing import Tuple
@@ -122,6 +122,9 @@ class Sys5_Control:
 
         # Timeout flag to tell the robot when to return to home and how long it should collect and deposit balls for 
         self.timeout = False 
+        
+        self.endtime = time() + 60 
+        ''' sets the time at which the robot will stop search for balls and depoit them'''
 
             
     def _forwards(self,duty_cycle:float)->ACTION:
@@ -331,8 +334,8 @@ class Sys5_Control:
         #print(f'x{x},y{y},rot{rot}')
         return x,y,rot
     
-    #Improved sleep function to maintain localization and PI control 
-    def _delay(self,time:float)->None:
+#Improved sleep function to maintain localization and PI control 
+    def _delay(self,delay_time:float)->None:
         '''
         This private delay function sleeps and runs localization.
 
@@ -344,11 +347,25 @@ class Sys5_Control:
             This breaks the time up into 0.02 second chunks and runs localization after each chunk. 
             This prevents error buildup. 
         '''
+
+        if time() >= self.endtime:
+            self.stopflag = True 
+        
         internalTime = 0
-        while internalTime <time: # while waiting
+        cameraTime = 0
+        while internalTime <delay_time: # while waiting
             sleep(0.02) #sleep
             self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update pos and call controller 
             internalTime+=0.02 # increment time 
+            cameraTime +=0.02
+
+            # every second check if line has been detected
+            if cameraTime > 1:
+                (direction, LinePresent, distance)= self.vision.detect() # run vision check
+                cameraTime =0
+                if LinePresent:
+                    self.lineFoundResponse() #roate
+                    break #exit delay as it hasn't found the ball
         return 
 
     # Method that takes in the change in encoder pulses on the left and the right encoders and uses a controller to change the duty cycle bias.  
@@ -449,7 +466,7 @@ class Sys5_Control:
 
                 if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
                     print("line detected")
-                    self.lineDetectedResponse()
+                    self.lineFoundResponse()
                 
                 else: # move to the ball 
 
@@ -547,7 +564,7 @@ class Sys5_Control:
                 direction, speed, pauseTime, noHit, line_detected = self.goToBoxSettings() # inside this function, the vision check is run
                 
                 if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
-                    self.lineDetectedResponse
+                    self.lineFoundResponse
                 
                 else: # move to the ball 
 
@@ -605,9 +622,11 @@ class Sys5_Control:
         self.State = self._forwards(speed)
         self._delay(0.5) 
         
-    def lineDetectedResponse (self)-> None:
+        
+    def lineFoundResponse (self):
+        
         '''
-        Controls the respone if the Vision System detects a line/boundary 
+        Controls the response if the Vision System detects a line/boundary 
         Inputs:
             self: the class instance 
 
@@ -616,12 +635,14 @@ class Sys5_Control:
         '''
 
         # set angle of rotation 
-        angle = 120 # 120 degree rotation CCW radians 
+        angle = 120 # 120 degree rotation 
 
         speed = 30 # set a speed for rotation
 
         # make the robot turn this angle
         self.turnAngle(speed, angle)
+
+        return 
  
     # calculates the number of pulses required to achieve the desired turn and forwards direction
     def EncoderPulseCalulator(self, angle:float, forward_distance:float) -> list[int]:
@@ -806,6 +827,8 @@ class Sys5_Control:
             none 
         '''
 
+        print('running search pattern')
+
         # define speed constants 
         turn_speed = 20
         forward_speed = 30
@@ -835,6 +858,7 @@ class Sys5_Control:
                     self.forwardsDistance(forward_speed,forward_distance)
                     #Print out location reached based on encoders
                     print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+                    (direction, line_detected, distance)= self.vision.detect() # run vision check
 
         except KeyboardInterrupt:
             self.__del__() 
@@ -901,7 +925,6 @@ class Sys5_Control:
 
 
 
-
 if __name__ == "__main__": 
    
    
@@ -909,7 +932,9 @@ if __name__ == "__main__":
 
     # actions to do, do not use anything starting with _ 
     #robot.retrieveBalls()
-    robot.CalibrationTest()
+    #robot.CalibrationTest()
+    #robot.hitBall()
+    robot.retrieveBalls()
 
 
 

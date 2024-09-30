@@ -21,12 +21,12 @@ CLOCKWISE = True
 
 # Define physical GPIO pins on the Rpi 
 # Motor Left (to drive motors)
-motor1a = 17
-motor1b = 27
+motor1a = 23
+motor1b = 24
 
 # Motor Right (to drive motors)
-motor2a = 23
-motor2b = 24
+motor2a = 17
+motor2b = 27
 
 # Encoder Left (to recieve data from encoders)
 motor1cha = 13
@@ -845,6 +845,19 @@ class Sys5_Control:
         print("going home")
         self.Home()
 
+    def CalibrationTest(self)->None:
+            self._forwards(50)
+            self._delay(2)
+            self._backwards(50)
+            self._delay(1)
+            self._turn(50,ANTICLOCKWISE)
+            self._delay(2)
+            self._turn(50,CLOCKWISE)
+            self._delay(1)
+            self._stop() 
+            print("Test run")
+            GPIO.cleanup()
+
         
         
 
@@ -861,8 +874,10 @@ if __name__ == "__main__":
 
     #robot.searchPattern()
     #robot.hitBall()
+    #robot.CalibrationTest()
 
     robot.retrieveBalls()
+    
 
     #print(robot.error_count)
     #print(f'Finished {robot.x_pos}, {robot.y_pos} with rot of {robot.rot}\n') 
