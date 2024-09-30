@@ -22,12 +22,12 @@ CLOCKWISE = True
 
 # Define physical GPIO pins on the Rpi 
 # Motor Left (to drive motors)
-motor1a = 17
-motor1b = 27
+motor1a = 23
+motor1b = 24
 
 # Motor Right (to drive motors)
-motor2a = 23
-motor2b = 24
+motor2a = 17
+motor2b = 27
 
 # Encoder Left (to recieve data from encoders)
 motor1cha = 13
@@ -423,7 +423,7 @@ class Sys5_Control:
             pauseTime = 0.1
 
         else: # ball is in field of view but is either left or right
-            speed = 15
+            speed = 20
             pauseTime = 0.1
         
         return direction, speed, pauseTime, noHit, line_detected
@@ -616,7 +616,7 @@ class Sys5_Control:
         '''
 
         # set angle of rotation 
-        angle = 120*(180/pi) # 120 degree rotation CCW radians 
+        angle = 120 # 120 degree rotation CCW radians 
 
         speed = 30 # set a speed for rotation
 
@@ -807,7 +807,7 @@ class Sys5_Control:
         '''
 
         # define speed constants 
-        turn_speed = 15
+        turn_speed = 20
         forward_speed = 30
         #self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position
 
@@ -885,6 +885,20 @@ class Sys5_Control:
 
         self.Home() # once timeout had occurred return home 
 
+    def CalibrationTest(self)->None:
+            self._forwards(50)
+            self._delay(2)
+            self._backwards(50)
+            self._delay(1)
+            self._turn(50,ANTICLOCKWISE)
+            self._delay(2)
+            self._turn(50,CLOCKWISE)
+            self._delay(1)
+            self._stop() 
+            print("Test run")
+            GPIO.cleanup()
+    # clear up if exited manuall
+
 
 
 
@@ -894,7 +908,9 @@ if __name__ == "__main__":
     robot = Sys5_Control()
 
     # actions to do, do not use anything starting with _ 
-    robot.retrieveBalls()
+    #robot.retrieveBalls()
+    robot.CalibrationTest()
+
 
 
     #release the pins and buttons 
