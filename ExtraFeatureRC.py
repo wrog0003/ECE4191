@@ -1,5 +1,6 @@
 
 from SysB_MotorPos import SysB_MotorPos, CLOCKWISE, ANTICLOCKWISE
+from SysC_BallCollection import SysC_BallCollection
 
 '''This code allows for wasd control of the robot'''
 
@@ -9,16 +10,16 @@ from time import sleep
 GPIO.setmode(GPIO.BCM) # set pin types 
 
 robot = SysB_MotorPos() # creates robot 
+conveyer = SysC_BallCollection()
+
 
 running = True 
 speed = 30
 print("Use the following commands to rc control the robot")
-print("W = forward")
-print("S = backward")
-print("A = left")
-print("D = right")
-print("Q = exit")
-print("E = set speed")
+print("W = forward  S = backward")
+print("A = left     D = right")
+print("Q = exit     E = set speed")
+print("L = load     U=unload")
 while running:
     action = input()
     if action.capitalize() == "W":
@@ -33,6 +34,11 @@ while running:
     elif action.capitalize() == "D":
         robot.turn(speed, CLOCKWISE)
         robot.delay(0.5)
+    elif action.capitalize() == "L":
+        conveyer.addBallToSystem()
+        conveyer.ballCount +=1
+    elif action.capitalize() == "U":
+        conveyer.unloadBalls()
     elif action.capitalize() == "Q":
         running =False
     elif action.capitalize() == "E":

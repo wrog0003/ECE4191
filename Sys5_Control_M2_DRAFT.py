@@ -240,16 +240,16 @@ class Sys5_Control:
         del self.vision  
     
     # Release all Pins
-    def release(self)->None:
-        '''
-        This function disconnects from connected peripherals to prevent the devices from preventing reconnection.
+    # def release(self)->None:
+    #     '''
+    #     This function disconnects from connected peripherals to prevent the devices from preventing reconnection.
 
-        It stops the motors, disconnects the camera and disconnects the GPIO
-        '''
-        self._stop()
-        self.vision.disconnect()
-        GPIO.cleanup()
-        sleep(0.1) # ensure that every peripheral is released 
+    #     It stops the motors, disconnects the camera and disconnects the GPIO
+    #     '''
+    #     self._stop()
+    #     self.vision.disconnect()
+    #     GPIO.cleanup()
+    #     sleep(0.1) # ensure that every peripheral is released 
 
     # Position tracking 
     def _updatePos(self, x_old:float, y_old:float, rot_old:float)->list[float]:
@@ -364,7 +364,7 @@ class Sys5_Control:
                 (direction, LinePresent, distance)= self.vision.detect() # run vision check
                 cameraTime =0
                 if LinePresent:
-                    self.lineFoundResponse() #roate
+                    self.lineFoundResponse() #rotate
                     break #exit delay as it hasn't found the ball
         return 
 
@@ -392,12 +392,10 @@ class Sys5_Control:
         reference = 0
         
         # Calculates a duty cycle bias to apply (Limited between 0.5 and 1)
-        self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delR-delL)) - Ki*self.error_count),1.2))
+        self.duty_cycle_bias = max(0.5,min((Kp*(reference-(delR-delL)) - Ki*self.error_count),1.2)) #PI controller 
         
-        countDifference = (delR-delL) 
-        #print(f'duty cycle {self.duty_cycle_bias}')
-        self.error_count += countDifference
-        #print(f'err accum = {self.error_count}')
+        countDifference = (delR-delL) #get teh difference
+        self.error_count += countDifference #add to the integral factor 
 
         self.RActivePin.start(max(self.duty_cycle*self.duty_cycle_bias,5))
         return 

@@ -9,8 +9,8 @@ from time import sleep # to enable delaying
 class SysC_BallCollection:
     '''This system deals with detecting the ball count and moving the conveyer'''
     MAXBALLS = 4 
-    LOADTIME = 5
-    UNLOADTIME = 2
+    LOADTIME = 0.5
+    UNLOADTIME = 4
     '''The maximum number of balls that the system can hold before it should return to the box'''
     def __init__(self, ConveyerPin: int= GLOBALSM1.servo1, ButtonPin:int = GLOBALSM1.button1) -> None:
         '''Sets up the variables and servo and button pins'''
@@ -60,6 +60,9 @@ class SysC_BallCollection:
         self.Servo.value =0.5 # stop the servo
         self._ResetBallCount() # reset the ball count
 
+    def __str__(self)->str:
+        '''overrides the string representation of the class to define data'''
+        return f'Ball collection with {self.ballCount} balls'
 
     def __del__(self)->None:
         '''Deletes the class instance and releases the pins'''

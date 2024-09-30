@@ -45,6 +45,9 @@ class SysA_Encoder:
         self.encoderOldCount = self.encoderCount
         return [self.encoderCount,self.clockWise,temp]
     
+    def __str__(self) -> str:
+        return f'Encoder with count {self.encoderCount}'
+    
     #function call to relase pins
     def __del__(self)->None:
         '''
