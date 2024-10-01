@@ -78,8 +78,8 @@ class SysC_BallCollection:
 
 if __name__ == "__main__":
     GPIO.setmode(GPIO.BCM) # set pin types 
-    robot = SysC_BallCollection()
-    robot.pi.set_servo_pulsewidth(robot.ConveyerPin,1800)
+    robot = SysC_BallCollection(16)
+    robot.pi.set_servo_pulsewidth(robot.ConveyerPin,500)
 
     sleep(1)
     robot.pi.set_servo_pulsewidth(robot.ConveyerPin,0)
