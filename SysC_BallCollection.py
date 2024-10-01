@@ -1,5 +1,6 @@
-from gpiozero import Button, Servo # for detecting colltion of balls
-import RPi.GPIO as GPIO # for use of motors 
+from gpiozero import Button, AngularServo # for detecting colltion of balls
+import RPi.GPIO as GPIO # for use of motors
+import pigpio
 
 import GLOBALSM1 # for which pins to use 
 
@@ -22,9 +23,13 @@ class SysC_BallCollection:
         '''Flag to indicate that the system is full'''
 
         #set up servo 
-        self.Servo = Servo(ConveyerPin) # set a pwm
+        self.ConveyerPin = ConveyerPin
+        self.pi = pigpio.pi() 
+        if not self.pi.connected:
+            print("error")
+            exit() 
+        self.pi.set_servo_pulsewidth(self.ConveyerPin,0) # set pin to start at 0
         '''Servo pin that controls the conveyer'''
-        self.Servo.value=0.5 # stop the servo to prevent accidental movement
 
         #set up the button to detect a ball
         self.BallButton = Button(ButtonPin, pull_up=True) # high = logic 1, low = logic 0 
@@ -48,16 +53,16 @@ class SysC_BallCollection:
 
         Outputs:    True if the number of balls is the maximum for the system'''
 
-        self.Servo.min() #run the conveyer
+        self.Servo.angle = 150 #run the conveyer
         sleep(SysC_BallCollection.LOADTIME) # run the conveyer for the correct amount of time 
-        self.Servo.value = 0.5 # stop the conveyer 
+        self.Servo.angle = 90 # stop the conveyer 
         return self.ballCount >=SysC_BallCollection.MAXBALLS # check if the system is full
     
     def unloadBalls(self)->None:
         '''Unloads the system of balls and resets the ball count'''
-        self.Servo.value =0.9 # run the conveyer
+        self.Servo.angle = 150 # run the conveyer
         sleep(SysC_BallCollection.UNLOADTIME) # wait for a full period of the tracks 
-        self.Servo.value =0.5 # stop the servo
+        self.Servo.angle = 150 # stop the servo
         self._ResetBallCount() # reset the ball count
 
     def __str__(self)->str:
@@ -66,12 +71,16 @@ class SysC_BallCollection:
 
     def __del__(self)->None:
         '''Deletes the class instance and releases the pins'''
-        self.Servo.value = 0.5 # stops the motor to prevent unexpected movement
         self.BallButton.close() # release the pin
+        self.pi.set_servo_pulsewidth(self.ConveyerPin,0)
+        self.pi.stop() # close the pi connection 
 
 
 if __name__ == "__main__":
     GPIO.setmode(GPIO.BCM) # set pin types 
     robot = SysC_BallCollection()
-    robot.addBallToSystem()
+    robot.pi.set_servo_pulsewidth(robot.ConveyerPin,1800)
+
+    sleep(1)
+    robot.pi.set_servo_pulsewidth(robot.ConveyerPin,0)
     del robot
