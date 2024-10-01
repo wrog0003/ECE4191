@@ -281,6 +281,16 @@ class SysB_MotorPos:
     
     
     def testing(self)->None:
+        '''Basic calibration test to ensure that the correct motor pins and encoder pins are connected
+        
+        Should do the following:
+        1. go forwards
+        2. go backwards
+        3. turn left
+        4. turn right
+        
+        prints should show locations and rotations that match these movements
+        '''
         robot.forwards(30)
         robot.delay(1)
         robot.stop()
