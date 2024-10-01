@@ -468,7 +468,6 @@ class Sys5_Control:
                 
                 else: # move to the ball 
 
-                    #print("FOUND")
 
                     # Ball AHEAD
                     if (direction == DIRECTION.Ahead):
@@ -621,7 +620,7 @@ class Sys5_Control:
         self._delay(0.5) 
         
         
-    def lineFoundResponse (self):
+    def lineFoundResponse (self)->None:
         
         '''
         Controls the response if the Vision System detects a line/boundary 
@@ -646,6 +645,7 @@ class Sys5_Control:
     def EncoderPulseCalulator(self, angle:float, forward_distance:float) -> list[int]:
         '''
         Calculates the number of pulses required to achieve the desired turn and forwards direction
+        
         INPUTS:
             self: the class instance 
             angle = desired angle rotation 
@@ -908,18 +908,18 @@ class Sys5_Control:
         self.Home() # once timeout had occurred return home 
 
     def CalibrationTest(self)->None:
-            self._forwards(50)
-            self._delay(2)
-            self._backwards(50)
-            self._delay(1)
-            self._turn(50,ANTICLOCKWISE)
-            self._delay(2)
-            self._turn(50,CLOCKWISE)
-            self._delay(1)
-            self._stop() 
-            print("Test run")
-            GPIO.cleanup()
-    # clear up if exited manuall
+        '''Basic calibration test to ensure all motors and encoders are connected correctly'''
+        self._forwards(50)
+        self._delay(2)
+        self._backwards(50)
+        self._delay(1)
+        self._turn(50,ANTICLOCKWISE)
+        self._delay(2)
+        self._turn(50,CLOCKWISE)
+        self._delay(1)
+        self._stop() 
+        print("Test run")
+    
 
 
 
