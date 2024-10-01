@@ -232,14 +232,20 @@ class Sys4_Vision:
         # make the middle pixels black so that it does no accidently identify a tennis ball as a line 
         # want to crop out 1/8 of the width either side of the centre of the image 
 
-        height_cropped, width_cropped = cropped_image.shape[:,2] # find the height and width of the cropped image
+        height_cropped, width_cropped = cropped_image.shape[: 2] # find the height and width of the cropped image
         centre_width = width_cropped/2 # determine the centre of image (width)
 
         # crop out 1/8 of the width either side of the centre line
-        min_width = centre_width - 1/8*width_cropped 
-        max_width = centre_width + 1/8*width_cropped 
+        min_width = centre_width - 1/4*width_cropped
+        max_width = centre_width + 1/4*width_cropped
 
-        cropped_image [0: height_cropped, min_width:max_width] = (0,0,0) # set these values be black pixels
+        # round the width values 
+        min_width = round(min_width)
+        max_width = round(max_width)
+
+        print(min_width)
+        print(max_width)
+        cropped_image [0:height_cropped, min_width:max_width] = 0 # set these values be black pixels
         
         if not self.rpi:
             cv2.imshow("cropped_image", cropped_image) # only white and black cropped image 
