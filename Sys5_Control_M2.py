@@ -688,7 +688,7 @@ class Sys5_Control:
         '''
 
         # define speed constants 
-        turn_speed = 20
+        turn_speed = 30
         forward_speed = 30
         #self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position
 
@@ -876,7 +876,8 @@ if __name__ == "__main__":
     #robot.hitBall()
     #robot.CalibrationTest()
 
-    robot.retrieveBalls()
+    #robot.retrieveBalls()
+    robot.searchPattern()
     
 
     #print(robot.error_count)
