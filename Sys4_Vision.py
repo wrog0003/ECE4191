@@ -16,6 +16,8 @@ class Sys4_Vision:
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
     lower_brown =(15, 40, 100)
     upper_brown = (50, 180, 255)
+    #lowerWhite = (320,0,90) # lower limit for white line HSV colour scheme 
+    #upperWhite = (360, 10, 100) # upper limit for white line HSV colour scheme 
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
@@ -211,14 +213,13 @@ class Sys4_Vision:
             cv2.imshow("input", original_image) #display image ONLY for debugging
 
         # convert the image to greyscale 
-        grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
+        grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2HLS)
 
-        # define threshold values for white 
-        threshold = 180 
-        max_value = 255 
+        white_lower = 180
+        white_upper = 255
 
-        _, binary_image = cv2.threshold(grey_image, threshold, max_value, cv2.THRESH_BINARY) # now the image is purely black and white
-
+        _, binary_image = cv2.threshold(grey_image, white_lower, white_upper, cv2.THRESH_BINARY) # now the image is purely black and white
+        #binary_image = cv2.inRange(original_image, white_lower, white_upper)
         # retrieve the height and width of the image 
         height, width = binary_image.shape[: 2]
 
@@ -260,8 +261,8 @@ class Sys4_Vision:
         # calculate average of white pixels 
         white_average = white_pixels/total_pixels
 
-        # if the average of white pixels is inbetween 10% or greater then there is a boundary ahead 
-        if 0.10 < white_average : # <0.35
+        # if the average of white pixels is inbetween 10% or less than 20% there is a boundary ahead 
+        if 0.10 < white_average and white_average < 0.20 : 
             LineFound = True 
             print("Line detected")
         else:
