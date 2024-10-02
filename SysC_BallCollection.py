@@ -39,6 +39,7 @@ class SysC_BallCollection:
     def IncrementBall(self,channel)->None:
         '''Callback function to increment the number of balls'''
         self.ballCount+=1 
+        self.ballFlag =True
     
     def GetBallCount(self)->int:
         '''returns the number of balls in the system'''
