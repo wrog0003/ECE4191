@@ -1,5 +1,6 @@
 from gpiozero import Button, Servo # for detecting colltion of balls
-import RPi.GPIO as GPIO # for use of motors 
+import RPi.GPIO as GPIO # for use of motors
+
 
 import GLOBALSM1 # for which pins to use 
 
@@ -9,8 +10,9 @@ from time import sleep # to enable delaying
 class SysC_BallCollection:
     '''This system deals with detecting the ball count and moving the conveyer'''
     MAXBALLS = 4 
-    LOADTIME = 0.5
+    LOADTIME = 5
     UNLOADTIME = 4
+    STOPVALUE = 0.199
     '''The maximum number of balls that the system can hold before it should return to the box'''
     def __init__(self, ConveyerPin: int= GLOBALSM1.servo1, ButtonPin:int = GLOBALSM1.button1) -> None:
         '''Sets up the variables and servo and button pins'''
@@ -22,9 +24,12 @@ class SysC_BallCollection:
         '''Flag to indicate that the system is full'''
 
         #set up servo 
-        self.Servo = Servo(ConveyerPin) # set a pwm
-        '''Servo pin that controls the conveyer'''
-        self.Servo.value=0.5 # stop the servo to prevent accidental movement
+        # self.servo = Servo(ConveyerPin)
+        # '''Servo pin that controls the conveyer'''
+        # self.servo.mid()# = SysC_BallCollection.STOPVALUE
+        GPIO.setup(ConveyerPin,GPIO.OUT)
+        self.servo = GPIO.PWM(ConveyerPin, 500)
+        self.servo.start(0)
 
         #set up the button to detect a ball
         self.BallButton = Button(ButtonPin, pull_up=True) # high = logic 1, low = logic 0 
@@ -34,6 +39,7 @@ class SysC_BallCollection:
     def IncrementBall(self,channel)->None:
         '''Callback function to increment the number of balls'''
         self.ballCount+=1 
+        self.ballFlag =True
     
     def GetBallCount(self)->int:
         '''returns the number of balls in the system'''
@@ -48,16 +54,16 @@ class SysC_BallCollection:
 
         Outputs:    True if the number of balls is the maximum for the system'''
 
-        self.Servo.min() #run the conveyer
+        self.servo.start(50) #run the conveyer
         sleep(SysC_BallCollection.LOADTIME) # run the conveyer for the correct amount of time 
-        self.Servo.value = 0.5 # stop the conveyer 
+        self.servo.stop() # stop the conveyer 
         return self.ballCount >=SysC_BallCollection.MAXBALLS # check if the system is full
     
     def unloadBalls(self)->None:
         '''Unloads the system of balls and resets the ball count'''
-        self.Servo.value =0.9 # run the conveyer
+        self.servo.start(50)
         sleep(SysC_BallCollection.UNLOADTIME) # wait for a full period of the tracks 
-        self.Servo.value =0.5 # stop the servo
+        self.servo.stop()
         self._ResetBallCount() # reset the ball count
 
     def __str__(self)->str:
@@ -66,12 +72,15 @@ class SysC_BallCollection:
 
     def __del__(self)->None:
         '''Deletes the class instance and releases the pins'''
-        self.Servo.value = 0.5 # stops the motor to prevent unexpected movement
         self.BallButton.close() # release the pin
+        self.servo.stop()
+        GPIO.cleanup()
 
 
 if __name__ == "__main__":
     GPIO.setmode(GPIO.BCM) # set pin types 
-    robot = SysC_BallCollection()
+    robot = SysC_BallCollection(12)
     robot.addBallToSystem()
+    
+    
     del robot

@@ -254,9 +254,8 @@ class Sys4_Vision:
         # calculate the number of white pixels 
         white_pixels = np.sum(cropped_image == 255)
 
-        height_new = height - height_min
         # calculate total number of pixels 
-        total_pixels = (height_new)*width
+        total_pixels = (height_cropped)*width_cropped
 
         # calculate average of white pixels 
         white_average = white_pixels/total_pixels

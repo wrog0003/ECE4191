@@ -931,8 +931,8 @@ if __name__ == "__main__":
     # actions to do, do not use anything starting with _ 
     #robot.retrieveBalls()
     #robot.CalibrationTest()
-    robot.hitBall()
-    #robot.retrieveBalls()
+    #robot.hitBall()
+    robot.retrieveBalls()
 
 
 
