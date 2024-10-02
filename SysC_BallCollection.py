@@ -1,6 +1,6 @@
 from gpiozero import Button, AngularServo # for detecting colltion of balls
 import RPi.GPIO as GPIO # for use of motors
-import pigpio
+
 
 import GLOBALSM1 # for which pins to use 
 
@@ -23,13 +23,9 @@ class SysC_BallCollection:
         '''Flag to indicate that the system is full'''
 
         #set up servo 
-        self.ConveyerPin = ConveyerPin
-        self.pi = pigpio.pi() 
-        if not self.pi.connected:
-            print("error")
-            exit() 
-        self.pi.set_servo_pulsewidth(self.ConveyerPin,0) # set pin to start at 0
+        self.servo = AngularServo(ConveyerPin)
         '''Servo pin that controls the conveyer'''
+        self.servo.angle(90)
 
         #set up the button to detect a ball
         self.BallButton = Button(ButtonPin, pull_up=True) # high = logic 1, low = logic 0 
@@ -72,8 +68,7 @@ class SysC_BallCollection:
     def __del__(self)->None:
         '''Deletes the class instance and releases the pins'''
         self.BallButton.close() # release the pin
-        self.pi.set_servo_pulsewidth(self.ConveyerPin,0)
-        self.pi.stop() # close the pi connection 
+        self.servo.close()
 
 
 if __name__ == "__main__":
