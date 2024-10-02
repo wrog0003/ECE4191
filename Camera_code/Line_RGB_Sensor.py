@@ -26,3 +26,14 @@ def read_colour():
     print(f"Raw Colour Data - Red:{r}, Green:{g}, Blue: {b}, Clear:{c}")
 
 
+if __name__ == "__main__":
+    from time import sleep 
+    try:
+        while(True):
+            read_colour()
+                    
+            sleep(0.1) #reduce load
+    except KeyboardInterrupt:
+        GPIO.cleanup() 
+    
+
