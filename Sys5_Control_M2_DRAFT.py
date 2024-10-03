@@ -933,7 +933,8 @@ if __name__ == "__main__":
     # actions to do, do not use anything starting with _ 
     #robot.CalibrationTest()
     #robot.hitBall()
-    robot.retrieveBalls()
+    #robot.retrieveBalls()
+    robot.goToBox()
     #robot.searchPattern()
 
 
