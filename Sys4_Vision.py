@@ -14,7 +14,7 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
-    lower_brown =(15, 40, 100)
+    lower_brown =(15, 40, 30) #V was 100
     upper_brown = (50, 180, 255)
     #lowerWhite = (320,0,90) # lower limit for white line HSV colour scheme 
     #upperWhite = (360, 10, 100) # upper limit for white line HSV colour scheme 
@@ -42,7 +42,7 @@ class Sys4_Vision:
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
-            self.cap =cv2.VideoCapture(0, cv2.CAP_DSHOW) 
+            self.cap =cv2.VideoCapture(1, cv2.CAP_DSHOW) 
             print("accesed")
         result, image = self.cap.read() # get the first image 
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
@@ -295,9 +295,9 @@ if __name__ == "__main__":
         if key == 27: #ESC Key to exit
             break
         
-        result = looker.detect()
-        result2 = looker.lineDetection()
-        
+        #result = looker.detect()
+        #result2 = looker.lineDetection()
+        result = looker.detectBox()
         print(result)
         sleep(0.2)
 
