@@ -16,8 +16,6 @@ class Sys4_Vision:
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
     lower_brown =(15, 40, 30) #V was 100
     upper_brown = (50, 180, 255)
-    #lowerWhite = (320,0,90) # lower limit for white line HSV colour scheme 
-    #upperWhite = (360, 10, 100) # upper limit for white line HSV colour scheme 
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
@@ -42,7 +40,7 @@ class Sys4_Vision:
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
-            self.cap =cv2.VideoCapture(1, cv2.CAP_DSHOW) 
+            self.cap =cv2.VideoCapture(0, cv2.CAP_DSHOW) 
             print("accesed")
         result, image = self.cap.read() # get the first image 
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
@@ -206,14 +204,14 @@ class Sys4_Vision:
             5. calculates the fraction of white pixels
             6. if more than 10% is white, then consider that is is close to a boundary '''
 
-        # get  the image 
+        # get  the image from the camera 
         original_image = self.image
 
         if not self.rpi:
             cv2.imshow("input", original_image) #display image ONLY for debugging
 
         # convert the image to greyscale 
-        grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2HLS)
+        grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
 
         white_lower = 180
         white_upper = 255
@@ -224,50 +222,47 @@ class Sys4_Vision:
         height, width = binary_image.shape[: 2]
 
         # crop image so that only bottom third is being analysed
-        crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
-        height_min = int(height*crop_amount) # minimum pixel height 
+        #crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
+        #height_min = int(height*crop_amount) # minimum pixel height 
 
         # crop the image
-        cropped_image = binary_image[height_min:height, 0:width] 
+        #cropped_image = binary_image[height_min:height, 0:width] 
 
         # make the middle pixels black so that it does no accidently identify a tennis ball as a line 
         # want to crop out 1/8 of the width either side of the centre of the image 
 
-        height_cropped, width_cropped = cropped_image.shape[: 2] # find the height and width of the cropped image
-        centre_width = width_cropped/2 # determine the centre of image (width)
+        #height_cropped, width_cropped = cropped_image.shape[: 2] # find the height and width of the cropped image
+        #centre_width = width_cropped/2 # determine the centre of image (width)
 
         # crop out 1/8 of the width either side of the centre line
-        min_width = centre_width - 1/4*width_cropped
-        max_width = centre_width + 1/4*width_cropped
+        #min_width = centre_width - 1/4*width_cropped
+        #max_width = centre_width + 1/4*width_cropped
 
         # round the width values 
-        min_width = round(min_width)
-        max_width = round(max_width)
+        #min_width = round(min_width)
+        #max_width = round(max_width)
 
-        print(min_width)
-        print(max_width)
-        cropped_image [0:height_cropped, min_width:max_width] = 0 # set these values be black pixels
+        #cropped_image [0:height_cropped, min_width:max_width] = 0 # set these values be black pixels
         
         if not self.rpi:
-            cv2.imshow("cropped_image", cropped_image) # only white and black cropped image 
+            cv2.imshow("cropped_image", binary_image) # only white and black cropped image 
 
         # calculate the number of white pixels 
-        white_pixels = np.sum(cropped_image == 255)
+        white_pixels = np.sum(binary_image == 255)
 
         # calculate total number of pixels 
-        total_pixels = (height_cropped)*width_cropped
+        total_pixels = height*width
 
         # calculate average of white pixels 
         white_average = white_pixels/total_pixels
+        print(white_average)
 
-        # if the average of white pixels is inbetween 10% or less than 20% there is a boundary ahead 
-        if 0.10 < white_average and white_average < 0.20 : 
+        # if the average of white pixels is greater than 20% boundary line has been crossed 
+        if 0.2 < white_average:
             LineFound = True 
             print("Line detected")
         else:
             LineFound = False 
-        if white_average >0.01:
-            print(f'Line average ={white_average}\n')
         return LineFound
 
     def saveImage(self):
@@ -295,9 +290,9 @@ if __name__ == "__main__":
         if key == 27: #ESC Key to exit
             break
         
-        #result = looker.detect()
-        #result2 = looker.lineDetection()
-        result = looker.detectBox()
+        result = looker.detect()
+        result2 = looker.lineDetection()
+        #result = looker.detectBox()
         print(result)
         sleep(0.2)
 
