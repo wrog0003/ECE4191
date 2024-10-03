@@ -116,14 +116,14 @@ class Sys5_Control:
         self.RActivePin = None # allows correct motor access to the controller 
 
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
-        self.capacity = 3 # Maximum number of tennis balls that can be stored in the conveyor system. 
+        self.capacity = 2 # Maximum number of tennis balls that can be stored in the conveyor system. 
         self.numBalls = 0 # Number of balls collected by the robot on any given run.  
 
 
         # Timeout flag to tell the robot when to return to home and how long it should collect and deposit balls for 
         self.timeout = False 
         
-        self.endtime = time() + 60 
+        self.endtime = time() + 60*4
         ''' sets the time at which the robot will stop search for balls and depoit them'''
 
             
@@ -195,7 +195,7 @@ class Sys5_Control:
         # duty cycle = controls speed of robot (0 - 100)
         # bool = dirction to turn, clockwise or anticlockwise 
         # output: return the state of the robot
-
+        
         if clockWise: # turn clockwise 
             self.pwm1a.start(0)
             self.pwm2b.start(0)
@@ -212,6 +212,7 @@ class Sys5_Control:
             self.duty_cycle = duty_cycle
             self.RActivePin = self.pwm2b
             return ACTION.LEFT
+        
 
     def _stop(self)->None: # stop movement of robot
         '''
@@ -438,7 +439,7 @@ class Sys5_Control:
             pauseTime = 0.1
 
         else: # ball is in field of view but is either left or right
-            speed = 20
+            speed = 30
             pauseTime = 0.1
         
         return direction, speed, pauseTime, noHit, line_detected
@@ -537,7 +538,7 @@ class Sys5_Control:
             pauseTime = 0.1
 
         else: # ball is in field of view but is either left or right
-            speed = 15
+            speed = 30
             pauseTime = 0.1
         
         return direction, speed, pauseTime, noHit, line_detected
@@ -733,7 +734,6 @@ class Sys5_Control:
                 self._delay(0.02)
 
             self._stop()
-            GPIO.cleanup()
 
         except KeyboardInterrupt:
             self.__del__()
@@ -828,7 +828,7 @@ class Sys5_Control:
         print('running search pattern')
 
         # define speed constants 
-        turn_speed = 20
+        turn_speed = 30
         forward_speed = 30
         #self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position
 
@@ -839,13 +839,14 @@ class Sys5_Control:
 
             while(direction == DIRECTION.CannotFind):
                 # turn anticlocwise, +ve in our coordinate system for 0.2 seconds 
+                turn_speed = 50
                 self.State = self._turn(turn_speed, ANTICLOCKWISE) 
-                sleep(0.2)
-                self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position 
-
-                if (self.rot >= 90): # if we have rotated more than 90 degrees 
+                self._delay(0.2)
+                print(self.duty_cycle)
+                if (self.rot >= 179): # if we have rotated more than 90 degrees 
                     angle = - self.rot 
-                    forward_distance = 2 
+                    print(angle)
+                    forward_distance = 0.5 
 
                     # call function that determines the number of pulses required to achieve desired movement 
                     #angle_numPulses, forward_numPulses = self.EncoderPulseCalulator(angle, forward_distance)
@@ -856,7 +857,9 @@ class Sys5_Control:
                     self.forwardsDistance(forward_speed,forward_distance)
                     #Print out location reached based on encoders
                     print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
-                    (direction, line_detected, distance)= self.vision.detect() # run vision check
+
+                (direction, line_detected, distance)= self.vision.detect() # run vision check
+
 
         except KeyboardInterrupt:
             self.__del__() 
@@ -873,8 +876,7 @@ class Sys5_Control:
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
-        try:
-            # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
+                   # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
             self.numBalls += 1 #increment number of balls collected. 
             print('ball collected')
             print(self.numBalls)
@@ -887,9 +889,6 @@ class Sys5_Control:
                 self.toBoxandDeposit()'''
 
             return
-
-        except KeyboardInterrupt:
-            self.__del__() 
             
     # Method that gets the robot to search for a ball and collect a ball and continue searching, collection and depositing until the timer timesout
     def retrieveBalls(self) -> None:
@@ -901,22 +900,25 @@ class Sys5_Control:
                 self.searchPattern() # search for the ball
                 print('Search Pattern Complete')
                 self.hitBall() # collect the ball 
+                print('ball hit')
+                self.numBalls+=1
             self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
-            self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
+            #self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
             self.numBalls = 0 # reset the number of balls collected to zero 
 
         self.Home() # once timeout had occurred return home 
 
     def CalibrationTest(self)->None:
         '''Basic calibration test to ensure all motors and encoders are connected correctly'''
-        self._forwards(50)
-        self._delay(2)
+        #self._forwards(50)
+        #self._delay(2)
+        
         self._backwards(50)
-        self._delay(1)
+        self._delay(3)
         self._turn(50,ANTICLOCKWISE)
         self._delay(2)
         self._turn(50,CLOCKWISE)
-        self._delay(1)
+        self._delay(2)
         self._stop() 
         print("Test run")
     
@@ -929,10 +931,10 @@ if __name__ == "__main__":
     robot = Sys5_Control()
 
     # actions to do, do not use anything starting with _ 
-    #robot.retrieveBalls()
     #robot.CalibrationTest()
     #robot.hitBall()
     robot.retrieveBalls()
+    #robot.searchPattern()
 
 
 
