@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-#import RPi.GPIO as GPIO
-#from gpiozero import Button
 from ECE4191enums import STATE, DIRECTION, ACTION  # Importing Enums
 import time
 
@@ -9,10 +7,9 @@ global robot_state
 
 # GPIO Setup for limit switch
 LIMIT_SWITCH_PIN = 17  # Adjust according to your setup
-#limit_switch = Button(LIMIT_SWITCH_PIN)
 
 # Setup camera
-cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)  # Assuming you're using the default camera
+cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)  # Assuming you're using the default camera
 
 # Known width of the line in the real world (in cm)
 KNOWN_WIDTH = 2.0  # Adjust to the actual width of the line
@@ -26,26 +23,27 @@ current_direction = DIRECTION.CannotFind
 current_action = ACTION.FORWARD
 
 def find_line(frame):
-    """ Detect the white line in the frame using HSL color space """
+    """ Detect the white line in the frame using grayscale and binary thresholding """
     global current_direction
-    # Convert to HSL color space to detect the white color of the line
-    hsl = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
 
-    # Define the white color range in HSL
-    lower_white = np.array([0, 240, 0])  # Lower bound for white (reduced lightness)
-    upper_white = np.array([180, 255, 255])  # Upper bound for white
+    # Convert to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Mask for the white color
-    mask = cv2.inRange(hsl, lower_white, upper_white)
+    # Define the threshold range for detecting white
+    white_lower = 235  # Adjust based on lighting conditions
+    white_upper = 255
+
+    # Apply binary thresholding to detect white regions
+    _, binary_image = cv2.threshold(gray, white_lower, white_upper, cv2.THRESH_BINARY)
 
     # Apply some morphological operations to reduce noise
     kernel = np.ones((5, 5), np.uint8)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    binary_image = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel)
+    binary_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel)
 
-    # Find contours
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.imshow("Mask", mask)
+    # Find contours in the binary image
+    contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.imshow("Binary Image", binary_image)
 
     if contours:
         # Find the largest contour (which is likely the line)
@@ -84,16 +82,7 @@ def calculate_distance(line_width):
 def robot_logic(line):
     '''
         Calls the vision system and determines the direction that the robot needs to move, 
-        the distance to the line and if the robot will reach the line in the next move 
-
-        INPUTS
-            line: the line image captured from the camera
-
-        OUTPUTS
-            direction = direction that the robot is relative to the line
-            speed = speed that the robot should travel at in the next time step
-            pauseTime = how long the robot should travel at this speed for 
-            noHit = whether the line will be reached by performing this movement 
+        the distance to the line and if the robot will reach the line in the next move.
     '''
     global robot_state, current_action
 
