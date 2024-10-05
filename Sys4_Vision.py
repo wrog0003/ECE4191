@@ -3,7 +3,9 @@
 import cv2
 from ECE4191enums import DIRECTION
 import numpy as np
-
+import adafruit_tcs34725
+import board
+import busio
 
 class Sys4_Vision:
     '''
@@ -14,7 +16,7 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
-    lower_brown =(15, 40, 30) #V was 100
+    lower_brown =(15, 40, 50) #V was 100
     upper_brown = (50, 180, 255)
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
@@ -23,6 +25,8 @@ class Sys4_Vision:
     # /TODO NEED TO ADJUST FOR ACTUAL BOX DIMENSIONS
     boxLength = 0.10
     boxWidth = 0.20
+
+    
 
     #init
     def __init__(self, rpi: bool = True, tolerance: int =50 )-> None:
@@ -49,6 +53,8 @@ class Sys4_Vision:
         '''Variable to store the image captured '''
         self.aspcectRatioBall = Sys4_Vision.known_radius*Sys4_Vision.focal_length
         self.aspcectRatioBox = Sys4_Vision.boxLength*Sys4_Vision.focal_length
+
+        
         
     #detect
     def detect(self)->tuple[DIRECTION,bool,float]:
@@ -196,74 +202,25 @@ class Sys4_Vision:
 
     def lineDetection(self)-> bool:
         '''Returns if a line was detected
-        it follows the following method 
-            1. converts the image to grey scale
-            2. thresholds the image to check if the section is whiteish
-            3. crops the image to reduce the amount of data
-            4. gets the number of white pixels (blob stats)
-            5. calculates the fraction of white pixels
-            6. if more than 10% is white, then consider that is is close to a boundary '''
+        '''
 
-        # get  the image from the camera 
-        original_image = self.image
+        # Parameters/setup for colour sensor
+        # set up I2C communication with the sensor
+        i2c = busio.I2C(board.SCL, board.SDA)
 
-        if not self.rpi:
-            cv2.imshow("input", original_image) #display image ONLY for debugging
+        # create a colour sensor oject
+        sensor = adafruit_tcs34725.TCS34725(i2c)
 
-        # convert the image to greyscale 
-        grey_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
+        # enable the sensor's internal LED for better colour reading 
+        sensor.enable_led = True
+        # get the RGB values that the sensor is reading 
 
-        white_lower = 180
-        white_upper = 255
+        r, g, b, c = sensor.color_raw 
 
-        _, binary_image = cv2.threshold(grey_image, white_lower, white_upper, cv2.THRESH_BINARY) # now the image is purely black and white
-        #binary_image = cv2.inRange(original_image, white_lower, white_upper)
-        # retrieve the height and width of the image 
-        height, width = binary_image.shape[: 2]
+        # clear refers to the measurement of total light intensity falling on the sensor
 
-        # crop image so that only bottom third is being analysed
-        #crop_amount = 0.66 # percentage of image height to crop out THIS VALUE MIGHT NEED TO BE ADJUSTED WHEN CAMERA IS MOUNTED 
-        #height_min = int(height*crop_amount) # minimum pixel height 
-
-        # crop the image
-        #cropped_image = binary_image[height_min:height, 0:width] 
-
-        # make the middle pixels black so that it does no accidently identify a tennis ball as a line 
-        # want to crop out 1/8 of the width either side of the centre of the image 
-
-        #height_cropped, width_cropped = cropped_image.shape[: 2] # find the height and width of the cropped image
-        #centre_width = width_cropped/2 # determine the centre of image (width)
-
-        # crop out 1/8 of the width either side of the centre line
-        #min_width = centre_width - 1/4*width_cropped
-        #max_width = centre_width + 1/4*width_cropped
-
-        # round the width values 
-        #min_width = round(min_width)
-        #max_width = round(max_width)
-
-        #cropped_image [0:height_cropped, min_width:max_width] = 0 # set these values be black pixels
+        print(f"Raw Colour Data - Red:{r}, Green:{g}, Blue: {b}, Clear:{c}")
         
-        if not self.rpi:
-            cv2.imshow("cropped_image", binary_image) # only white and black cropped image 
-
-        # calculate the number of white pixels 
-        white_pixels = np.sum(binary_image == 255)
-
-        # calculate total number of pixels 
-        total_pixels = height*width
-
-        # calculate average of white pixels 
-        white_average = white_pixels/total_pixels
-        print(white_average)
-
-        # if the average of white pixels is greater than 20% boundary line has been crossed 
-        if 0.2 < white_average:
-            LineFound = True 
-            print("Line detected")
-        else:
-            LineFound = False 
-        return LineFound
 
     def saveImage(self):
         '''Saves the image as outputImage.jpg so that you can look at the camera feed'''
@@ -281,7 +238,7 @@ class Sys4_Vision:
 
 if __name__ == "__main__":
     from time import sleep
-    looker = Sys4_Vision(False)
+    looker = Sys4_Vision(True)
     sleep(0.5) # wait for camera
     
     while True:
@@ -291,9 +248,9 @@ if __name__ == "__main__":
             break
         
         #result = looker.detect()
-        #result2 = looker.lineDetection()
-        result = looker.detectBox()
-        print(result)
+        result2 = looker.lineDetection()
+        #result = looker.detectBox()
+        print(result2)
         sleep(0.2)
 
     looker.disconnect() 

@@ -5,7 +5,7 @@ class CameraTest:
         self.rpi = rpi # define which OS is running
         if rpi:
             self.cap = cv2.VideoCapture(0) # Logitech webcam for ball and box detection
-            self.cap2 = cv2.VideoCapture(1) # Pi Cam for line detection
+            self.cap2 = cv2.VideoCapture(3) # Pi Cam for line detection
         else:
             self.cap =cv2.VideoCapture(0, cv2.CAP_DSHOW) # Logitech webcam for ball and box detection
             self.cap2 = cv2.VideoCapture (1, cv2.CAP_DSHOW) # Pi Cam for line detection
@@ -14,6 +14,7 @@ class CameraTest:
     
     def test(self) -> None:
 
+        
         ret1, image1 = self.cap.read()
         ret2, image2 = self.cap2.read()
 

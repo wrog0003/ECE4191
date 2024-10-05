@@ -50,7 +50,9 @@ servo3 = 20
 servo4 = 21
 
 # button pins
-button1 = 9
 button2 = 10
 button3 = 11
 button4 = 22
+
+# Front Limit Switch Pin 
+button1 = 9
