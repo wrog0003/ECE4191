@@ -880,17 +880,10 @@ class Sys5_Control:
 
     # Method to keep track of the number of balls in the conveyor. Will call the return to home and deposit function once capacity is full. 
     def ballsCollectedTracker(self) -> None:
-                   # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
+            # Called everytime a ball is collected and stored in the conveyor. Called by an interrupt on pin 4. 
             self.numBalls += 1 #increment number of balls collected. 
             print('ball collected')
             print(self.numBalls)
-
-
-            '''if self.numBalls < self.capacity: # Robot can continue searching for another ball.
-                return 
-
-            else: # Robot is at capacity and must go to box to deposit the balls
-                self.toBoxandDeposit()'''
 
             return
             
