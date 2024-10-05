@@ -290,9 +290,9 @@ if __name__ == "__main__":
         if key == 27: #ESC Key to exit
             break
         
-        result = looker.detect()
-        result2 = looker.lineDetection()
-        #result = looker.detectBox()
+        #result = looker.detect()
+        #result2 = looker.lineDetection()
+        result = looker.detectBox()
         print(result)
         sleep(0.2)
 
