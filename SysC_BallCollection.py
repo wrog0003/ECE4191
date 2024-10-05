@@ -38,6 +38,7 @@ class SysC_BallCollection:
 
     def IncrementBall(self,channel)->None:
         '''Callback function to increment the number of balls'''
+        print('Ball Collected')
         self.ballCount+=1 
         self.ballFlag =True
     
@@ -53,8 +54,8 @@ class SysC_BallCollection:
         '''Moves the conveyer enough to lock a ball into the system
 
         Outputs:    True if the number of balls is the maximum for the system'''
-
-        self.servo.start(50) #run the conveyer
+        print('Here')
+        self.servo.start(30) #run the conveyer
         sleep(SysC_BallCollection.LOADTIME) # run the conveyer for the correct amount of time 
         self.servo.stop() # stop the conveyer 
         return self.ballCount >=SysC_BallCollection.MAXBALLS # check if the system is full

@@ -12,7 +12,9 @@ from math import pi, atan2, sqrt, sin, cos
 from typing import Tuple
 
 import RPi.GPIO as GPIO
-import GLOBALSM1 # for physical values of the robot i.e. wheel diameter, distance b/w wheeels etc   
+import GLOBALSM1 # for physical values of the robot i.e. wheel diameter, distance b/w wheeels etc 
+
+from SysC_BallCollection import SysC_BallCollection
 
 # Define important variables 
 
@@ -126,6 +128,8 @@ class Sys5_Control:
         self.endtime = time() + 60*4
         ''' sets the time at which the robot will stop search for balls and depoit them'''
 
+        self.ballCollection = SysC_BallCollection()
+        '''Deals with running the conveyor and keeping track of the balls collected. Uses pin 12 for detection of balls on front switch'''
             
     def _forwards(self,duty_cycle:float)->ACTION:
         '''
@@ -931,10 +935,12 @@ if __name__ == "__main__":
     robot = Sys5_Control()
 
     # actions to do, do not use anything starting with _ 
-    #robot.CalibrationTest()
+    robot.CalibrationTest()
+    #robot._backwards(90)
+    #robot._delay(5)
     #robot.hitBall()
     #robot.retrieveBalls()
-    robot.goToBox()
+    #robot.goToBox()
     #robot.searchPattern()
 
 
