@@ -10,7 +10,7 @@ from time import sleep # to enable delaying
 class SysC_BallCollection:
     '''This system deals with detecting the ball count and moving the conveyer'''
     MAXBALLS = 4 
-    LOADTIME = 5
+    LOADTIME = 1
     UNLOADTIME = 4
     STOPVALUE = 0.199
     '''The maximum number of balls that the system can hold before it should return to the box'''
@@ -38,6 +38,7 @@ class SysC_BallCollection:
 
     def IncrementBall(self,channel)->None:
         '''Callback function to increment the number of balls'''
+        print('Ball Collected')
         self.ballCount+=1 
         self.ballFlag =True
     
@@ -53,8 +54,8 @@ class SysC_BallCollection:
         '''Moves the conveyer enough to lock a ball into the system
 
         Outputs:    True if the number of balls is the maximum for the system'''
-
-        self.servo.start(50) #run the conveyer
+        print('Here')
+        self.servo.start(20) #run the conveyer
         sleep(SysC_BallCollection.LOADTIME) # run the conveyer for the correct amount of time 
         self.servo.stop() # stop the conveyer 
         return self.ballCount >=SysC_BallCollection.MAXBALLS # check if the system is full
@@ -81,6 +82,7 @@ if __name__ == "__main__":
     GPIO.setmode(GPIO.BCM) # set pin types 
     robot = SysC_BallCollection(12)
     robot.addBallToSystem()
+
     
     
     del robot
