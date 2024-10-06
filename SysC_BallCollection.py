@@ -10,7 +10,7 @@ from time import sleep # to enable delaying
 class SysC_BallCollection:
     '''This system deals with detecting the ball count and moving the conveyer'''
     MAXBALLS = 4 
-    LOADTIME = 3
+    LOADTIME = 2
     UNLOADTIME = 3
     STOPVALUE = 0.199
     '''The maximum number of balls that the system can hold before it should return to the box'''
@@ -55,7 +55,7 @@ class SysC_BallCollection:
 
         Outputs:    True if the number of balls is the maximum for the system'''
         print('Here')
-        self.servo.start(20) #run the conveyer
+        self.servo.start(50) #run the conveyer
         sleep(SysC_BallCollection.LOADTIME) # run the conveyer for the correct amount of time 
         self.servo.stop() # stop the conveyer 
         return self.ballCount >=SysC_BallCollection.MAXBALLS # check if the system is full
