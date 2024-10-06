@@ -10,8 +10,8 @@ from time import sleep # to enable delaying
 class SysC_BallCollection:
     '''This system deals with detecting the ball count and moving the conveyer'''
     MAXBALLS = 4 
-    LOADTIME = 1
-    UNLOADTIME = 4
+    LOADTIME = 3
+    UNLOADTIME = 3
     STOPVALUE = 0.199
     '''The maximum number of balls that the system can hold before it should return to the box'''
     def __init__(self, ConveyerPin: int= GLOBALSM1.servo1, ButtonPin:int = GLOBALSM1.button1) -> None:

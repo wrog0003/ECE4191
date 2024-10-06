@@ -90,6 +90,10 @@ class Sys5_Control:
         self.ballDetected = Button(22, pull_up=True, bounce_time = 0.02)
 
         self.ballDetected.when_pressed = self.ballsCollectedTracker
+
+        self.boxHit = Button(10, pull_up=True, bounce_time = 0.02)
+        self.boxHit.when_pressed = self.boxHit
+        self.boxHasBeenHit = False 
         
         # initalise the vision system
         self.vision = Sys4_Vision()
@@ -497,8 +501,14 @@ class Sys5_Control:
                 self._stop() # stop movement of robot temporarily until next action is determined
                 # get position of robot 
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+
+                if (self.timeout):
+                    self._stop()
+                    break
             
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
+
+            
 
         
         except KeyboardInterrupt: 
@@ -644,6 +654,7 @@ class Sys5_Control:
         # make the robot turn this angle
         self.turnAngle(speed, angle)
 
+
         return 
  
     # calculates the number of pulses required to achieve the desired turn and forwards direction
@@ -703,6 +714,9 @@ class Sys5_Control:
 
             while (self.EncoderL.encoderCount < angle_numPulses):
                 self._delay(0.02)
+                if (self.timeout):
+                    self._stop()
+                    break
 
             self._stop()
             #GPIO.cleanup() shouldn't clean up at this point
@@ -736,6 +750,9 @@ class Sys5_Control:
 
             while (self.EncoderL.encoderCount <forward_numPulses):# keep going fowards until you reach the desired number of pulses 
                 self._delay(0.02)
+                if (self.timeout):
+                    self._stop()
+                    break
 
             self._stop()
 
@@ -863,16 +880,30 @@ class Sys5_Control:
                     print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
                 (direction, line_detected, distance)= self.vision.detect() # run vision check
+                if (self.timeout):
+                    self._stop()
+                    break
 
 
         except KeyboardInterrupt:
             self.__del__() 
-    
+
+    def boxHit(self,channel)-> None:
+        self.boxHasBeenHit = True
+
+
     def Deposit(self) -> None:
         try:
             self.turnAngle(30, 180) # Performs a rotation of 180 degrees so the robot can unload the balls from the rear. 
         
-            # TODO once we know conveyor driving hardware eg. pins #
+            while not self.boxHasBeenHit:
+                #Reverse
+                self._backwards(30)
+                self._delay(0.2)
+
+            self.boxHasBeenHit = False
+            self.ballCollection.unloadBalls()
+
 
         except KeyboardInterrupt:
             self.__del__() 
@@ -893,17 +924,16 @@ class Sys5_Control:
         
         while self.timeout == False:
         # while the timeout flag has NOT been set 
-            while (self.numBalls < self.capacity): # while we still have capacity to collect balls
+            while (self.numBalls < self.capacity and self.timeout == False): # while we still have capacity to collect balls
                 self.searchPattern() # search for the ball
                 print('Search Pattern Complete')
                 self.hitBall() # collect the ball 
                 print('ball hit')
-                self.numBalls+=1
             self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
-            #self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
+            self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
             self.numBalls = 0 # reset the number of balls collected to zero 
 
-        self.Home() # once timeout had occurred return home 
+         
 
     def CalibrationTest(self)->None:
         '''Basic calibration test to ensure all motors and encoders are connected correctly'''
@@ -928,11 +958,11 @@ if __name__ == "__main__":
     robot = Sys5_Control()
 
     # actions to do, do not use anything starting with _ 
-    robot.CalibrationTest()
+    #robot.CalibrationTest()
     #robot._backwards(90)
     #robot._delay(5)
     #robot.hitBall()
-    #robot.retrieveBalls()
+    robot.retrieveBalls()
     #robot.goToBox()
     #robot.searchPattern()
 
