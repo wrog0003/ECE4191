@@ -5,6 +5,7 @@ from Motor_code.encoderClass import SimpleEncoder
 from Sys4_Vision import Sys4_Vision
 from Box_detection.box_detection import find_and_goto_box
 from gpiozero import Button
+from SysC_BallCollection import SysC_BallCollection
 
 from time import sleep, time 
 from math import pi, atan2, sqrt, sin, cos
@@ -122,6 +123,7 @@ class Sys5_Control:
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
         self.capacity = 2 # Maximum number of tennis balls that can be stored in the conveyor system. 
         self.numBalls = 0 # Number of balls collected by the robot on any given run.  
+        self.ballCollection = SysC_BallCollection(12,9)
 
 
         # Timeout flag to tell the robot when to return to home and how long it should collect and deposit balls for 
@@ -245,16 +247,7 @@ class Sys5_Control:
         del self.vision  
     
     # Release all Pins
-    # def release(self)->None:
-    #     '''
-    #     This function disconnects from connected peripherals to prevent the devices from preventing reconnection.
 
-    #     It stops the motors, disconnects the camera and disconnects the GPIO
-    #     '''
-    #     self._stop()
-    #     self.vision.disconnect()
-    #     GPIO.cleanup()
-    #     sleep(0.1) # ensure that every peripheral is released 
 
     # Position tracking 
     def _updatePos(self, x_old:float, y_old:float, rot_old:float)->list[float]:
@@ -354,7 +347,7 @@ class Sys5_Control:
         '''
 
         if time() >= self.endtime:
-            self.stopflag = True 
+            self.timeout = True 
         
         internalTime = 0
         cameraTime = 0
@@ -599,6 +592,9 @@ class Sys5_Control:
                 self._stop() # stop movement of robot temporarily until next action is determined
                 # get position of robot 
                 self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot)
+                if self.timeout:
+                    self._stop()
+                    break # exit while loop
             
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
@@ -712,7 +708,7 @@ class Sys5_Control:
                 self._delay(0.02)
                 if (self.timeout):
                     self._stop()
-                    break
+                    break # exit loop to account for timeout
 
             self._stop()
             #GPIO.cleanup() shouldn't clean up at this point
@@ -897,10 +893,10 @@ class Sys5_Control:
                 self._backwards(30)
                 self._delay(0.2)
 
-            self.boxHasBeenHit = False
-            self.ballCollection.unloadBalls()
+            self.boxHasBeenHit = False # reset flag
+            self.ballCollection.unloadBalls() #unload all balls
 
-
+            
         except KeyboardInterrupt:
             self.__del__() 
     
@@ -935,6 +931,16 @@ class Sys5_Control:
             self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
             self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
             self.numBalls = 0 # reset the number of balls collected to zero 
+        self.timeout = False # reset timeout so that goto box functions normanlly
+        if self.numBalls ==0:
+            return
+        else: 
+            self.goToBox() # goto box
+            self.Deposit() # deposit balls 
+            self._stop() # stop all motors
+            return 
+
+        #end of cycle
 
          
 
