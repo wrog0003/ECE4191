@@ -10,7 +10,7 @@ from time import sleep # to enable delaying
 class SysC_BallCollection:
     '''This system deals with detecting the ball count and moving the conveyer'''
     MAXBALLS = 4 
-    LOADTIME = 0.1
+    LOADTIME = 0.09
     UNLOADTIME = 4
     STOPVALUE = 0.199
     '''The maximum number of balls that the system can hold before it should return to the box'''
@@ -81,8 +81,8 @@ class SysC_BallCollection:
 if __name__ == "__main__":
     GPIO.setmode(GPIO.BCM) # set pin types 
     robot = SysC_BallCollection(12)
-    robot.unloadBalls()
-
+    #robot.unloadBalls()
+    robot.addBallToSystem()
     
     
     del robot

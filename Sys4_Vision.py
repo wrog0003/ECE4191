@@ -157,7 +157,7 @@ class Sys4_Vision:
                 cv2.imshow("Mask", mask)
 
             # run line detection check 
-            line_present = self.lineDetection()
+            line_present = False#self.lineDetection()
             #line_present = 0
             if contours:
                 # Find the largest contour (which is likely the box)

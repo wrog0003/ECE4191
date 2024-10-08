@@ -496,6 +496,7 @@ class Sys5_Control:
                     break
             self._forwards(speed)
             self.ballCollection.addBallToSystem()
+            self.numBalls += 1
             self._stop()
             
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
@@ -973,11 +974,14 @@ if __name__ == "__main__":
     # actions to do, do not use anything starting with _ 
     #robot.CalibrationTest()
     # robot.goToBox()
-    robot.Deposit()
+    
+    #robot.Deposit()
+    
+    #robot.Deposit()
     #robot.hitBall()
-    #robot.retrieveBalls()
-    robot.searchPattern()
-    robot.hitBall()
+    robot.retrieveBalls()
+    #robot.searchPattern()
+    #robot.hitBall()
 
 
 
