@@ -50,7 +50,7 @@ servo3 = 20
 servo4 = 21
 
 # button pins
-button2 = 10
+button2 = 10 # Rear limit switch
 button3 = 11
 button4 = 22
 

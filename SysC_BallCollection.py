@@ -10,8 +10,8 @@ from time import sleep # to enable delaying
 class SysC_BallCollection:
     '''This system deals with detecting the ball count and moving the conveyer'''
     MAXBALLS = 4 
-    LOADTIME = 2
-    UNLOADTIME = 3
+    LOADTIME = 0.1
+    UNLOADTIME = 4
     STOPVALUE = 0.199
     '''The maximum number of balls that the system can hold before it should return to the box'''
     def __init__(self, ConveyerPin: int= GLOBALSM1.servo1, ButtonPin:int = GLOBALSM1.button1) -> None:
@@ -55,14 +55,14 @@ class SysC_BallCollection:
 
         Outputs:    True if the number of balls is the maximum for the system'''
         print('Here')
-        self.servo.start(50) #run the conveyer
+        self.servo.start(60) #run the conveyer
         sleep(SysC_BallCollection.LOADTIME) # run the conveyer for the correct amount of time 
         self.servo.stop() # stop the conveyer 
         return self.ballCount >=SysC_BallCollection.MAXBALLS # check if the system is full
     
     def unloadBalls(self)->None:
         '''Unloads the system of balls and resets the ball count'''
-        self.servo.start(50)
+        self.servo.start(60)
         sleep(SysC_BallCollection.UNLOADTIME) # wait for a full period of the tracks 
         self.servo.stop()
         self._ResetBallCount() # reset the ball count
@@ -81,7 +81,7 @@ class SysC_BallCollection:
 if __name__ == "__main__":
     GPIO.setmode(GPIO.BCM) # set pin types 
     robot = SysC_BallCollection(12)
-    robot.addBallToSystem()
+    robot.unloadBalls()
 
     
     

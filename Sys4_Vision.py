@@ -23,8 +23,8 @@ class Sys4_Vision:
     
     # Parameters for the box 
     # /TODO NEED TO ADJUST FOR ACTUAL BOX DIMENSIONS
-    boxLength = 0.10
-    boxWidth = 0.20
+    boxLength = 0.35
+    boxWidth = 0.18
 
     
 

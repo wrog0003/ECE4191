@@ -88,10 +88,10 @@ class Sys5_Control:
         # Pin to receive interrupts from limit switch whenever a ball is collected
         self.ballDetected = Button(22, pull_up=True, bounce_time = 0.02)
 
-        self.ballDetected.when_pressed = self.ballsCollectedTracker
+        
 
         self.boxHit = Button(10, pull_up=True, bounce_time = 0.02)
-        self.boxHit.when_pressed = self.boxHit
+        
         self.boxHasBeenHit = False 
         
         # initalise the vision system
@@ -121,7 +121,7 @@ class Sys5_Control:
         self.RActivePin = None # allows correct motor access to the controller 
 
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
-        self.capacity = 2 # Maximum number of tennis balls that can be stored in the conveyor system. 
+        self.capacity = 4 # Maximum number of tennis balls that can be stored in the conveyor system. 
         self.numBalls = 0 # Number of balls collected by the robot on any given run.  
         self.ballCollection = SysC_BallCollection(12,9)
 
@@ -494,6 +494,9 @@ class Sys5_Control:
                 if (self.timeout):
                     self._stop()
                     break
+            self._forwards(speed)
+            self.ballCollection.addBallToSystem()
+            self._stop()
             
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
 
@@ -531,9 +534,10 @@ class Sys5_Control:
             if (distance <  0.55): # if robot is less than 0.55 m from box 
                 speed = 50 # reduce speed of robot
             
-            if (distance < 0.20): # close to box, drive forwards until in range to deposit the ball 
+            if (distance < 0.50): # close to box, drive forwards until in range to deposit the ball 
+                print("hitting")
                 speed = 50 
-                pauseTime = 2
+                pauseTime = 2.5
                 noHit = False
 
         elif (direction == DIRECTION.CannotFind):
@@ -852,7 +856,7 @@ class Sys5_Control:
 
             while(direction == DIRECTION.CannotFind):
                 # turn anticlocwise, +ve in our coordinate system for 0.2 seconds 
-                turn_speed = 50
+                turn_speed =40
                 self.State = self._turn(turn_speed, ANTICLOCKWISE) 
                 self._delay(0.2)
                 print(self.duty_cycle)
@@ -886,15 +890,15 @@ class Sys5_Control:
 
     def Deposit(self) -> None:
         try:
-            self.turnAngle(30, 180) # Performs a rotation of 180 degrees so the robot can unload the balls from the rear. 
+            
         
-            while not self.boxHasBeenHit:
-                #Reverse
-                self._backwards(30)
-                self._delay(0.2)
+            
 
-            self.boxHasBeenHit = False # reset flag
+    
             self.ballCollection.unloadBalls() #unload all balls
+            self._backwards(70)
+            self._delay(1)
+            self.turnAngle(50,179)
 
             
         except KeyboardInterrupt:
@@ -968,10 +972,12 @@ if __name__ == "__main__":
 
     # actions to do, do not use anything starting with _ 
     #robot.CalibrationTest()
-
+    # robot.goToBox()
+    robot.Deposit()
     #robot.hitBall()
     #robot.retrieveBalls()
-    #robot.searchPattern()
+    robot.searchPattern()
+    robot.hitBall()
 
 
 
