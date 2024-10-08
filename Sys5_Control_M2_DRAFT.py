@@ -121,7 +121,7 @@ class Sys5_Control:
         self.RActivePin = None # allows correct motor access to the controller 
 
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
-        self.capacity = 4 # Maximum number of tennis balls that can be stored in the conveyor system. 
+        self.capacity = 2 # Maximum number of tennis balls that can be stored in the conveyor system. 
         self.numBalls = 0 # Number of balls collected by the robot on any given run.  
         self.ballCollection = SysC_BallCollection(12,9)
 
@@ -895,7 +895,7 @@ class Sys5_Control:
         
             
 
-    
+            print('Depositing')
             self.ballCollection.unloadBalls() #unload all balls
             self._backwards(70)
             self._delay(1)
