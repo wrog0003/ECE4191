@@ -16,8 +16,8 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
-    lower_brown =(15, 40, 5) #H was 25
-    upper_brown = (50, 180, 70)
+    lower_brown = (15, 40, 50)#(15, 40, 5) #H was 25
+    upper_brown = (50, 180, 255)
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
@@ -44,7 +44,7 @@ class Sys4_Vision:
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
-            self.cap =cv2.VideoCapture(1, cv2.CAP_DSHOW) 
+            self.cap =cv2.VideoCapture(0, cv2.CAP_DSHOW) 
             print("accesed")
         result, image = self.cap.read() # get the first image 
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
