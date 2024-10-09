@@ -230,6 +230,27 @@ class Sys4_Vision:
 
         r, g, b, c = sensor.color_raw 
 
+        print('R:{r}, G:{g}, B:{b}, C{c}')
+    
+        rgb_color = np.uint8([[[r, g, b]]])
+
+        # Convert the RGB color to HSV
+        hsv_color = cv2.cvtColor(rgb_color, cv2.COLOR_RGB2HSV)
+
+        # Extract the Hue, Saturation, and Value (Brightness) components
+        hue = hsv_color[0][0][0]
+        saturation = hsv_color[0][0][1]
+        value = hsv_color[0][0][2]
+
+        # Define thresholds for detecting a white line
+        # White in HSV has a low saturation and high value (brightness)
+        if saturation < 30 and value > 200:
+            return True  # White line detected
+        else:
+            return False  # No white line detected
+
+
+
         # clear refers to the measurement of total light intensity falling on the sensor
 
         #print(f"Raw Colour Data - Red:{r}, Green:{g}, Blue: {b}, Clear:{c}")
@@ -237,12 +258,12 @@ class Sys4_Vision:
         #bright value 
         #clear =300
         #dark value
-        clear =60
-        if c > clear: # This is a Line
+        #clear =60
+        #if c > clear: # This is a Line
 
-            return True
-        else: 
-            return False
+            #return True
+        #else: 
+            #return False
         
 
     def saveImage(self):
