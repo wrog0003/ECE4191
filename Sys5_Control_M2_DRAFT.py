@@ -423,11 +423,12 @@ class Sys5_Control:
             speed = 70 # set the drive speed 
             pauseTime = 0.5 # how long in secs the robot should drive forwards for 
 
-            if (distance <  0.55): # if robot is less than 0.55 m from ball 
+            if (distance <  0.6): # if robot is less than 0.55 m from ball 
                 speed = 50 # reduce speed of robot
             
-            if (distance < 0.50): # close to ball, drive forwards until you hit it
-                speed = 60 
+            if (distance < 0.30): # close to ball, drive forwards until you hit it
+                print(distance)
+                speed = 50 
                 pauseTime = 3
                 noHit = False
 
@@ -497,6 +498,8 @@ class Sys5_Control:
             self._forwards(speed)
             self.ballCollection.addBallToSystem()
             self.numBalls += 1
+            self._forwards(50)
+            self._delay(0.5)
             self._stop()
             
             print(f'Reached {self.x_pos}, {self.y_pos} with rot of {self.rot}\n')
@@ -935,7 +938,7 @@ class Sys5_Control:
                 print('Search Pattern Complete')
                 self.hitBall() # collect the ball 
                 print('ball hit')
-            self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
+            #self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
             self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
             self.numBalls = 0 # reset the number of balls collected to zero 
         self.timeout = False # reset timeout so that goto box functions normanlly
