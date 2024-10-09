@@ -3,9 +3,9 @@
 import cv2
 from ECE4191enums import DIRECTION
 import numpy as np
-#import adafruit_tcs34725
-# import board
-# import busio
+import adafruit_tcs34725
+import board
+import busio
 
 class Sys4_Vision:
     '''
@@ -185,7 +185,7 @@ class Sys4_Vision:
                     frame_center_x = frame.shape[1] // 2
 
                     # Determine the distance to the Box 
-                    distance = self.aspcectRatioBox / w #get the distance to the box from the camera
+                    distance = self.aspcectRatioBox / h #get the distance to the box from the camera
                     if not self.rpi: # show image if running on laptop 
                         cv2.imshow("Image", mask)
                         cv2.imshow("frame",frame)
