@@ -16,15 +16,15 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
-    lower_brown =(15, 40, 50) #V was 100
+    lower_brown =(25, 40, 50) #V was 100
     upper_brown = (50, 180, 255)
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
     # Parameters for the box 
     # /TODO NEED TO ADJUST FOR ACTUAL BOX DIMENSIONS
-    boxLength = 0.35
-    boxWidth = 0.18
+    boxLength = 0.45
+    boxWidth = 0.16
 
     
 
@@ -169,7 +169,7 @@ class Sys4_Vision:
 
                 # Check if the approximated contour has 4 points (likely a rectangle) 
                 #TODO consider that a box may not be 4 if vied from any other angle that head on 
-                if len(approx) >=4 or len(approx) <=8:
+                if len(approx) >=4:
                     # Draw the contour and bounding box on the frame
                     x, y, w, h = cv2.boundingRect(approx)
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -220,8 +220,9 @@ class Sys4_Vision:
         # clear refers to the measurement of total light intensity falling on the sensor
 
         #print(f"Raw Colour Data - Red:{r}, Green:{g}, Blue: {b}, Clear:{c}")
+        #TODO
+        if c > 300: # This is a Line
 
-        if c > 130: # This is a Line
             return True
         else: 
             return False

@@ -570,7 +570,7 @@ class Sys5_Control:
                 direction, speed, pauseTime, noHit, line_detected = self.goToBoxSettings() # inside this function, the vision check is run
                 
                 if (line_detected): # if line is detected, turn the robot to avoid the line, assigned the highest priority
-                    self.lineFoundResponse
+                    self.lineFoundResponse()
                 
                 else: # move to the ball 
 
@@ -650,6 +650,8 @@ class Sys5_Control:
 
         # make the robot turn this angle
         self.turnAngle(speed, angle)
+        self._forwards(50)
+        self._delay(1)
 
 
         return 
