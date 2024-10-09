@@ -66,7 +66,7 @@ class SysC_BallCollection:
     
     def unloadBalls(self)->None:
         '''Unloads the system of balls and resets the ball count'''
-        for i in range(10):
+        for i in range(7):
             self.addBallToSystem()
             sleep(0.5)
         # self.servo.start(60)

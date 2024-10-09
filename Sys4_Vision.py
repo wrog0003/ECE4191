@@ -63,7 +63,7 @@ class Sys4_Vision:
         self.image = None 
         '''Variable to store the image captured '''
         self.aspcectRatioBall = Sys4_Vision.known_radius*Sys4_Vision.focal_length
-        self.aspcectRatioBox = Sys4_Vision.boxHieght*Sys4_Vision.focal_length/3
+        self.aspcectRatioBox = Sys4_Vision.boxHieght*Sys4_Vision.focal_length/2
 
         
         
@@ -87,6 +87,7 @@ class Sys4_Vision:
         result, self.image = self.cap.read() # get image 
         distance = -1 # define as a non possible value 
         if result:
+            print("ball enter correctly")
             # blur to reduce artifacts
             blurred = cv2.GaussianBlur(self.image, (11, 11), 0)
             # filter image 
@@ -121,7 +122,7 @@ class Sys4_Vision:
                 if abs(center[0]-self.midpoint)<self.tolerance:
                     distance = self.aspcectRatioBall / radius #get the distance to the ball from the camera 
                     if distance >8:
-                        (DIRECTION.CannotFind, line_present, distance)
+                        return (DIRECTION.CannotFind, line_present, distance)
                     else:
                         return (DIRECTION.Ahead, line_present ,distance)
                 elif center[0] < self.midpoint:

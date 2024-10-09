@@ -121,7 +121,7 @@ class Sys5_Control:
         self.RActivePin = None # allows correct motor access to the controller 
 
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
-        self.capacity = 1 # Maximum number of tennis balls that can be stored in the conveyor system. 
+        self.capacity = 2 # Maximum number of tennis balls that can be stored in the conveyor system. 
         self.numBalls = 0 # Number of balls collected by the robot on any given run.  
         self.ballCollection = SysC_BallCollection(12,9)
         self.cycles = 0 
@@ -540,18 +540,18 @@ class Sys5_Control:
             if (distance <  0.55): # if robot is less than 0.55 m from box 
                 speed = 50 # reduce speed of robot
             
-            if (distance < 0.45): # close to box, drive forwards until in range to deposit the ball 
+            if (distance < 0.3): # close to box, drive forwards until in range to deposit the ball 
                 print("hitting")
-                speed = 50 
-                pauseTime = 3
+                speed = 60 
+                pauseTime = 5
                 noHit = False
 
         elif (direction == DIRECTION.CannotFind):
-            speed = 30
+            speed = 50
             pauseTime = 0.1
 
         else: # ball is in field of view but is either left or right
-            speed = 30
+            speed = 40
             pauseTime = 0.1
         
         return direction, speed, pauseTime, noHit, line_detected
@@ -966,11 +966,11 @@ class Sys5_Control:
 
     def CalibrationTest(self)->None:
         '''Basic calibration test to ensure all motors and encoders are connected correctly'''
-        #self._forwards(50)
-        #self._delay(2)
+        self._forwards(50)
+        self._delay(2)
         
         self._backwards(50)
-        self._delay(3)
+        self._delay(1)
         self._turn(50,ANTICLOCKWISE)
         self._delay(2)
         self._turn(50,CLOCKWISE)
@@ -988,13 +988,13 @@ if __name__ == "__main__":
 
     # actions to do, do not use anything starting with _ 
     #robot.CalibrationTest()
-    # robot.goToBox()
+    robot.goToBox()
     
     #robot.Deposit()
     
     #robot.Deposit()
     #robot.hitBall()
-    robot.retrieveBalls()
+    #robot.retrieveBalls()
     #robot.searchPattern()
     #robot.hitBall()
 
