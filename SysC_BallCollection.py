@@ -55,7 +55,7 @@ class SysC_BallCollection:
 
         Outputs:    True if the number of balls is the maximum for the system'''
         print('Here')
-        self.servo.start(60) #run the conveyer
+        self.servo.start(55) #run the conveyer
         sleep(SysC_BallCollection.LOADTIME) # run the conveyer for the correct amount of time 
         self.servo.stop() # stop the conveyer 
         return self.ballCount >=SysC_BallCollection.MAXBALLS # check if the system is full

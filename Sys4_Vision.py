@@ -237,7 +237,7 @@ class Sys4_Vision:
         #bright value 
         #clear =300
         #dark value
-        clear =90
+        clear =60
         if c > clear: # This is a Line
 
             return True

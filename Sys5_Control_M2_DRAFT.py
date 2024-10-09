@@ -426,8 +426,8 @@ class Sys5_Control:
             if (distance <  0.55): # if robot is less than 0.55 m from ball 
                 speed = 50 # reduce speed of robot
             
-            if (distance < 0.40): # close to ball, drive forwards until you hit it
-                speed = 50 
+            if (distance < 0.50): # close to ball, drive forwards until you hit it
+                speed = 60 
                 pauseTime = 3
                 noHit = False
 
@@ -535,10 +535,10 @@ class Sys5_Control:
             if (distance <  0.55): # if robot is less than 0.55 m from box 
                 speed = 50 # reduce speed of robot
             
-            if (distance < 0.50): # close to box, drive forwards until in range to deposit the ball 
+            if (distance < 0.45): # close to box, drive forwards until in range to deposit the ball 
                 print("hitting")
                 speed = 50 
-                pauseTime = 2.5
+                pauseTime = 3
                 noHit = False
 
         elif (direction == DIRECTION.CannotFind):
