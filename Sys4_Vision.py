@@ -3,9 +3,9 @@
 import cv2
 from ECE4191enums import DIRECTION
 import numpy as np
-import adafruit_tcs34725
-import board
-import busio
+#import adafruit_tcs34725
+# import board
+# import busio
 
 class Sys4_Vision:
     '''
@@ -16,8 +16,8 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
-    lower_brown =(25, 40, 50) #V was 100
-    upper_brown = (50, 180, 255)
+    lower_brown =(15, 40, 5) #H was 25
+    upper_brown = (50, 180, 70)
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
@@ -44,7 +44,7 @@ class Sys4_Vision:
         if rpi:
             self.cap = cv2.VideoCapture(0) 
         else:
-            self.cap =cv2.VideoCapture(0, cv2.CAP_DSHOW) 
+            self.cap =cv2.VideoCapture(1, cv2.CAP_DSHOW) 
             print("accesed")
         result, image = self.cap.read() # get the first image 
         self.midpoint = image.shape[1]/2 # define where the middle of the image is 
@@ -153,11 +153,13 @@ class Sys4_Vision:
 
             # Find contours
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            if not self.rpi: # show image if running on laptop 
-                cv2.imshow("Mask", mask)
+            
 
             # run line detection check 
-            line_present = self.lineDetection()
+            if self.rpi:
+                line_present = self.lineDetection()
+            else:
+                line_present = False
             #line_present = 0
             if contours:
                 # Find the largest contour (which is likely the box)
@@ -185,7 +187,8 @@ class Sys4_Vision:
                     # Determine the distance to the Box 
                     distance = self.aspcectRatioBox / w #get the distance to the box from the camera
                     if not self.rpi: # show image if running on laptop 
-                        cv2.imshow("Image", frame)
+                        cv2.imshow("Image", mask)
+                        cv2.imshow("frame",frame)
                     # Determine the direction to the box and return the direction, if there is a line present and the distance to the box 
                     if center_x < frame_center_x - 50:
                         return (DIRECTION.Left, line_present, distance)
@@ -244,7 +247,7 @@ class Sys4_Vision:
 
 if __name__ == "__main__":
     from time import sleep
-    looker = Sys4_Vision(True)
+    looker = Sys4_Vision(False)
     sleep(0.5) # wait for camera
     
     while True:
@@ -254,9 +257,9 @@ if __name__ == "__main__":
             break
         
         #result = looker.detect()
-        result2 = looker.lineDetection()
-        #result = looker.detectBox()
-        print(result2)
+        #result2 = looker.lineDetection()
+        result = looker.detectBox()
+        print(result)
         sleep(0.2)
 
     looker.disconnect() 
