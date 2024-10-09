@@ -26,6 +26,8 @@ class Sys4_Vision:
     lower_brown = (0, 0, 106)
     upper_brown = (90,25,137)
 
+    #tune these on the day 
+
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
@@ -244,7 +246,7 @@ class Sys4_Vision:
 
         # Define thresholds for detecting a white line
         # White in HSV has a low saturation and high value (brightness)
-        if saturation < 30 and value > 200:
+        if saturation < 30 and value > 200: #TODO tune these values on the day
             return True  # White line detected
         else:
             return False  # No white line detected
