@@ -19,12 +19,12 @@ class Sys4_Vision:
     lower_brown = (10, 20, 50)#(15, 40, 5) #H was 25
     upper_brown = (40,150,230)#upper_brown = (50, 180, 255)
     # #good for well lit
-    # lower_brown = (10, 20, 50)
-    # upper_brown = (40,150,230)
+    lower_brown = (10, 20, 50)
+    upper_brown = (40,150,230)
 
     #good for poor lit
-    lower_brown = (0, 0, 106)
-    upper_brown = (90,25,137)
+    # lower_brown = (0, 0, 106)
+    # upper_brown = (90,25,137)
 
     #tune these on the day 
 
@@ -35,7 +35,7 @@ class Sys4_Vision:
     # /TODO NEED TO ADJUST FOR ACTUAL BOX DIMENSIONS
     boxLength = 0.45
     boxWidth = 0.16
-    boxHieght =0.18
+    boxHieght =0.1
 
     
 
@@ -120,7 +120,10 @@ class Sys4_Vision:
                 
                 if abs(center[0]-self.midpoint)<self.tolerance:
                     distance = self.aspcectRatioBall / radius #get the distance to the ball from the camera 
-                    return (DIRECTION.Ahead, line_present ,distance)
+                    if distance >8:
+                        (DIRECTION.CannotFind, line_present, distance)
+                    else:
+                        return (DIRECTION.Ahead, line_present ,distance)
                 elif center[0] < self.midpoint:
                     return (DIRECTION.Left, line_present , distance)
                 else:
@@ -152,6 +155,7 @@ class Sys4_Vision:
         result, frame = self.cap.read() # Captures the image
         distance = -1 # define as a non possible value 
         if result:
+            print("correct entry")
             blurred = cv2.GaussianBlur(frame, (11, 11), 0)
             hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
@@ -198,6 +202,9 @@ class Sys4_Vision:
 
                     # Determine the distance to the Box 
                     distance = self.aspcectRatioBox / h #get the distance to the box from the camera
+                    if distance >8:
+                        return (DIRECTION.CannotFind, False, -1)
+                    
                     if not self.rpi: # show image if running on laptop 
                         cv2.imshow("Image", mask)
                         cv2.imshow("frame",frame)
@@ -208,10 +215,13 @@ class Sys4_Vision:
                         return (DIRECTION.Right, line_present, distance)
                     else:
                         return (DIRECTION.Ahead, line_present, distance)
-
+                else: 
+                    return (DIRECTION.CannotFind, False, -1)
             else: 
                 distance = -1 # Box could not be found 
                 return (DIRECTION.CannotFind, line_present, distance)
+        else: 
+            return (DIRECTION.CannotFind, False, -1)
             
 
 

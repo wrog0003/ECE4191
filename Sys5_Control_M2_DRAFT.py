@@ -121,9 +121,11 @@ class Sys5_Control:
         self.RActivePin = None # allows correct motor access to the controller 
 
         # Self variables to keep track of the number of balls collected and the capacity of the conveyor storage. 
-        self.capacity = 2 # Maximum number of tennis balls that can be stored in the conveyor system. 
+        self.capacity = 1 # Maximum number of tennis balls that can be stored in the conveyor system. 
         self.numBalls = 0 # Number of balls collected by the robot on any given run.  
         self.ballCollection = SysC_BallCollection(12,9)
+        self.cycles = 0 
+        '''Number of cycles completed, should never get higher than 2'''
 
 
         # Timeout flag to tell the robot when to return to home and how long it should collect and deposit balls for 
@@ -901,6 +903,7 @@ class Sys5_Control:
             
 
             print('Depositing')
+            self._stop()
             self.ballCollection.unloadBalls() #unload all balls
             self._backwards(70)
             self._delay(1)
@@ -938,9 +941,16 @@ class Sys5_Control:
                 print('Search Pattern Complete')
                 self.hitBall() # collect the ball 
                 print('ball hit')
-            #self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
+            self.goToBox() # Navigate to the box from wherever the robot is when the number of balls reaches capacity.  
             self.Deposit() # One within range of the box perform a 180 degree rotation and deposit the balls. 
             self.numBalls = 0 # reset the number of balls collected to zero 
+            self.cycles +=1 # incrment number of cycles 
+            #to ensure that it removes all 5 balls and does not try to 
+            if self.cycles >=2: # for once it has removed 4 balls
+                self.capacity = 1 # collect 5th ball
+            if self.cycles>=3: # reset back to normal 
+                self.cycles=0
+                self.capacity =2
         self.timeout = False # reset timeout so that goto box functions normanlly
         if self.numBalls ==0:
             return
