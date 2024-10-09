@@ -987,8 +987,8 @@ if __name__ == "__main__":
     robot = Sys5_Control()
 
     # actions to do, do not use anything starting with _ 
-    robot.CalibrationTest()
-    #robot.goToBox()
+    #robot.CalibrationTest()
+    robot.goToBox()
     
     #robot.Deposit()
     

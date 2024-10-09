@@ -35,7 +35,7 @@ class Sys4_Vision:
     # /TODO NEED TO ADJUST FOR ACTUAL BOX DIMENSIONS
     boxLength = 0.45
     boxWidth = 0.16
-    boxHieght =0.1
+    boxHieght =0.13
 
     
 
@@ -227,7 +227,7 @@ class Sys4_Vision:
     def lineDetection(self)-> bool:
         '''Returns if a line was detected
         '''
-        
+        return False 
         # Parameters/setup for colour sensor
         # set up I2C communication with the sensor
         i2c = busio.I2C(board.SCL, board.SDA)
