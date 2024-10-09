@@ -25,6 +25,7 @@ class Sys4_Vision:
     # /TODO NEED TO ADJUST FOR ACTUAL BOX DIMENSIONS
     boxLength = 0.45
     boxWidth = 0.16
+    boxHieght =0.18
 
     
 
