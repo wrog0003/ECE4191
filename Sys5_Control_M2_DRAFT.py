@@ -129,7 +129,7 @@ class Sys5_Control:
         # Timeout flag to tell the robot when to return to home and how long it should collect and deposit balls for 
         self.timeout = False 
         
-        self.endtime = time() + 60*4
+        self.endtime = time() + 60*9
         ''' sets the time at which the robot will stop search for balls and depoit them'''
 
             
