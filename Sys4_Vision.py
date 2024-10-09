@@ -40,7 +40,7 @@ class Sys4_Vision:
     
 
     #init
-    def __init__(self, rpi: bool = True, tolerance: int =100 )-> None:
+    def __init__(self, rpi: bool = True, tolerance: int =50 )-> None:
         '''
         This function creates an instance of the vision class
         
@@ -218,7 +218,7 @@ class Sys4_Vision:
     def lineDetection(self)-> bool:
         '''Returns if a line was detected
         '''
-
+        return False
         # Parameters/setup for colour sensor
         # set up I2C communication with the sensor
         i2c = busio.I2C(board.SCL, board.SDA)

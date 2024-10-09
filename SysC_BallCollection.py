@@ -54,17 +54,24 @@ class SysC_BallCollection:
         '''Moves the conveyer enough to lock a ball into the system
 
         Outputs:    True if the number of balls is the maximum for the system'''
-        print('Here')
-        self.servo.start(55) #run the conveyer
-        sleep(SysC_BallCollection.LOADTIME) # run the conveyer for the correct amount of time 
+        
+        self.servo.start(60) #run the conveyer
+        sleep(SysC_BallCollection.LOADTIME/2) # run the conveyer for the correct amount of time 
         self.servo.stop() # stop the conveyer 
+        sleep(0.5)
+        self.servo.start(60) #run the conveyer
+        sleep(SysC_BallCollection.LOADTIME/2) # run the conveyer for the correct amount of time 
+        self.servo.stop() # stop the conveyer
         return self.ballCount >=SysC_BallCollection.MAXBALLS # check if the system is full
     
     def unloadBalls(self)->None:
         '''Unloads the system of balls and resets the ball count'''
-        self.servo.start(60)
-        sleep(SysC_BallCollection.UNLOADTIME) # wait for a full period of the tracks 
-        self.servo.stop()
+        for i in range(10):
+            self.addBallToSystem()
+            sleep(0.5)
+        # self.servo.start(60)
+        # sleep(SysC_BallCollection.UNLOADTIME) # wait for a full period of the tracks 
+        # self.servo.stop()
         self._ResetBallCount() # reset the ball count
 
     def __str__(self)->str:
