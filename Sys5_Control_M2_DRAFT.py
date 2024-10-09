@@ -76,10 +76,10 @@ class Sys5_Control:
         GPIO.setup(motor2b, GPIO.OUT)
 
         # Set up the PWM pins
-        self.pwm1a = GPIO.PWM(motor1a,1000)
-        self.pwm1b = GPIO.PWM(motor1b,1000)
-        self.pwm2a = GPIO.PWM(motor2a,1000)
-        self.pwm2b = GPIO.PWM(motor2b,1000)
+        self.pwm1a = GPIO.PWM(motor1a,500)
+        self.pwm1b = GPIO.PWM(motor1b,500)
+        self.pwm2a = GPIO.PWM(motor2a,500)
+        self.pwm2b = GPIO.PWM(motor2b,500)
         self.pwm1a.stop()
         self.pwm1b.stop()
         self.pwm2a.stop()
@@ -148,7 +148,7 @@ class Sys5_Control:
         '''
         # duty cycle = controls speed of robot (0 - 100)
         # output: return the state of the robot
-
+        print("x")
         # drive the motor forwards 
         self.pwm1a.start(0)
         self.pwm2a.start(0)
@@ -435,11 +435,11 @@ class Sys5_Control:
                 noHit = False
 
         elif (direction == DIRECTION.CannotFind):
-            speed = 30
+            speed = 35
             pauseTime = 0.1
 
         else: # ball is in field of view but is either left or right
-            speed = 30
+            speed = 35
             pauseTime = 0.1
         
         return direction, speed, pauseTime, noHit, line_detected
@@ -540,10 +540,10 @@ class Sys5_Control:
             if (distance <  0.55): # if robot is less than 0.55 m from box 
                 speed = 50 # reduce speed of robot
             
-            if (distance < 0.3): # close to box, drive forwards until in range to deposit the ball 
+            if (distance < 0.18): # close to box, drive forwards until in range to deposit the ball 
                 print("hitting")
-                speed = 60 
-                pauseTime = 5
+                speed = 50 
+                pauseTime = 3
                 noHit = False
 
         elif (direction == DIRECTION.CannotFind):
@@ -551,7 +551,7 @@ class Sys5_Control:
             pauseTime = 0.1
 
         else: # ball is in field of view but is either left or right
-            speed = 40
+            speed = 30
             pauseTime = 0.1
         
         return direction, speed, pauseTime, noHit, line_detected
@@ -624,7 +624,7 @@ class Sys5_Control:
             none 
         '''
         
-        speed = 30 # set speed
+        speed = 35 # set speed
         self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # determine OG pos
 
         # Backs away from the ball for 3 seconds
@@ -651,7 +651,7 @@ class Sys5_Control:
         # set angle of rotation 
         angle = 120 # 120 degree rotation 
 
-        speed = 30 # set a speed for rotation
+        speed = 35 # set a speed for rotation
 
         # make the robot turn this angle
         self.turnAngle(speed, angle)
@@ -809,7 +809,7 @@ class Sys5_Control:
             none 
         '''
         try:
-            speed = 30 # speed at which robot will move on its journey home
+            speed = 35 # speed at which robot will move on its journey home
             print(f' at X {self.x_pos}, Y {self.y_pos}, rot {self.rot}\n')
 
             # calculate angle to return home
@@ -853,8 +853,8 @@ class Sys5_Control:
         print('running search pattern')
 
         # define speed constants 
-        turn_speed = 30
-        forward_speed = 30
+        turn_speed = 35
+        forward_speed = 35
         #self.x_pos, self.y_pos, self.rot = self._updatePos(self.x_pos,self.y_pos,self.rot) # update position
 
         try: 
@@ -966,14 +966,14 @@ class Sys5_Control:
 
     def CalibrationTest(self)->None:
         '''Basic calibration test to ensure all motors and encoders are connected correctly'''
-        self._forwards(50)
+        self._forwards(30)
         self._delay(2)
         
-        self._backwards(50)
+        self._backwards(30)
         self._delay(1)
-        self._turn(50,ANTICLOCKWISE)
+        self._turn(30,ANTICLOCKWISE)
         self._delay(2)
-        self._turn(50,CLOCKWISE)
+        self._turn(30,CLOCKWISE)
         self._delay(2)
         self._stop() 
         print("Test run")
@@ -987,8 +987,8 @@ if __name__ == "__main__":
     robot = Sys5_Control()
 
     # actions to do, do not use anything starting with _ 
-    #robot.CalibrationTest()
-    robot.goToBox()
+    robot.CalibrationTest()
+    #robot.goToBox()
     
     #robot.Deposit()
     

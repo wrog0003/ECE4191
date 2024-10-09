@@ -87,7 +87,6 @@ class Sys4_Vision:
         result, self.image = self.cap.read() # get image 
         distance = -1 # define as a non possible value 
         if result:
-            print("ball enter correctly")
             # blur to reduce artifacts
             blurred = cv2.GaussianBlur(self.image, (11, 11), 0)
             # filter image 
@@ -156,7 +155,6 @@ class Sys4_Vision:
         result, frame = self.cap.read() # Captures the image
         distance = -1 # define as a non possible value 
         if result:
-            print("correct entry")
             blurred = cv2.GaussianBlur(frame, (11, 11), 0)
             hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
@@ -210,9 +208,9 @@ class Sys4_Vision:
                         cv2.imshow("Image", mask)
                         cv2.imshow("frame",frame)
                     # Determine the direction to the box and return the direction, if there is a line present and the distance to the box 
-                    if center_x < frame_center_x - 50:
+                    if center_x < frame_center_x - 25:
                         return (DIRECTION.Left, line_present, distance)
-                    elif center_x > frame_center_x + 50:
+                    elif center_x > frame_center_x + 25:
                         return (DIRECTION.Right, line_present, distance)
                     else:
                         return (DIRECTION.Ahead, line_present, distance)
@@ -229,7 +227,7 @@ class Sys4_Vision:
     def lineDetection(self)-> bool:
         '''Returns if a line was detected
         '''
-        return False
+        
         # Parameters/setup for colour sensor
         # set up I2C communication with the sensor
         i2c = busio.I2C(board.SCL, board.SDA)
@@ -243,7 +241,7 @@ class Sys4_Vision:
 
         r, g, b, c = sensor.color_raw 
 
-        print('R:{r}, G:{g}, B:{b}, C{c}')
+        print(f'R:{r}, G:{g}, B:{b}, C{c}')
     
         rgb_color = np.uint8([[[r, g, b]]])
 
@@ -254,7 +252,7 @@ class Sys4_Vision:
         hue = hsv_color[0][0][0]
         saturation = hsv_color[0][0][1]
         value = hsv_color[0][0][2]
-
+        print(f'H{hue}, S {saturation}, V{value}')
         # Define thresholds for detecting a white line
         # White in HSV has a low saturation and high value (brightness)
         if saturation < 30 and value > 200: #TODO tune these values on the day
@@ -295,7 +293,7 @@ class Sys4_Vision:
 
 if __name__ == "__main__":
     from time import sleep
-    looker = Sys4_Vision(False)
+    looker = Sys4_Vision(True)
     sleep(0.5) # wait for camera
     
     while True:
@@ -304,10 +302,10 @@ if __name__ == "__main__":
         if key == 27: #ESC Key to exit
             break
         
-        result = looker.detect()
-        #result2 = looker.lineDetection()
+        #result = looker.detect()
+        result2 = looker.lineDetection()
         #result = looker.detectBox()
-        print(result)
+        print(result2)
         sleep(0.2)
 
     looker.disconnect() 
