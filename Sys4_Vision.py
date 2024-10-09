@@ -234,7 +234,11 @@ class Sys4_Vision:
 
         #print(f"Raw Colour Data - Red:{r}, Green:{g}, Blue: {b}, Clear:{c}")
         #TODO
-        if c > 300: # This is a Line
+        #bright value 
+        #clear =300
+        #dark value
+        clear =90
+        if c > clear: # This is a Line
 
             return True
         else: 
