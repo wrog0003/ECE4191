@@ -428,7 +428,7 @@ class Sys5_Control:
             
             if (distance < 0.40): # close to ball, drive forwards until you hit it
                 speed = 50 
-                pauseTime = 4
+                pauseTime = 3
                 noHit = False
 
         elif (direction == DIRECTION.CannotFind):

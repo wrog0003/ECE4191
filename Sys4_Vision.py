@@ -29,7 +29,7 @@ class Sys4_Vision:
     
 
     #init
-    def __init__(self, rpi: bool = True, tolerance: int =50 )-> None:
+    def __init__(self, rpi: bool = True, tolerance: int =100 )-> None:
         '''
         This function creates an instance of the vision class
         
