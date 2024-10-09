@@ -16,8 +16,16 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
-    lower_brown = (15, 40, 50)#(15, 40, 5) #H was 25
-    upper_brown = (50, 180, 255)
+    lower_brown = (10, 20, 50)#(15, 40, 5) #H was 25
+    upper_brown = (40,150,230)#upper_brown = (50, 180, 255)
+    # #good for well lit
+    # lower_brown = (10, 20, 50)
+    # upper_brown = (40,150,230)
+
+    #good for poor lit
+    lower_brown = (0, 0, 106)
+    upper_brown = (90,25,137)
+
     known_radius = 0.03  # Tennis ball radius in m. Must be changed based on what sized tennis ball is being used. 
     focal_length = 1470  # Adjust based on camera's focal length (in pixels). Could not find on datasheet for the camera so might just need to tweak during testing to determine exact focal length
     
@@ -53,7 +61,7 @@ class Sys4_Vision:
         self.image = None 
         '''Variable to store the image captured '''
         self.aspcectRatioBall = Sys4_Vision.known_radius*Sys4_Vision.focal_length
-        self.aspcectRatioBox = Sys4_Vision.boxLength*Sys4_Vision.focal_length
+        self.aspcectRatioBox = Sys4_Vision.boxHieght*Sys4_Vision.focal_length/3
 
         
         
@@ -142,7 +150,8 @@ class Sys4_Vision:
         result, frame = self.cap.read() # Captures the image
         distance = -1 # define as a non possible value 
         if result:
-            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+            hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
             # Mask for the brown color
             mask = cv2.inRange(hsv, Sys4_Vision.lower_brown, Sys4_Vision.upper_brown)
