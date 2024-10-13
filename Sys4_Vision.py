@@ -3,9 +3,9 @@
 import cv2
 from ECE4191enums import DIRECTION
 import numpy as np
-import adafruit_tcs34725
-import board
-import busio
+#import adafruit_tcs34725
+#import board
+#import busio
 
 class Sys4_Vision:
     '''
@@ -16,15 +16,18 @@ class Sys4_Vision:
     #Class variables
     greenLower = (29, 86, 30) # ball colour
     greenUpper = (50, 255, 255) # upper limit for the ball color first value used to be 64 
-    lower_brown = (10, 20, 50)#(15, 40, 5) #H was 25
-    upper_brown = (40,150,230)#upper_brown = (50, 180, 255)
+    #lower_brown = (10, 20, 50)#(15, 40, 5) #H was 25
+    #upper_brown = (40,150,230)#upper_brown = (50, 180, 255)
     # #good for well lit
     lower_brown = (10, 20, 50)
     upper_brown = (40,150,230)
 
     #good for poor lit
-    # lower_brown = (0, 0, 106)
-    # upper_brown = (90,25,137)
+    #lower_brown = (0, 0, 106)
+    #upper_brown = (90,25,137)
+    #calibrated values
+    # lower_brown = (0, 0, 132)
+    # upper_brown = (120,255,255)
 
     #tune these on the day 
 
@@ -293,7 +296,7 @@ class Sys4_Vision:
 
 if __name__ == "__main__":
     from time import sleep
-    looker = Sys4_Vision(True)
+    looker = Sys4_Vision(False)
     sleep(0.5) # wait for camera
     
     while True:
@@ -303,9 +306,9 @@ if __name__ == "__main__":
             break
         
         #result = looker.detect()
-        result2 = looker.lineDetection()
-        #result = looker.detectBox()
-        print(result2)
+        #result2 = looker.lineDetection()
+        result = looker.detectBox()
+        print(result)
         sleep(0.2)
 
     looker.disconnect() 
